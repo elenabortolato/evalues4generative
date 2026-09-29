@@ -1,0 +1,6 @@
+M=  1  type-I=0.030  power=0.780  median stop=371.0
+M=  2  type-I=0.030  power=0.960  median stop=282.0
+M=  4  type-I=0.035  power=0.990  median stop=227.0
+M=  8  type-I=0.030  power=0.990  median stop=212.0
+M= 16  type-I=0.020  power=0.995  median stop=202.0
+M= 64  type-I=0.015  power=1.000  median stop=207.0

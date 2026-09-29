@@ -1,0 +1,5 @@
+[null] 75s  reject by T=400: mc=0.028  mc_uncond=1.000  plugin=0.055  oracle=0.043  ttest=0.388
+        pull share per arm: [0.067, 0.155, 0.778]
+[alt] 67s  reject by T=400: mc=1.000  mc_uncond=1.000  plugin=1.000  oracle=1.000  ttest=1.000
+        pull share per arm: [0.653, 0.09, 0.256]
+        median stopping time: mc=49.0  mc_uncond=40.0  plugin=44.0  oracle=15.0  ttest=30.0

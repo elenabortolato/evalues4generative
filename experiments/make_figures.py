@@ -29,7 +29,7 @@ plt.rcParams.update({
 })
 
 
-def panel(ax, curves, styles, alpha, title, null):
+def panel(ax, curves, styles, alpha, title, null, labels=True, xmax=None):
     t = np.arange(1, len(next(iter(curves.values()))) + 1)
     ends = []
     for key, (label, color, ls) in styles.items():
@@ -38,20 +38,40 @@ def panel(ax, curves, styles, alpha, title, null):
         ends.append([y[-1], label, color])
     if null:
         ax.axhline(alpha, color=INK2, lw=1, ls=":")
-        ax.text(t[0], alpha, f" α = {alpha}", color=INK2, va="bottom", fontsize=8)
-    # direct labels at line ends, nudged apart
-    ends.sort(key=lambda e: e[0])
-    gap = 0.055
-    for i in range(1, len(ends)):
-        ends[i][0] = max(ends[i][0], ends[i - 1][0] + gap)
-    for y, label, color in ends:
-        ax.annotate(label, (t[-1], y), xytext=(6, 0), textcoords="offset points",
-                    va="center", fontsize=8.5, color=INK)
+        ax.text(t[-1] * 0.98, alpha + 0.012, f"α = {alpha}", color=INK2, ha="right",
+                va="bottom", fontsize=8)
+    if not labels:
+        ax.set_title(title, color=INK)
+        ax.set_xlim(1, xmax or t[-1])
+        ax.set_ylim(0, 1.02)
+        ax.set_xlabel("time step t")
+        return
+    # direct labels at line ends: marker at the true value, text nudged apart
+    # within [0, 1] (top-down pass, then bottom-up pass)
+    ends.sort(key=lambda e: -e[0])
+    gap = 0.06
+    ys = [min(e[0], 1.0) for e in ends]
+    for i in range(1, len(ys)):
+        ys[i] = min(ys[i], ys[i - 1] - gap)
+    for i in range(len(ys) - 2, -1, -1):
+        ys[i] = max(ys[i], ys[i + 1] + gap)
+    shift = max(0.0, -ys[-1])
+    for (y, label, color), ly in zip(ends, ys):
         ax.plot([t[-1]], [y], marker="o", ms=4, color=color, clip_on=False)
+        ax.annotate(label, (t[-1], y), xytext=(t[-1] * 1.02, ly + shift),
+                    textcoords="data", va="center", fontsize=8.5, color=INK,
+                    annotation_clip=False)
     ax.set_title(title, color=INK)
     ax.set_xlim(1, t[-1])
     ax.set_ylim(0, 1.02)
     ax.set_xlabel("time step t")
+
+
+def legend(fig, styles, y):
+    from matplotlib.lines import Line2D
+    handles = [Line2D([], [], color=c, lw=2, ls=ls) for _, c, ls in styles.values()]
+    fig.legend(handles, [lab for lab, _, _ in styles.values()], loc="upper left",
+               bbox_to_anchor=(0.01, y), ncol=min(len(styles), 4 if len(styles) <= 4 else 3), frameon=False, fontsize=9)
 
 
 def fig_exp1():
@@ -70,7 +90,8 @@ def fig_exp1():
         axes[i, 0].set_ylabel("P(rejected by time t)")
     fig.suptitle("Exp. 1: monitoring a black-box generative model for drift",
                  x=0.01, ha="left", fontweight="bold")
-    fig.tight_layout(rect=(0, 0, 0.93, 0.97))
+    fig.tight_layout(rect=(0, 0, 0.93, 0.94))
+    legend(fig, styles, 0.965)
     fig.savefig(FIG / "exp1_generative_drift.png", dpi=150)
 
 
@@ -82,13 +103,16 @@ def fig_exp2():
               "ttest": ("t-test, peeking", SLOT[2], "-"),
               "mc_uncond": ("MC e-value, twin NOT conditioned on arm", SLOT[3], "-"),
               "oracle": ("oracle LR", REF, "--")}
-    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4), sharey=True)
-    panel(axes[0], r["null"]["curves"], styles, a, "H0 true: false alarms", null=True)
-    panel(axes[1], r["alt"]["curves"], styles, a, "H1 true: detections", null=False)
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.4), sharey=True)
+    panel(axes[0], r["null"]["curves"], styles, a, "H0 true: false alarms", null=True,
+          labels=False)
+    panel(axes[1], r["alt"]["curves"], styles, a, "H1 true: detections (first 150 steps)",
+          null=False, labels=False, xmax=150)
     axes[0].set_ylabel("P(rejected by time t)")
     fig.suptitle("Exp. 2: Thompson-sampling bandit checked against a digital twin",
                  x=0.01, ha="left", fontweight="bold")
-    fig.tight_layout(rect=(0, 0, 0.86, 0.95))
+    fig.tight_layout(rect=(0, 0, 1, 0.82))
+    legend(fig, styles, 0.93)
     fig.savefig(FIG / "exp2_adaptive_bandit.png", dpi=150)
 
 
@@ -107,10 +131,11 @@ def fig_exp3():
         (axes[1], powr, "Power (H1 true)", "P(reject by T)"),
         (axes[2], stop, "Median stopping time (H1)", "steps"),
     ]:
+        ax.set_axisbelow(True)
         ax.bar(x, y, width=0.6, color=SLOT[0])
         for xi, yi in zip(x, y):
             if np.isfinite(yi):
-                ax.annotate(f"{yi:.2f}" if yi < 2 else f"{yi:.0f}", (xi, yi),
+                ax.annotate(f"{yi:.3f}" if yi < 2 else f"{yi:.0f}", (xi, yi),
                             xytext=(0, 3), textcoords="offset points",
                             ha="center", fontsize=8, color=INK)
         ax.set_xticks(x, [str(m) for m in ms])
