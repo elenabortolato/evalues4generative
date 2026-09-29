@@ -185,10 +185,45 @@ def fig_exp4():
     fig.savefig(FIG / "exp4_growth_rate.png", dpi=150)
 
 
+def fig_exp5():
+    r = json.loads((RES / "exp5.json").read_text())
+    panels = [
+        ("drift", "Generative drift (400 runs)",
+         [("regularised", "refit, degree 4"), ("blr-deg4-mean", "BLR mean, degree 4"),
+          ("blr-deg4-predictive", "BLR predictive, degree 4"), ("flexible", "refit, degree 6"),
+          ("blr-deg6-mean", "BLR mean, degree 6"), ("blr-deg6-predictive", "BLR predictive, degree 6")]),
+        ("bandit", "Adaptive bandit (400 runs)",
+         [("refit", "refit"), ("blr-mean", "BLR mean"), ("blr-predictive", "BLR predictive")]),
+    ]
+    color = {"refit": SLOT[1], "mean": SLOT[2], "predictive": SLOT[0]}
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2), gridspec_kw={"width_ratios": [2, 1.2]})
+    for ax, (task, title, rows) in zip(axes, panels):
+        y = np.arange(len(rows))[::-1]
+        for yi, (key, lab) in zip(y, rows):
+            alt = r[task][key]["alt"]["mc"]
+            null = r[task][key]["null"]["mc"]
+            kind = "predictive" if "predictive" in key else "mean" if "mean" in key else "refit"
+            ax.barh(yi, alt["median_stop"], height=0.6, color=color[kind])
+            ax.annotate(f"{alt['median_stop']:.0f}  (power {alt['reject']:.2f}, "
+                        f"false alarms {null['reject']:.3f})", (alt["median_stop"], yi),
+                        xytext=(4, 0), textcoords="offset points", va="center",
+                        fontsize=8, color=INK)
+        ax.set_yticks(y, [lab for _, lab in rows])
+        ax.set_axisbelow(True)
+        ax.grid(axis="y", visible=False)
+        ax.set_xlabel("median stopping time under H1 (steps)")
+        ax.set_title(title, color=INK)
+        ax.set_xlim(0, max(r[task][k]["alt"]["mc"]["median_stop"] for k, _ in rows) * 1.9)
+    fig.suptitle("Exp. 5: updating the score at every step with the Bayesian learning rule",
+                 x=0.01, ha="left", fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.savefig(FIG / "exp5_bayesian_learning_rule.png", dpi=150)
+
+
 if __name__ == "__main__":
     FIG.mkdir(exist_ok=True)
     for f, name in [(fig_exp1, "exp1"), (fig_exp2, "exp2"), (fig_exp3, "exp3"),
-                      (fig_exp4, "exp4")]:
+                      (fig_exp4, "exp4"), (fig_exp5, "exp5")]:
         if (RES / f"{name}.json").exists():
             f()
             print("wrote", name)

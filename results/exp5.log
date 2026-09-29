@@ -1,0 +1,9 @@
+drift  regularised            false alarms mc=0.030 plugin=0.102 | power mc=0.990 median stop=198.0
+drift  flexible               false alarms mc=0.028 plugin=0.588 | power mc=0.838 median stop=320.0
+drift  blr-deg4-predictive    false alarms mc=0.018 plugin=0.372 | power mc=0.983 median stop=209.0
+drift  blr-deg4-mean          false alarms mc=0.030 plugin=0.593 | power mc=0.965 median stop=237.5
+drift  blr-deg6-predictive    false alarms mc=0.015 plugin=0.525 | power mc=0.965 median stop=213.5
+drift  blr-deg6-mean          false alarms mc=0.033 plugin=0.743 | power mc=0.940 median stop=242.0
+bandit refit                  false alarms mc=0.028 uncond=1.000 plugin=0.055 | power mc=1.000 median stop=49.0
+bandit blr-predictive         false alarms mc=0.030 uncond=1.000 plugin=0.138 | power mc=1.000 median stop=38.0
+bandit blr-mean               false alarms mc=0.025 uncond=1.000 plugin=0.292 | power mc=1.000 median stop=51.0

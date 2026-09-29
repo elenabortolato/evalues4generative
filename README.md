@@ -115,6 +115,55 @@ In practice, one simulator draw per real observation roughly halves the growth
 rate and doubles the time to detection; M ≈ 9 keeps 90%. Experiment 3 agrees:
 the median stopping time at M = 1 is 1.8 times that at M = 64.
 
+### Experiment 5: updating the score at every step with the Bayesian learning rule
+
+In experiments 1–4 the learner was refitted every 10 steps, after a 20-step
+burn-in. `e4g.BLRRatio` replaces that with a Gaussian posterior over the
+real-vs-simulator ratio model, updated at **every** step by one
+natural-gradient step. This is the Bayesian learning rule (Khan & Rue, JMLR
+2023) in its online form (BONG; Jones, Chang & Murphy, NeurIPS 2024). There
+is no burn-in and no refitting, and each update costs O(d²). The bet uses
+either:
+- the **posterior predictive** log-odds, κμ, which shrink the bet where the
+  posterior is uncertain; or
+- the **posterior mean**, μ.
+
+The seeds are the same as in experiments 1–2, so the real data are identical;
+400 replications each.
+
+| task | learner | false alarms | power | median stop (H1) |
+|---|---|---|---|---|
+| drift, degree 4 | refit point estimate | 0.030 | 0.990 | 198 |
+| | BLR, posterior mean | 0.030 | 0.965 | 238 |
+| | **BLR, predictive** | 0.018 | 0.983 | 209 |
+| drift, degree 6 (flexible) | refit point estimate | 0.028 | 0.838 | 320 |
+| | BLR, posterior mean | 0.033 | 0.940 | 242 |
+| | **BLR, predictive** | 0.015 | **0.965** | **214** |
+| bandit | refit point estimate | 0.028 | 1.000 | 49 |
+| | BLR, posterior mean | 0.025 | 1.000 | 51 |
+| | **BLR, predictive** | 0.030 | 1.000 | **38** |
+
+![exp5](figures/exp5_bayesian_learning_rule.png)
+
+- **Predictive beats posterior mean in every setting.** Shrinking under
+  uncertainty is what Theorem 1 asks for, since overconfident scores lose
+  growth.
+- **The Bayesian predictive makes the method insensitive to feature
+  flexibility.** With degree-6 features, the refit learner overfits
+  (power 0.84, median 320), while BLR-predictive nearly matches the degree-4
+  results (0.965, median 214).
+- **It is the fastest learner in the bandit** (median 38 vs 49).
+- **With well-regularised degree-4 features it is on par with refitting**
+  (median 209 vs 198), at a fraction of the computational cost.
+- **Validity is unchanged, as it must be.** But the posterior does not make
+  the plug-in bet valid: using the learned ratio directly as the bet still
+  gives 14–74% false alarms with BLR scores.
+
+Proposition 3 of the proposal explains why predictive scores are the right
+target. Under an exponential tilt of the simulator, and with unlimited
+simulations, the Monte Carlo e-process with posterior-predictive scores is
+exactly the Bayes factor. The total learning cost is then (d/2) log t.
+
 ## Novelty
 
 See [LITERATURE.md](LITERATURE.md). In short, the parts are known: Besag–Clifford
@@ -152,10 +201,12 @@ paper, has been read.
 ```
 LITERATURE.md       related-work table and novelty claims
 e4g/evalues.py      Monte Carlo factor, plug-in factor, lambda-mixture, product process
-e4g/learners.py     online balanced logistic ratio estimator (polynomial features)
+e4g/learners.py     online balanced logistic ratio estimator (polynomial features);
+                    BLRRatio, Bayesian-learning-rule posterior updated every step
 e4g/monitor.py      runs the competing e-processes side by side
 experiments/        exp1_generative_drift.py, exp2_adaptive_bandit.py,
-                    exp3_simulation_budget.py, exp4_growth_rate.py, make_figures.py
+                    exp3_simulation_budget.py, exp4_growth_rate.py,
+                    exp5_bayesian_learning_rule.py, make_figures.py
 tests/              exactness tests (E[E_t] = 1 for arbitrary scores, etc.)
 results/            JSON results and run logs; figures/  PNG figures
 ```
@@ -167,6 +218,7 @@ python experiments/exp1_generative_drift.py      # ~10 min on 4 cores
 python experiments/exp2_adaptive_bandit.py       # ~2.5 min
 python experiments/exp3_simulation_budget.py     # ~4 min
 python experiments/exp4_growth_rate.py          # ~2 min
+python experiments/exp5_bayesian_learning_rule.py  # ~25 min
 python experiments/make_figures.py
 ```
 
