@@ -8,7 +8,7 @@ Standard LaTeX (natbib, amsthm). Figures are read from `../figures/`.
 cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
 ```
 
-`main.pdf` (13 pages) was **not** produced by pdflatex: no TeX distribution
+`main.pdf` (17 pages) was **not** produced by pdflatex: no TeX distribution
 could be installed in the drafting container. `build_pdf.py` renders it
 instead, LaTeX → HTML → Chromium print-to-PDF, with KaTeX setting the
 mathematics:
@@ -38,7 +38,8 @@ citations and no unresolved references. Prefer pdflatex once TeX is available.
 | Table 2, Figure 2 | `results/exp2.json` (`experiments/exp2_adaptive_bandit.py`) |
 | Table 3 | `results/exp3.json` (`experiments/exp3_simulation_budget.py`) |
 | Figure 3 and Section 6.3 bullets | `results/exp4.json` (`experiments/exp4_growth_rate.py`) |
-| Table 4, Figure 4 | `results/exp5.json` (`experiments/exp5_bayesian_learning_rule.py`) |
+| Table 4, Figure 4 | `results/exp5.json`, `results/exp5b.json` (`experiments/exp5_bayesian_learning_rule.py`, `exp5b_predictive_scales.py`) |
+| Table 5 | `results/exp6.json` (`experiments/exp6_compare_besag_clifford.py`) |
 
 ## Before submission
 

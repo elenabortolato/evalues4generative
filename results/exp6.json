@@ -1,0 +1,84 @@
+{
+ "config": {
+  "reps": 400,
+  "horizon": 500,
+  "m": 16,
+  "alpha": 0.05
+ },
+ "null": {
+  "LR|allin": {
+   "reject": 0.045,
+   "median_stop": null
+  },
+  "LR|agrapa": {
+   "reject": 0.01,
+   "median_stop": null
+  },
+  "LR|mixture": {
+   "reject": 0.0175,
+   "median_stop": null
+  },
+  "MLE|allin": {
+   "reject": 0.0225,
+   "median_stop": null
+  },
+  "MLE|agrapa": {
+   "reject": 0.01,
+   "median_stop": null
+  },
+  "MLE|mixture": {
+   "reject": 0.01,
+   "median_stop": null
+  },
+  "BLR|allin": {
+   "reject": 0.0275,
+   "median_stop": null
+  },
+  "BLR|agrapa": {
+   "reject": 0.005,
+   "median_stop": null
+  },
+  "BLR|mixture": {
+   "reject": 0.0175,
+   "median_stop": null
+  }
+ },
+ "alt": {
+  "LR|allin": {
+   "reject": 1.0,
+   "median_stop": 36.0
+  },
+  "LR|agrapa": {
+   "reject": 1.0,
+   "median_stop": 66.0
+  },
+  "LR|mixture": {
+   "reject": 1.0,
+   "median_stop": 48.0
+  },
+  "MLE|allin": {
+   "reject": 1.0,
+   "median_stop": 57.5
+  },
+  "MLE|agrapa": {
+   "reject": 1.0,
+   "median_stop": 86.0
+  },
+  "MLE|mixture": {
+   "reject": 1.0,
+   "median_stop": 68.0
+  },
+  "BLR|allin": {
+   "reject": 0.405,
+   "median_stop": null
+  },
+  "BLR|agrapa": {
+   "reject": 0.9375,
+   "median_stop": 288.5
+  },
+  "BLR|mixture": {
+   "reject": 0.9825,
+   "median_stop": 209.0
+  }
+ }
+}

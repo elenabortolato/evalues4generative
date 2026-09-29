@@ -170,6 +170,26 @@ target. Under an exponential tilt of the simulator, and with unlimited
 simulations, the Monte Carlo e-process with posterior-predictive scores is
 exactly the Bayes factor. The total learning cost is then (d/2) log t.
 
+### Experiment 6: head-to-head with the Besag–Clifford e-process
+
+This is the drift task (an i.i.d. null, so the method of Dombowsky et al. 2026
+applies), with identical data and simulator draws, M = 16, and 400
+replications. Entries are median stopping times under H1; power is in
+brackets where it is below 1.
+
+| statistic (what it needs) | all-in (λ = 1) | aGRAPA | our λ-mixture |
+|---|---|---|---|
+| likelihood ratio (both densities + true alternative) | **36** | 66 | 48 |
+| plug-in MLE (density of the parametric family) | 58 | 86 | 68 |
+| BLR predictive (**simulator samples only**) | — (0.41) | 289 (0.94) | **209** (0.98) |
+
+False alarms are at most 4.5% everywhere.
+- When their statistic is available, their method is 3.5–6 times faster.
+- With a learned score, all-in betting fails, and our λ-mixture is the right
+  choice.
+- In the adaptive bandit their i.i.d. formulation rejects a true null in every
+  run (experiment 2).
+
 ## Novelty
 
 See [LITERATURE.md](LITERATURE.md). In short, the parts are known: Besag–Clifford
@@ -228,6 +248,7 @@ python experiments/exp3_simulation_budget.py     # ~4 min
 python experiments/exp4_growth_rate.py          # ~2 min
 python experiments/exp5_bayesian_learning_rule.py  # ~25 min
 python experiments/exp5b_predictive_scales.py      # ~10 min
+python experiments/exp6_compare_besag_clifford.py  # ~4 min
 python experiments/make_figures.py
 ```
 

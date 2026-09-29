@@ -319,24 +319,30 @@ class Builder:
         body = re.sub(r"\\\[(.*?)\\\]", disp, body, flags=re.S)
 
         # lists
-        def listenv(text, name, tag):
-            for a, b, inner in list(find_env(text, name))[::-1]:
-                items = [x.strip() for x in inner.split("\\item") if x.strip()]
-                lis, labelled = [], False
-                for x in items:
-                    m = re.match(r"\[([^\]]*)\]\s*", x)
-                    if m:
-                        labelled = True
-                        lis.append(f'<li><span class="itemlab">{self.text(m.group(1))}</span> '
-                                   f"{self.text(x[m.end():])}</li>")
-                    else:
-                        lis.append(f"<li>{self.text(x)}</li>")
-                cls = ' class="labelled"' if labelled else ""
-                text = text[:a] + self.hole(f"<{tag}{cls}>{''.join(lis)}</{tag}>") + text[b:]
-            return text
+        def render_list(tag, inner):
+            items = [x.strip() for x in inner.split("\\item") if x.strip()]
+            lis, labelled = [], False
+            for x in items:
+                m = re.match(r"\[([^\]]*)\]\s*", x)
+                if m:
+                    labelled = True
+                    lis.append(f'<li><span class="itemlab">{self.text(m.group(1))}</span> '
+                               f"{self.text(x[m.end():])}</li>")
+                else:
+                    lis.append(f"<li>{self.text(x)}</li>")
+            cls = ' class="labelled"' if labelled else ""
+            return self.hole(f"<{tag}{cls}>{''.join(lis)}</{tag}>")
 
-        body = listenv(body, "itemize", "ul")
-        body = listenv(body, "enumerate", "ol")
+        # innermost lists first, so nesting of any depth and kind works
+        innermost = re.compile(
+            r"\\begin\{(itemize|enumerate)\}"
+            r"((?:(?!\\begin\{(?:itemize|enumerate)\}).)*?)\\end\{\1\}", re.S)
+        while True:
+            m = innermost.search(body)
+            if not m:
+                break
+            tag = "ul" if m.group(1) == "itemize" else "ol"
+            body = body[:m.start()] + render_list(tag, m.group(2)) + body[m.end():]
 
         # centred standalone tabulars (the \begin{center} blocks)
         for a, b, inner in list(find_env(body, "center"))[::-1]:

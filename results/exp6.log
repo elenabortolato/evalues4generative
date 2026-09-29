@@ -1,0 +1,12 @@
+[null] 97s
+[alt] 102s
+statistic  betting  false alarms  power  median
+LR         allin           0.045  1.000 36.0
+LR         agrapa          0.010  1.000 66.0
+LR         mixture         0.018  1.000 48.0
+MLE        allin           0.022  1.000 57.5
+MLE        agrapa          0.010  1.000 86.0
+MLE        mixture         0.010  1.000 68.0
+BLR        allin           0.028  0.405 None
+BLR        agrapa          0.005  0.938 288.5
+BLR        mixture         0.018  0.983 209.0

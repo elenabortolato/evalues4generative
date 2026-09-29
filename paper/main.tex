@@ -137,8 +137,10 @@ chosen from the data, and a discrepancy that is unknown and must be
                 posterior is approximate.
         \end{itemize}
   \item \textbf{Experiments} on a drifting generative model and a
-        Thompson-sampling bandit checked against a digital twin, together with
-        a numerical check of the theory.
+        Thompson-sampling bandit checked against a digital twin, a numerical
+        check of the theory, and a head-to-head comparison with the
+        Besag--Clifford e-process that quantifies the price of learning the
+        discrepancy (Section~\ref{sec:exp-bc}).
 \end{enumerate}
 
 Several ingredients are known:
@@ -784,6 +786,73 @@ Table~\ref{tab:blr} and Figure~\ref{fig:blr} show four effects:
 False alarms stay between 1.3\% and 3.3\% for every score. The posterior does not make the
 plug-in valid: using the BLR odds directly as the bet gives between 14\% and
 74\% false alarms, and 100\% on the ratio scale.
+
+\subsection{Comparison with the Besag--Clifford e-process}\label{sec:exp-bc}
+
+On the drift task the null is i.i.d., so the Besag--Clifford e-process of
+\citet{dombowsky2026besag} applies directly. We compare statistics and betting
+strategies on identical data and identical simulator draws ($M = 16$).
+\begin{itemize}
+  \item \textbf{Statistics:}
+        \begin{itemize}
+          \item the likelihood ratio recommended by their Theorem~1, which
+                requires both densities and the true alternative (an oracle);
+          \item their plug-in approach for a composite alternative (their
+                Sections~3.2 and~6.3), with the maximum-likelihood curvature
+                computed from past data only, which requires the density of the
+                parametric family;
+          \item our BLR predictive score, which requires only samples from the
+                simulator.
+        \end{itemize}
+  \item \textbf{Betting:} all-in ($\lambda = 1$, their likelihood-ratio
+        process), aGRAPA \citep{waudbysmith2024estimating}, and the mixture
+        \eqref{eq:wealth}.
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\caption{Besag--Clifford e-process with different statistics and betting
+strategies on the drift task (400 replications). Entries: false-alarm rate,
+power, median stopping time.}
+\label{tab:bc}
+\begin{tabular}{llrrr}
+\toprule
+statistic (requires) & betting & false alarms & power & median stop \\
+\midrule
+likelihood ratio (both densities, true alternative) & all-in & 0.045 & 1.000 & 36 \\
+ & aGRAPA & 0.010 & 1.000 & 66 \\
+ & mixture & 0.018 & 1.000 & 48 \\
+plug-in MLE (density of the parametric family) & all-in & 0.022 & 1.000 & 58 \\
+ & aGRAPA & 0.010 & 1.000 & 86 \\
+ & mixture & 0.010 & 1.000 & 68 \\
+BLR predictive (simulator samples only) & all-in & 0.028 & 0.405 & -- \\
+ & aGRAPA & 0.005 & 0.938 & 289 \\
+ & mixture & 0.018 & 0.983 & 209 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:bc} quantifies the price of not knowing the model.
+\begin{itemize}
+  \item When the likelihood ratio is available, the Monte Carlo normalisation
+        costs almost nothing: the median stopping time with $M = 16$ is 36,
+        against 35 for the exact oracle (Table~\ref{tab:drift}), as their
+        Theorem~1 predicts.
+  \item Knowing the parametric family of the drift is worth a factor of about
+        3.5 in stopping time over learning it from samples (58 against 209).
+  \item With a learned score, all-in betting fails: early misspecified bets
+        drive the wealth towards zero, and power falls to 0.41. The mixture over
+        $\lambda$ is the right strategy for learned scores, and it is faster
+        than aGRAPA (209 against 289).
+\end{itemize}
+The two approaches are therefore complementary. When the null density is
+known up to a constant and the alternative is parametric, the Besag--Clifford
+statistic of \citet{dombowsky2026besag} should be used. When the simulator is
+a black box, only a learned score is available, and the results of
+Sections~\ref{sec:power}--\ref{sec:scores} govern its power. In adaptive
+designs their i.i.d.\ formulation does not apply: simulating without
+conditioning on the action rejects a true null in every run
+(Table~\ref{tab:bandit}).
 
 %======================================================================
 \section{Related work}\label{sec:related}
