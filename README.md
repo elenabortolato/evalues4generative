@@ -190,7 +190,32 @@ False alarms are at most 4.5% everywhere.
 - In the adaptive bandit their i.i.d. formulation rejects a true null in every
   run (experiment 2).
 
-### Experiment 8: real data, a COVID-19 transmission twin for Italy
+### Experiments 8b and 9: real data, Italy 2020–2021
+
+These are the paper's Section 8.
+
+**Experiment 9: regional colour zones.** The 21 regions were assigned
+white/yellow/orange/red by ordinance, with 392 changes. The twin is calibrated
+on 13 Nov–20 Dec 2020, which gives orange ×0.88 and red ×0.79 on R, and
+monitored 21 Dec 2020–31 Dec 2021.
+
+- **Synthetic check (data-driven zones):**
+  - zone-conditioned monitor: **1.9%** false alarms per region, 1% nationally;
+  - twin that ignores the zones: **21%** per region and **100%** nationally.
+- **Real data:**
+  - the national monitor alarms on 14 Mar 2021;
+  - alarms cluster when white zones became common (Jun–Jul 2021);
+  - the autumn-2020 zone effects did not carry over into early 2021.
+
+**Experiment 8b: national daily deaths, May 2020–Dec 2021.** The twin uses the
+stringency index with a 21-day lag.
+
+- **Synthetic check:** 1.5% false alarms, against 100% for a twin with the
+  policy held fixed and 41% for a recomputed t-test.
+- **Real data:** 10 alarms, at the post-lockdown decline, the second-wave
+  onset, the Christmas period, the third wave, and summer 2021.
+
+### Experiment 8: national ICU admissions 2021–2022 (earlier version)
 
 This uses Italy's national daily ICU admissions (Protezione Civile) and the
 OxCGRT stringency index, December 2020 to December 2022 (`data/`). The twin is
@@ -274,6 +299,8 @@ python experiments/exp5b_predictive_scales.py      # ~10 min
 python experiments/exp6_compare_besag_clifford.py  # ~4 min
 python experiments/exp7_artificial_pancreas.py     # ~1 h
 python experiments/exp8_italy_covid.py             # ~2 min
+python experiments/exp8b_italy_deaths_2020_2021.py # ~1 min
+python experiments/exp9_italy_regions.py           # ~7 min
 python experiments/make_figures.py
 ```
 

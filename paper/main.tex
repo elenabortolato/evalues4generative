@@ -55,9 +55,10 @@ factor. We compute it online with one natural-gradient step of the Bayesian
 learning rule per observation.
 In experiments with a drifting generative model and a Thompson-sampling bandit
 checked against a digital twin, the method keeps false alarms below the
-nominal level. Applied to Italy's national COVID-19 ICU admissions under
-data-driven restrictions, it shows when a calibrated transmission twin stops
-describing the epidemic. By contrast, using a learned ratio directly as the bet gives up
+nominal level. Applied to Italian COVID-19 data from 2020 and 2021, where
+regions were assigned to restriction tiers from the data, it is valid only
+when conditioned on the tiers, and it shows when a calibrated transmission
+twin stops describing the epidemic. By contrast, using a learned ratio directly as the bet gives up
 to 59\% false alarms, and re-running fixed-sample tests 32--39\%, at
 $\alpha = 0.05$. Predictive scores recover the power lost by overfitting
 learners.
@@ -145,9 +146,10 @@ chosen from the data, and a discrepancy that is unknown and must be
         discrepancy (Section~\ref{sec:exp-bc}).
   \item \textbf{Two applications.} An artificial pancreas monitored against
         the UVA/Padova type 1 diabetes simulator (Section~\ref{sec:application}),
-        and real data: a COVID-19 transmission twin for Italy, monitored on
-        national ICU admissions under data-driven restrictions from 2021 to
-        2022 (Section~\ref{sec:italy}).
+        and real data: COVID-19 transmission twins for Italy in 2020--2021,
+        monitored region by region under the colour-coded restriction tiers,
+        and nationally on daily deaths from spring 2020
+        (Section~\ref{sec:italy}).
 \end{enumerate}
 
 Several ingredients are known:
@@ -1058,29 +1060,26 @@ records, such as those collected in closed-loop trials, would be the next
 step.
 
 %======================================================================
-\section{Real data: COVID-19 transmission twins for Italy}\label{sec:italy}
+\section{Real data: COVID-19 in Italy, 2020--2021}\label{sec:italy}
 %======================================================================
 
 \paragraph{The question.} During the COVID-19 pandemic, transmission models
-calibrated on recent data were used to project hospital and intensive-care
-demand and to decide restrictions. A calibrated model of this kind is a
-digital twin of the epidemic, and the practical question is again whether it
-still describes the data. Restrictions were themselves set in response to the
-epidemic. From November 2020 Italy assigned its regions to colour-coded tiers
-by rules based on incidence and reproduction-number indicators. Policy is
-therefore an action chosen from past data, the setting of
-Theorem~\ref{thm:valid}.
-
-We present two analyses. The first uses the regional colour zones, where
-the actions are explicit decisions (Section~\ref{sec:italy-regions}). The
-second uses national ICU admissions with a continuous stringency index
-(Section~\ref{sec:italy-national}).
+calibrated on recent data were used to project hospital demand and deaths and
+to decide restrictions. A calibrated model of this kind is a digital twin of
+the epidemic, and the practical question is again whether it still describes
+the data. Restrictions were themselves set in response to the epidemic, so
+policy is an action chosen from past data, the setting of
+Theorem~\ref{thm:valid}. We analyse the core period of the pandemic, 2020 and
+2021, in two ways. The first uses the regional colour zones, where the actions
+are explicit decisions (Section~\ref{sec:italy-regions}). The second uses
+national daily deaths under a continuous stringency index, starting in spring
+2020 (Section~\ref{sec:italy-national}).
 
 \subsection{Regional colour zones: explicit, data-driven actions}\label{sec:italy-regions}
 
-\paragraph{The actions.} From 6~November 2020 to spring 2022, each of Italy's
-21 regions and autonomous provinces was placed every week, by government
-ordinance, in one of four zones:
+\paragraph{The actions.} From 6~November 2020, each of Italy's 21 regions and
+autonomous provinces was placed every week, by government ordinance, in one of
+four zones:
 \begin{itemize}
   \item \textbf{white:} almost no restrictions;
   \item \textbf{yellow:} curfew, and restaurants closed in the evening;
@@ -1088,18 +1087,16 @@ ordinance, in one of four zones:
         restricted;
   \item \textbf{red:} a near-lockdown.
 \end{itemize}
-The assignment followed published rules based on incidence, the
-reproduction number and hospital indicators, so each action is an explicit,
-discrete decision taken from the data. The actions change often: there are
-392 changes of colour across the 21 regions, a median of 19 per region. Before
-July 2021, 43\% of region-days were yellow, 32\% orange, 17\% red and 8\%
-white.
+The assignment followed published rules based on incidence, the reproduction
+number and hospital indicators, so each action is an explicit, discrete
+decision taken from the data. The actions change often: 392 changes of colour
+over the 21 regions, a median of 19 per region. Before July 2021, 43\% of
+region-days were yellow, 32\% orange, 17\% red and 8\% white.
 
 \paragraph{Data.} Daily new positives for each region come from the Civil
-Protection Department \citep{dpc2020covid}. The daily colour of each region
-comes from a public compilation of the ordinances
-\citep{imcatta2022restrizioni}. Together they cover 6~November 2020 to
-15~May 2022 (\texttt{data/italy\_regions\_daily.csv}).
+Protection Department \citep{dpc2020covid}, and the daily colour of each region
+from a public compilation of the ordinances \citep{imcatta2022restrizioni}
+(\texttt{data/italy\_regions\_daily.csv}).
 
 \paragraph{The twin.} For region $r$, daily new positives follow a negative
 binomial distribution with mean
@@ -1111,271 +1108,236 @@ with the following components:
 \begin{itemize}
   \item a baseline $a_r$ for each region;
   \item zone effects $\beta$ relative to yellow, shared across regions and
-        acting with a seven-day lag;
+        acting with a seven-day lag, constrained so that red is at least as
+        restrictive as orange and orange as yellow;
   \item shared day-of-week factors $\delta$ and overdispersion $k$;
-  \item a week-level shock $\varepsilon \sim \mathcal N(0, \sigma^2)$, which
-        represents reporting and testing variability that is common to the
-        days of a week.
+  \item a week-level shock $\varepsilon \sim \mathcal N(0, \sigma^2)$ for
+        reporting and testing variability that is common to the days of a
+        week.
 \end{itemize}
+The twin is calibrated on the first weeks of the zone system, 13~November to
+20~December 2020, before monitoring starts. The mean parameters are fitted by
+pooled maximum likelihood. $\sigma$ is chosen so that one-week-ahead 90\%
+intervals for weekly totals cover 90\% of region-weeks in that window, which
+gives $\sigma = 0.10$. The estimated zone effects are clear: orange multiplies
+$R$ by 0.88 and red by 0.79. White zones began only in March 2021, so the twin
+treats them as yellow. As a sensitivity analysis we also use orange
+$\times 0.85$ and red $\times 0.70$.
 
-All parameters are estimated on 13~November 2020 to 28~February 2021, before
-monitoring starts, so the twin is predictable:
-\begin{itemize}
-  \item $a$, $\beta$, $\delta$ and $k$ by pooled maximum likelihood;
-  \item $\sigma$ by requiring one-week-ahead 90\% intervals for weekly totals
-        to cover 90\% of region-weeks in that window, which gives $\sigma = 0.10$.
-\end{itemize}
-Two further choices are needed:
-\begin{itemize}
-  \item \textbf{Ordering.} We impose red $\le$ orange $\le$ yellow. Without the
-        constraint, reverse causation (regions turned red because cases were
-        growing) makes red look less restrictive than orange.
-  \item \textbf{White zones.} They began on 1~March 2021, so their effect cannot
-        be estimated before monitoring, and the twin treats white as yellow.
-\end{itemize}
-The estimated effect is modest: orange and red both multiply $R$ by 0.94.
-This is probably attenuated by the same confounding, so we also report a
-sensitivity analysis with orange $\times 0.85$ and red $\times 0.70$.
-
-\paragraph{Monitoring.} From 1~March 2021, each region is monitored every
-week. Its twin simulates the region's next seven days $M = 16$ times, under
-the zone the region was actually assigned. Because zones act with a
-seven-day lag, those zones are known when the week starts, and
-Theorem~\ref{thm:valid} applies exactly. After an alarm, the region's baseline
-$a_r$ is recalibrated on its last eight weeks and a new monitor starts. Two
-further tools use the multiplicity of regions:
+\paragraph{Monitoring.} From 21~December 2020 to 31~December 2021 (53 weeks),
+each region is monitored every week. Its twin simulates the region's next seven
+days $M = 16$ times, under the zone the region was actually assigned. Zones act
+with a seven-day lag, so the zones that matter are known when the week starts,
+and Theorem~\ref{thm:valid} applies exactly. After an alarm, the region's
+baseline $a_r$ is recalibrated on its last eight weeks and a new monitor
+starts. Two further tools exploit the multiplicity of regions:
 \begin{itemize}
   \item \textbf{A national monitor.} Under the twin, regions are conditionally
-        independent given their pasts. The average of the 21 regional wealth
-        processes (with the frozen twin, no recalibration) is then a test
-        martingale for the null that the twin holds in \emph{every} region.
-  \item \textbf{Which regions.} The e-BH procedure \citep{wang2022false}, applied
-        to the regional e-values stopped at their first crossing, identifies
-        the regions whose twin fails, with false-discovery-rate control.
+        independent given their pasts, so the average of the 21 regional
+        wealth processes (frozen twin, no recalibration) is a test martingale
+        for the null that the twin holds in \emph{every} region.
+  \item \textbf{Which regions.} e-BH \citep{wang2022false}, applied to the
+        regional e-values stopped at their first crossing, identifies the
+        regions whose twin fails, with false-discovery-rate control.
 \end{itemize}
 
 \paragraph{Validity where the truth is known.} We generate the 21 regional
 series from the twin, with zones assigned every week by a documented rule
 that mimics the official one: red, orange, yellow or white when the previous
 week's cases exceed 250, 150 or 50 per 100\,000 inhabitants, or none of
-these. We compare four monitors: ours; the same monitor with a twin that
-assumes every region is always yellow, i.e.\ ignores the actions; the plug-in
-bet; and a $t$-test recomputed weekly. There are 100 null replications for
-each setting of the zone effects, and 60 replications with a variant that
-multiplies transmission by 1.3 in every region from week 8.
+these. We compare four monitors:
+\begin{itemize}
+  \item ours;
+  \item the same monitor with a twin that assumes every region is always
+        yellow, i.e.\ ignores the actions;
+  \item the plug-in bet;
+  \item a $t$-test recomputed weekly.
+\end{itemize}
+We run 100 null replications for each set of zone effects, and 60 replications
+with a variant that multiplies transmission by 1.3 in every region from week 8.
 
 \begin{table}[t]
 \centering
-\caption{Synthetic regional series with data-driven zones (62 weeks,
+\caption{Synthetic regional series with data-driven zones (53 weeks,
 21 regions). Regional: share of region-runs with a false alarm. National: share
-of runs in which the average-of-wealths monitor rejects. Variant: detection
-by the national monitor and median delay in weeks.}
+of runs in which the average-of-wealths monitor rejects. Variant (estimated
+effects): detection by the national monitor and median delay in weeks.}
 \label{tab:regions}
 \begin{tabular}{lrrrrr}
 \toprule
- & \multicolumn{2}{c}{estimated effects} & \multicolumn{2}{c}{strong effects} & variant \\
+ & \multicolumn{2}{c}{estimated effects} & \multicolumn{2}{c}{sensitivity effects} & variant \\
 monitor & regional & national & regional & national & national \\
 \midrule
-MC e-process, zone-conditioned twin & 0.020 & 0.01 & 0.019 & 0.02 & 1.00, 8 \\
-twin assuming ``always yellow'' & 0.031 & 0.03 & 0.131 & 0.29 & 1.00, 10 \\
-plug-in bet & 0.426 & -- & 0.429 & -- & -- \\
-$t$-test, recomputed weekly & 0.335 & -- & 0.318 & -- & -- \\
+MC e-process, zone-conditioned twin & 0.019 & 0.01 & 0.015 & 0.01 & 1.00, 8 \\
+twin assuming ``always yellow'' & 0.210 & 1.00 & 0.225 & 1.00 & 0.87, 8 \\
+plug-in bet & 0.534 & -- & 0.508 & -- & -- \\
+$t$-test, recomputed weekly & 0.319 & -- & 0.297 & -- & -- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Table~\ref{tab:regions} shows the role of the actions directly.
 \begin{itemize}
-  \item \textbf{The zone-conditioned monitor is valid} in both settings (2\%
-        regional, 1--2\% national false alarms).
-  \item \textbf{Ignoring the actions is safe only when they barely matter.} With
-        the small estimated effects it is nearly valid (3\%). When zones have
-        the strong effects, it raises false alarms in 13\% of region-runs, and
-        the national monitor built on it rejects a true null in 29\% of runs.
-        In the variant scenario with strong effects, the ``always yellow'' twin
-        detects the variant in only 28\% of region-runs, because its
-        mispredictions of the zone effects swamp the signal. The conditioned
-        monitor detects it in 99.5\%.
-  \item \textbf{The plug-in and recomputed-test baselines fail}, with false
-        alarms in 43\% and 32--34\% of region-runs.
+  \item \textbf{The zone-conditioned monitor is valid:} 1.5--1.9\% of
+        region-runs and 1\% of national runs raise a false alarm.
+  \item \textbf{Ignoring the actions is not.} The ``always yellow'' twin raises
+        false alarms in 21--23\% of region-runs, and the national monitor built
+        on it rejects a true null in \emph{every} run. With the variant, 13\%
+        of its national runs alarm before the variant appears, and it detects
+        the variant in only 39\% of region-runs, against 99\% for the
+        conditioned monitor.
+  \item \textbf{The plug-in bet and the recomputed test fail}, with false
+        alarms in about half and a third of region-runs.
   \item \textbf{Detection.} The national monitor detects the variant in every
-        run, after a median of eight weeks; individual regions take longer (a
+        run, after a median of eight weeks. Single regions need longer (a
         median of 13 weeks), because each has less data.
 \end{itemize}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{exp9_italy_regions.png}
-\caption{Italy's regional colour zones, March 2021 to May 2022. Top: the zone
-assigned to each region (cells) and the monitor's alarms (triangles), after
-each of which the region's twin is recalibrated. Bottom: the national monitor,
-the average of the 21 regional wealths for the frozen twin, with the threshold
-$\log 20$.}
+\caption{Italy's regional colour zones, December 2020 to December 2021. Top:
+the zone assigned to each region (cells) and the monitor's alarms (triangles),
+after each of which the region's twin is recalibrated. Bottom: the national
+monitor, the average of the 21 regional wealths for the frozen twin, with the
+threshold $\log 20$.}
 \label{fig:regions}
 \end{figure}
 
 \paragraph{Results on the real data.} Figure~\ref{fig:regions} shows the
 analysis.
 \begin{itemize}
-  \item \textbf{Conditioning on the zones helps prediction out of sample.} Over
-        the first twelve weeks, the observed weekly total falls inside the
-        twin's 90\% interval in 79\% of region-weeks, against 75\% for the twin
-        that ignores the zones. Coverage below 90\% already shows that the
-        frozen twin is imperfect.
-  \item \textbf{National monitor.} It rejects the twin on 13~June 2021.
-  \item \textbf{Which regions.} e-BH rejects the original twin in all 21
-        regions by the end of the period.
-  \item \textbf{Regional alarms.} There are 100 in total, a median of five per
-        region and between 0 and 10. They cluster in two periods: July to
-        September 2021 (31 alarms), when most regions were white, the zone
-        the twin had to treat as yellow, and cases rose again; and January to
-        February 2022 (25 alarms), during the winter 2021--22 wave.
+  \item \textbf{The zone effects of the autumn did not carry over.} Over the
+        first twelve weeks (late December 2020 to March 2021), the observed
+        weekly total lies inside the twin's 90\% interval in 62\% of
+        region-weeks, against 69\% for a twin that ignores the zones. The zone
+        effects learned in November and December 2020 promised larger
+        reductions than orange and red zones delivered in early 2021, a period
+        that included the Christmas holidays and the spread of the Alpha
+        variant.
+  \item \textbf{National monitor.} It rejects the twin on 14~March 2021.
+  \item \textbf{Which regions.} By the end of 2021, e-BH rejects the original
+        twin in all 21 regions.
+  \item \textbf{Regional alarms.} There are 96 in total, a median of five per
+        region and between 0 and 9. They cluster in June and July 2021
+        (30 alarms), when most regions moved to white, the zone the twin had
+        to treat as yellow; in September 2021 (14); and in November 2021 (11),
+        as cases rose again in the autumn.
+\end{itemize}
+The monitor therefore identifies, with a guarantee that holds although the
+zones were chosen from the data, the two ways in which the twin fails:
+\begin{itemize}
+  \item the effect of a restriction learned in one wave does not transfer to
+        the next;
+  \item the assumption forced on the twin by the data, that white behaves like
+        yellow, fails as soon as white zones become common.
 \end{itemize}
 
-The conclusion is that a pooled renewal twin with frozen zone effects
-describes regional case counts for a few weeks to a few months at a time. The
-assumption forced on it by the data, that white behaves like yellow, is among
-the first things to fail. Both findings are reached with a guarantee that
-holds although the zones themselves were chosen from the data.
+\subsection{National deaths from spring 2020}\label{sec:italy-national}
 
-\subsection{National ICU admissions under a stringency index}\label{sec:italy-national}
+\paragraph{Data and twin.} Daily deaths are the differences of the Civil
+Protection cumulative count \citep{dpc2020covid}; one negative reporting
+correction (24~June 2020) is set to zero. They are available from February
+2020, and they depend much less on testing than case counts. The policy is
+the national stringency index of the Oxford COVID-19 Government Response
+Tracker \citep{hale2021global}, which covers the first lockdown of March 2020,
+the reopening of May 2020 and the autumn measures.
 
-\paragraph{Data.} We use Italy's national daily intensive-care admissions from
-the Civil Protection Department \citep{dpc2020covid}, available from
-3~December 2020, together with the Oxford COVID-19 Government Response Tracker
-stringency index for Italy \citep{hale2021global}, a daily score from 0 to 100
-summarising containment measures. The study period runs to 31~December 2022,
-when the stringency series ends. ICU admissions are less affected than case
-counts by changes in testing policy. The data are in the repository
-(\texttt{data/italy\_covid\_daily.csv}), with their provenance.
-
-\paragraph{The twin.} The twin is a stochastic renewal model
-\citep{cori2013new}. Daily admissions follow a negative binomial distribution
-with mean
+The twin is the renewal model of Section~\ref{sec:italy-regions} for a single
+series, without zones: daily deaths are negative binomial with mean
 \[
 \mu_t = R_t\, \delta_{\mathrm{wd}(t)} \sum_{s=1}^{21} w_s\, y_{t-s},
 \qquad
-\log R_t = a + b\,\big(\mathrm{stringency}_{t-7}/100 - \tfrac12\big),
+\log R_t = a + b\,\big(\mathrm{stringency}_{t-21}/100 - \tfrac12\big).
 \]
-where:
-\begin{itemize}
-  \item $w$ is a discretised gamma generation-interval distribution with mean
-        6.5 days and standard deviation 4 days;
-  \item $\delta$ are day-of-week reporting factors;
-  \item the negative binomial size $k$ controls overdispersion;
-  \item restrictions act with a lag of seven days.
-\end{itemize}
-The twin is calibrated by maximum likelihood on eight weeks of data and then
-frozen.
+Restrictions act on deaths with a lag of about three weeks. We use 21 days,
+still longer than the seven-day block, so the policy that drives a week is
+known when the week starts.
 
-The policy effect $b$ is not identifiable from a short observational window.
-Restrictions tighten because admissions rise, and an unconstrained fit returns
-$b > 0$, while the fit constrained to $b \le 0$ sits on the boundary $b = 0$.
-We therefore fix $b = -1$, a 59\% reduction in $R$ between no restrictions and
-stringency 90. This is a moderate value; \citet{flaxman2020estimating}
-estimated larger effects of full lockdowns. The remaining parameters ($a$, $k$
-and $\delta$) are estimated. The monitor tests the twin as a whole, including
-this assumption.
+The policy effect $b$ is poorly identified: estimated freely, it ranges from
+$-0.4$ to $-3$ (the lower bound) depending on the 2020 window, as spontaneous
+behaviour change and immunity are confounded with the measures. We therefore
+fix $b = -1$, a 59\% reduction in $R$ between no restrictions and stringency
+90, which is moderate compared with the lockdown effects estimated by
+\citet{flaxman2020estimating}. We report $b \in \{-0.5, -1, -2\}$, a range
+bracketed by the free estimates. The remaining parameters are fitted on
+1~April to 26~May 2020, and monitoring runs from 27~May 2020 to 31~December
+2021. After each alarm the twin is recalibrated on the last eight weeks.
 
-\paragraph{Monitoring.} Every week, the twin simulates the next seven days
-$M = 16$ times from the observed history of admissions, and the monitor bets
-with the BLR predictive score on log-scale summaries of the week relative to
-the twin's noise-free path. Because the policy acts with a seven-day lag, the
-stringency that drives a week is already observed when the week starts, so the
-twin is simulated under the policy actually in force and
-Theorem~\ref{thm:valid} applies exactly. When the wealth reaches $1/\alpha = 20$
-the twin is declared inadequate. It is then recalibrated on the last eight
-weeks, and a new monitor starts. Each alarm is a level-$\alpha$ rejection of
-the twin that was active at the time.
-
-\paragraph{Validity and power where the truth is known.} Real data cannot
-reveal false alarms, so we first generate synthetic series from the
-calibrated twin over the same 93 weeks. The policy is chosen every week by a
-tier rule: stringency 80, 60 or 40 when the previous week's admissions exceed
-1000, exceed 400, or neither, mimicking the colour-coded tiers. In a second
-scenario a ``variant'' multiplies transmission by 1.4 from week 10. We compare
-the monitor with three alternatives:
-\begin{itemize}
-  \item the plug-in bet;
-  \item the same monitor with the twin simulated under the policy held at its
-        calibration-window mean, i.e.\ not conditioned on the action;
-  \item a $t$-test of standardised weekly residuals, recomputed every week.
-\end{itemize}
+\paragraph{Validity where the truth is known.} We generate series from the
+calibrated twin over the same 83 weeks, with the policy set every week by a
+tier rule on deaths: stringency 80, 60 or 40 when the previous week's deaths
+exceed 1500, exceed 500, or neither. A second scenario adds a variant that
+multiplies transmission by 1.4 from week 10.
 
 \begin{table}[t]
 \centering
-\caption{Synthetic series from the calibrated Italian twin with a
-data-driven tier policy (93 weeks; 200 null and 100 variant replications).}
+\caption{Synthetic national series of deaths from the twin calibrated on
+spring 2020, with a data-driven tier policy (83 weeks; 200 null and 100
+variant replications).}
 \label{tab:italy}
 \begin{tabular}{lrrrr}
 \toprule
  & null & \multicolumn{3}{c}{variant from week 10} \\
 monitor & false alarms & alarm before change & detected & median delay (weeks) \\
 \midrule
-MC e-process, BLR score & 0.015 & 0.00 & 1.00 & 3 \\
-plug-in bet & 0.045 & 0.00 & 1.00 & 2 \\
-twin with policy held fixed & 1.000 & 0.51 & 0.49 & 2 \\
-$t$-test, recomputed weekly & 0.350 & 0.20 & 0.80 & 4 \\
+MC e-process, BLR score & 0.015 & 0.00 & 1.00 & 4 \\
+plug-in bet & 0.035 & 0.01 & 0.99 & 3 \\
+twin with policy held fixed & 1.000 & 1.00 & 0.00 & -- \\
+$t$-test, recomputed weekly & 0.405 & 0.19 & 0.81 & 5 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:italy} confirms the theory on a realistic twin:
-\begin{itemize}
-  \item The monitor keeps false alarms at 1.5\% over almost two years of weekly
-        looks, and detects the variant in every run, with a median delay of
-        three weeks.
-  \item The twin that ignores the policy in force rejects a true null in every
-        run: when the tier rule changes the restrictions, the unconditioned
-        twin's predictions are simply wrong.
-  \item The recomputed $t$-test raises false alarms in 35\% of null runs.
-  \item In this model the plug-in bet happens to be nearly calibrated
-        (4.5\%) and is a week faster, but nothing guarantees it.
-\end{itemize}
+Table~\ref{tab:italy} repeats the regional lesson with a continuous policy.
+The monitor keeps false alarms at 1.5\% and detects the variant in every run,
+after a median of four weeks. The twin that holds the policy at its
+calibration level rejects a true null in every run, and the recomputed
+$t$-test raises false alarms in 41\% of runs.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{exp8_italy_covid.png}
-\caption{Italy, February 2021 to December 2022. Top: observed daily ICU
-admissions (black) and the twin's 90\% predictive band for each coming week
-(blue); orange lines mark alarms, after which the twin is recalibrated on the
-last eight weeks. Bottom: the monitor's log wealth, restarted at each
-recalibration, with the threshold $\log 20$.}
+\includegraphics[width=\textwidth]{exp8b_italy_deaths.png}
+\caption{Italy, May 2020 to December 2021. Top: observed daily deaths (black)
+and the twin's 90\% predictive band for each coming week (blue); orange lines
+mark alarms, after which the twin is recalibrated on the last eight weeks.
+Bottom: the monitor's log wealth, restarted at each recalibration, with the
+threshold $\log 20$.}
 \label{fig:italy}
 \end{figure}
 
-\paragraph{Results on the real data.} Figure~\ref{fig:italy} shows the
-monitor on the Italian series.
+\paragraph{Results on the real data.} Figure~\ref{fig:italy} shows ten alarms
+between May 2020 and December 2021:
 \begin{itemize}
-  \item \textbf{First alarm.} The first twin, calibrated on 24~December
-        2020 to 17~February 2021, is rejected on 10~March 2021, after three
-        weeks, as admissions rose faster than it predicted during the spring
-        2021 wave.
-  \item \textbf{Later alarms.} Over the whole period there are 14 alarms, and
-        a recalibrated twin survives a median of 5.5 weeks. Alarms cluster at
-        turning points of the epidemic: the declines of May and June 2021, the
-        summer 2021 plateau (which the twin, extrapolating growth,
-        over-predicted), the winter rise of autumn 2021, and the peak and
-        decline of the winter 2021--22 wave, and the smaller waves of 2022.
-  \item \textbf{Robustness.} The first alarm date is the same for
-        $b \in \{-0.5, -1, -2\}$. The number of alarms varies (9, 14 and 12),
-        with a median of 5.5 to 7 weeks between them.
+  \item 30~June 2020, as deaths fell faster after the reopening than the
+        spring twin predicted;
+  \item 22~September and 3~November 2020, at the start and during the growth
+        of the second wave;
+  \item 15~December 2020 and 5~January 2021, around its peak and the Christmas
+        period;
+  \item 2 and 23~March 2021, during the third wave;
+  \item 18~May and 8~June 2021, during the decline of late spring 2021;
+  \item 17~August 2021, during the summer rise.
 \end{itemize}
-The conclusion is that a renewal twin calibrated on eight weeks describes
-Italian ICU admissions for about one to two months at a time. This is useful
-information for anyone relying on such a model for projections. The monitor
-provides it with a guarantee that holds under the data-driven policy.
+Each recalibrated twin lasts a median of six weeks. The first alarm falls
+between 16~June and 14~July 2020 for $b \in \{-0.5, -1, -2\}$, with 10 to 12
+alarms over the period. An analysis of national ICU admissions from December
+2020 to December 2022 with a seven-day lag leads to the same conclusions
+(repository, Experiment~8).
 
-\paragraph{Caveats.} An alarm says that the twin is wrong, not why.
-Candidate reasons include new variants, vaccination, seasonality, and changes
-in admission practice; attributing alarms to causes requires further
-modelling. The twin's likelihood happens to be tractable, which makes the
-example transparent. But the monitor uses only simulation, so the same
-analysis applies unchanged to agent-based or compartmental models with latent
-states, whose likelihoods are not available. Finally, the recalibrate-and-restart
-procedure is a sequence of tests of different twins. Each alarm is valid for
-the twin active at the time; the alarms are not a simultaneous statement about
-all periods.
+\paragraph{Caveats.}
+\begin{itemize}
+  \item \textbf{An alarm says that the twin is wrong, not why.} Candidate
+        reasons include variants, vaccination, seasonality, and changes in
+        testing and reporting.
+  \item \textbf{The twins' likelihoods happen to be tractable,} which keeps the
+        examples transparent. The monitor uses only simulation, so the same
+        analysis applies unchanged to agent-based or compartmental models with
+        latent states.
+  \item \textbf{Recalibration and restart form a sequence of tests of
+        different twins.} Each alarm is valid for the twin active at the time,
+        not a simultaneous statement about all periods.
+\end{itemize}
 
 %======================================================================
 \section{Related work}\label{sec:related}

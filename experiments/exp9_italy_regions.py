@@ -9,8 +9,9 @@ from the data.
 Twin: e4g.epi_regional, a renewal model of daily new positives per region in
 which transmission depends on the colour assigned 7 days earlier. Colour effects
 (ordered, shared across regions), overdispersion and day-of-week factors are
-estimated on 13 Nov 2020 - 28 Feb 2021; white zones, which start on 1 March
-2021, are treated as yellow. Monitoring runs from 1 March 2021 to 15 May 2022.
+estimated on 13 Nov - 20 Dec 2020; white zones, which start in March 2021,
+are treated as yellow. Monitoring runs from 21 December 2020 to 31 December
+2021.
 
 Part A (real data)
   coverage   share of region-weeks whose observed total lies in the twin's 90%
@@ -57,10 +58,15 @@ YELLOW = ER.CODE["yellow"]
 DATA = ROOT / "data" / "italy_regions_daily.csv"
 
 
+CAL_START, MON_START, MON_END = "2020-11-13", "2020-12-21", "2021-12-31"
+
+
 def setup():
     regions, dates, y, c, wd = ER.load(DATA)
-    start = int(np.where(dates == np.datetime64("2020-11-13"))[0][0])
-    end = int(np.where(dates == np.datetime64("2021-03-01"))[0][0])
+    last = int(np.where(dates == np.datetime64(MON_END))[0][0]) + 1
+    dates, y, c, wd = dates[:last], y[:, :last], c[:, :last], wd[:last]
+    start = int(np.where(dates == np.datetime64(CAL_START))[0][0])
+    end = int(np.where(dates == np.datetime64(MON_START))[0][0])
     twin, _ = ER.fit(y, c, wd, start, end)
     twin, _ = ER.calibrate_sigma(twin, y, c, wd, start, end)
     return regions, dates, y, c, wd, start, end, twin
