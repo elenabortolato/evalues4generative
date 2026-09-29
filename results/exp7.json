@@ -1,0 +1,96 @@
+{
+ "config": {
+  "patient": "adult#001",
+  "epoch_min": 30,
+  "hours": 48,
+  "change_h": 12,
+  "m": 16,
+  "alpha": 0.05,
+  "reps": {
+   "null": 200,
+   "resistance": 80,
+   "sensor": 80,
+   "snacking": 80
+  }
+ },
+ "null": {
+  "mc_blr": {
+   "false_alarm": 0.01
+  },
+  "mc_fixed": {
+   "false_alarm": 0.03
+  },
+  "nominal": {
+   "false_alarm": 0.0
+  },
+  "ttest": {
+   "false_alarm": 0.35
+  }
+ },
+ "resistance": {
+  "mc_blr": {
+   "alarm_before_change": 0.0,
+   "detected": 1.0,
+   "median_delay_h": 10.5
+  },
+  "mc_fixed": {
+   "alarm_before_change": 0.0,
+   "detected": 1.0,
+   "median_delay_h": 9.0
+  },
+  "nominal": {
+   "alarm_before_change": 0.0,
+   "detected": 1.0,
+   "median_delay_h": 9.75
+  },
+  "ttest": {
+   "alarm_before_change": 0.225,
+   "detected": 0.775,
+   "median_delay_h": 7.5
+  }
+ },
+ "sensor": {
+  "mc_blr": {
+   "alarm_before_change": 0.0,
+   "detected": 1.0,
+   "median_delay_h": 10.0
+  },
+  "mc_fixed": {
+   "alarm_before_change": 0.0,
+   "detected": 1.0,
+   "median_delay_h": 8.75
+  },
+  "nominal": {
+   "alarm_before_change": 0.0,
+   "detected": 1.0,
+   "median_delay_h": 10.0
+  },
+  "ttest": {
+   "alarm_before_change": 0.225,
+   "detected": 0.775,
+   "median_delay_h": 8.5
+  }
+ },
+ "snacking": {
+  "mc_blr": {
+   "alarm_before_change": 0.0,
+   "detected": 0.1375,
+   "median_delay_h": 27.0
+  },
+  "mc_fixed": {
+   "alarm_before_change": 0.0,
+   "detected": 0.3,
+   "median_delay_h": 22.5
+  },
+  "nominal": {
+   "alarm_before_change": 0.0,
+   "detected": 0.1625,
+   "median_delay_h": 29.5
+  },
+  "ttest": {
+   "alarm_before_change": 0.225,
+   "detected": 0.225,
+   "median_delay_h": 20.0
+  }
+ }
+}

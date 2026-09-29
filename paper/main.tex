@@ -996,13 +996,55 @@ the rejection threshold $\log 20$.}
 \label{fig:application}
 \end{figure}
 
-\paragraph{Results.} % RESULTS-PLACEHOLDER
-\textbf{[Pending: the full study (200 null and 3 $\times$ 80 drift
-replications) is still running; this paragraph and its table will report
-false-alarm rates, detection rates and detection delays.]}
-Figure~\ref{fig:application} shows one run under insulin resistance: the
-monitor crosses the threshold 16.5 hours after the change, while no alarm is
-raised during the first 12 hours.
+\paragraph{Results.} Table~\ref{tab:t1d} summarises 200 null runs and 80 runs
+of each failure scenario.
+
+\begin{table}[t]
+\centering
+\caption{Artificial pancreas against its digital twin (48 hours; changes at
+hour 12). Null: share of runs with an alarm. Failure scenarios: share
+detected within the 36 hours after the change, and median delay in hours.
+For the recomputed $t$-test, 22.5\% of runs in every scenario had already
+raised a (false) alarm before the change.}
+\label{tab:t1d}
+\begin{tabular}{lrrrr}
+\toprule
+monitor & null & insulin resistance & sensor drift & snacking \\
+\midrule
+MC e-process, BLR score & 0.010 & 1.00, 10.5 h & 1.00, 10.0 h & 0.14, 27 h \\
+MC e-process, fixed residual score & 0.030 & 1.00, 9.0 h & 1.00, 8.8 h & 0.30, 23 h \\
+twin under the open-loop plan & 0.000 & 1.00, 9.8 h & 1.00, 10.0 h & 0.16, 30 h \\
+$t$-test, recomputed every epoch & 0.350 & 0.78, 7.5 h & 0.78, 8.5 h & 0.23, 20 h \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Validity with a black-box simulator.} The Monte Carlo
+        e-process keeps false alarms at 1\% over 48 hours, with a simulator
+        whose outcome law has no tractable density. The recomputed $t$-test
+        raises false alarms in 35\% of runs, and in 22.5\% of runs before any
+        change has occurred.
+  \item \textbf{Physiological and sensor failures are detected within a
+        day.} A 30\% loss of insulin sensitivity is detected in every run,
+        after a median of 10.5 hours; a slow calibration drift after 10 hours
+        (Figure~\ref{fig:application}).
+  \item \textbf{Sparse disturbances are hard.} More frequent unannounced
+        snacks are detected in only 14\% of runs within 36 hours: they appear
+        as occasional upward jumps, which the smooth learned score captures
+        poorly. The fixed mean-residual score does better (30\%); a score
+        designed for jumps would do better still.
+  \item \textbf{When conditioning on the action does not matter.} Here the
+        twin run under the open-loop plan is also valid (no false alarms). For
+        this patient, suspension and correction are triggered rarely, and when
+        they are, they barely change the distribution of the next 30 minutes.
+        Proposition~\ref{prop:necessary} shows where the danger lies: ignoring
+        the action inflates the bet when the actions taken change the law of
+        the outcome, $\chi^2(P_a\|\bar P) > 0$, and it is nearly harmless when
+        they do not. The bandit
+        (Section~\ref{sec:exp-bandit}) and the Italian colour zones
+        (Section~\ref{sec:italy-regions}) are cases where it does.
+\end{itemize}
 
 \paragraph{Limitations of the application.} The patient is itself
 simulated, so this is a realistic benchmark rather than a clinical
