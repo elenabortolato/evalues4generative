@@ -56,3 +56,22 @@ def test_lambda_mixture_is_martingale_on_average():
         finals.append(mix.value)
     finals = np.array(finals)
     assert abs(finals.mean() - 1) < 4 * finals.std() / np.sqrt(len(finals)) + 1e-2
+
+
+def test_blr_agrees_with_batch_fit_and_shrinks_predictive():
+    from e4g import BLRRatio
+    rng = np.random.default_rng(3)
+    real = rng.normal([0.7, -0.4], 1.0, (1500, 2))
+    sims = rng.standard_normal((1500 * 8, 2))
+    blr = BLRRatio(degree=2).fit_scaler(rng.standard_normal((4000, 2)))
+    for i in range(1500):
+        blr.update(real[i : i + 1], sims[8 * i : 8 * (i + 1)])
+    batch = OnlineRatio(degree=2, ridge=1.0).fit(real, sims)
+    x = rng.standard_normal((2000, 2))
+    blr.mode = "mean"
+    s_mean = blr.score(x)
+    assert np.corrcoef(s_mean, batch.score(x))[0, 1] > 0.98
+    blr.mode = "predictive"
+    s_pred = blr.score(x)
+    # predictive log-odds are the mean log-odds shrunk towards 0
+    assert np.all(np.abs(s_pred) <= np.abs(s_mean) + 1e-12)

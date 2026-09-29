@@ -7,7 +7,9 @@ the same context (the same action, in an adaptive design). The monitor
 * updates the Monte Carlo e-process (exactly valid, Proposition 2),
 * updates the naive plug-in process (learned ratio used as the bet),
 * optionally updates the oracle likelihood-ratio process,
-* and refits the estimator every ``refit_every`` steps.
+* and refits the estimator every ``refit_every`` steps, or, for a learner with
+  an ``update`` method (the Bayesian learning rule), updates its posterior at
+  every step.
 
 Inputs are "rows": whatever the learner's feature map expects, typically the
 observation concatenated with a one-hot encoding of the action.
@@ -46,6 +48,10 @@ class Monitor:
             if self.first_cross[k] is None and val >= self.threshold:
                 self.first_cross[k] = self.t
         # the new data become part of the past only now
+        if hasattr(self.learner, "update"):
+            # Bayesian learning rule: one posterior update per step, no burn-in
+            self.learner.update(row_real[None, :], rows_sim)
+            return e
         self.real.append(row_real)
         self.sims.extend(rows_sim)
         if self.t >= self.burn_in and self.t % self.refit_every == 0:

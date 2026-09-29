@@ -39,7 +39,7 @@ from scipy.stats import norm, ttest_ind
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import Monitor, OnlineRatio  # noqa: E402
+from e4g import BLRRatio, Monitor, OnlineRatio  # noqa: E402
 
 K = 3
 MU = np.array([0.0, 0.2, 0.4])
@@ -66,15 +66,21 @@ def arm_features(rows):
     return np.column_stack([onehot[:, 1:], onehot * y[:, None], onehot * (y ** 2)[:, None]])
 
 
-def learner():
-    return OnlineRatio(ridge=1.0, feature_map=arm_features)
+def learner(kind="refit", seed=0):
+    if kind == "refit":
+        return OnlineRatio(ridge=1.0, feature_map=arm_features)
+    # BLR: scaler from twin draws on random arms, independent of the data
+    r = np.random.default_rng(10**7 + seed)
+    arms = r.integers(0, K, 3000)
+    rows = np.column_stack([twin(r, arms), arms])
+    return BLRRatio(feature_map=arm_features, mode=kind.split("-")[1]).fit_scaler(rows)
 
 
-def run_one(seed, alt, horizon, m, alpha, test_every=10):
+def run_one(seed, alt, horizon, m, alpha, test_every=10, kind="refit"):
     rng = np.random.default_rng(seed)
     shift = SHIFT if alt else np.zeros(K)
-    mon = Monitor(learner(), alpha=alpha)
-    mon_u = Monitor(learner(), alpha=alpha)
+    mon = Monitor(learner(kind, seed), alpha=alpha)
+    mon_u = Monitor(learner(kind, seed), alpha=alpha)
     # Thompson sampling with N(0, 1) priors and unit noise variance
     n = np.zeros(K)
     s = np.zeros(K)

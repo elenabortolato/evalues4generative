@@ -39,7 +39,7 @@ from scipy.stats import ks_2samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import Monitor, OnlineRatio  # noqa: E402
+from e4g import BLRRatio, Monitor, OnlineRatio  # noqa: E402
 
 B0, B1 = 0.5, 0.8
 LEARNERS = {"regularised": dict(degree=4, ridge=1.0),
@@ -57,9 +57,23 @@ def log_banana(x, b):
     return -0.5 * (x[:, 0] ** 2 + u ** 2) - np.log(2 * np.pi)
 
 
+BLR_LEARNERS = {"blr-deg4-predictive": dict(degree=4, mode="predictive"),
+                "blr-deg4-mean": dict(degree=4, mode="mean"),
+                "blr-deg6-predictive": dict(degree=6, mode="predictive"),
+                "blr-deg6-mean": dict(degree=6, mode="mean")}
+
+
+def make_learner(name, seed):
+    if name in LEARNERS:
+        return OnlineRatio(**LEARNERS[name])
+    # the scaler sees simulator draws only, from a stream independent of the data
+    sims = banana(np.random.default_rng(10**7 + seed), 2000, B0)
+    return BLRRatio(**BLR_LEARNERS[name]).fit_scaler(sims)
+
+
 def run_one(seed, b_real, horizon, m, alpha, learner, ks_every=10, ks=True):
     rng = np.random.default_rng(seed)
-    mon = Monitor(OnlineRatio(**LEARNERS[learner]), alpha=alpha)
+    mon = Monitor(make_learner(learner, seed), alpha=alpha)
     real_all = banana(rng, horizon, b_real)
     ks_cross = None
     for t in range(horizon):
