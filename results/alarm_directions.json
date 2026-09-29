@@ -1,0 +1,972 @@
+{
+ "national": [
+  {
+   "date": "2020-06-30",
+   "weeks": 5,
+   "z_last3": -3.815075424889636,
+   "direction": "below"
+  },
+  {
+   "date": "2020-09-22",
+   "weeks": 12,
+   "z_last3": 3.3593765194256755,
+   "direction": "above"
+  },
+  {
+   "date": "2020-11-03",
+   "weeks": 6,
+   "z_last3": 1.3917741841357991,
+   "direction": "above"
+  },
+  {
+   "date": "2020-12-15",
+   "weeks": 6,
+   "z_last3": -3.763812438582374,
+   "direction": "below"
+  },
+  {
+   "date": "2021-01-05",
+   "weeks": 3,
+   "z_last3": -3.5063830398399745,
+   "direction": "below"
+  },
+  {
+   "date": "2021-03-02",
+   "weeks": 8,
+   "z_last3": -2.6437172034378444,
+   "direction": "below"
+  },
+  {
+   "date": "2021-03-23",
+   "weeks": 3,
+   "z_last3": 3.3792795270803366,
+   "direction": "above"
+  },
+  {
+   "date": "2021-05-18",
+   "weeks": 8,
+   "z_last3": -3.156955728439005,
+   "direction": "below"
+  },
+  {
+   "date": "2021-06-08",
+   "weeks": 3,
+   "z_last3": -4.113360425427716,
+   "direction": "below"
+  },
+  {
+   "date": "2021-08-17",
+   "weeks": 10,
+   "z_last3": 3.4228431816608365,
+   "direction": "above"
+  }
+ ],
+ "regional": [
+  {
+   "region": "P.A. Bolzano",
+   "date": "2021-01-24",
+   "weeks": 5,
+   "z_last": 3.544338523324705,
+   "direction": "above",
+   "zone": "red",
+   "cases_per_100k": 581.5094339622641
+  },
+  {
+   "region": "Campania",
+   "date": "2021-02-14",
+   "weeks": 8,
+   "z_last": 0.9239834067583523,
+   "direction": "above",
+   "zone": "yellow",
+   "cases_per_100k": 191.86832740213524
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-02-14",
+   "weeks": 8,
+   "z_last": 3.8770152373916136,
+   "direction": "above",
+   "zone": "orange",
+   "cases_per_100k": 287.7906976744186
+  },
+  {
+   "region": "Friuli Venezia Giulia",
+   "date": "2021-02-21",
+   "weeks": 9,
+   "z_last": -1.278414542393494,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 151.25
+  },
+  {
+   "region": "Toscana",
+   "date": "2021-02-21",
+   "weeks": 9,
+   "z_last": 1.4344401400035602,
+   "direction": "above",
+   "zone": "orange",
+   "cases_per_100k": 147.58807588075882
+  },
+  {
+   "region": "Molise",
+   "date": "2021-02-28",
+   "weeks": 10,
+   "z_last": 0.47263335650979627,
+   "direction": "above",
+   "zone": "orange",
+   "cases_per_100k": 207.33333333333331
+  },
+  {
+   "region": "Lazio",
+   "date": "2021-03-07",
+   "weeks": 11,
+   "z_last": 3.6644604106062184,
+   "direction": "above",
+   "zone": "yellow",
+   "cases_per_100k": 173.49040139616056
+  },
+  {
+   "region": "Piemonte",
+   "date": "2021-03-14",
+   "weeks": 12,
+   "z_last": 5.3003011446494765,
+   "direction": "above",
+   "zone": "orange",
+   "cases_per_100k": 333.91100702576114
+  },
+  {
+   "region": "Liguria",
+   "date": "2021-03-21",
+   "weeks": 13,
+   "z_last": 3.003052551921708,
+   "direction": "above",
+   "zone": "orange",
+   "cases_per_100k": 165.23178807947022
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-03-21",
+   "weeks": 5,
+   "z_last": -1.7680373096468887,
+   "direction": "below",
+   "zone": "orange",
+   "cases_per_100k": 145.0
+  },
+  {
+   "region": "Molise",
+   "date": "2021-04-04",
+   "weeks": 5,
+   "z_last": -1.4994246765334787,
+   "direction": "below",
+   "zone": "red",
+   "cases_per_100k": 66.0
+  },
+  {
+   "region": "Sardegna",
+   "date": "2021-04-04",
+   "weeks": 15,
+   "z_last": 5.775794461210617,
+   "direction": "above",
+   "zone": "red",
+   "cases_per_100k": 143.8993710691824
+  },
+  {
+   "region": "Valle d'Aosta",
+   "date": "2021-04-11",
+   "weeks": 16,
+   "z_last": 1.284222969315008,
+   "direction": "above",
+   "zone": "red",
+   "cases_per_100k": 340.83333333333337
+  },
+  {
+   "region": "P.A. Bolzano",
+   "date": "2021-04-18",
+   "weeks": 12,
+   "z_last": -5.303827349782196,
+   "direction": "below",
+   "zone": "orange",
+   "cases_per_100k": 70.94339622641509
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-04-25",
+   "weeks": 5,
+   "z_last": -0.6247539089924132,
+   "direction": "below",
+   "zone": "orange",
+   "cases_per_100k": 82.44186046511628
+  },
+  {
+   "region": "Molise",
+   "date": "2021-05-02",
+   "weeks": 4,
+   "z_last": -0.998335957216102,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 61.333333333333336
+  },
+  {
+   "region": "Friuli Venezia Giulia",
+   "date": "2021-05-16",
+   "weeks": 12,
+   "z_last": -2.305292397598351,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 35.0
+  },
+  {
+   "region": "Basilicata",
+   "date": "2021-05-23",
+   "weeks": 22,
+   "z_last": -3.527022043896046,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 70.54545454545455
+  },
+  {
+   "region": "Molise",
+   "date": "2021-05-23",
+   "weeks": 3,
+   "z_last": -2.853765950780784,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 12.0
+  },
+  {
+   "region": "Piemonte",
+   "date": "2021-05-23",
+   "weeks": 10,
+   "z_last": -2.3313151229802047,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 62.03747072599531
+  },
+  {
+   "region": "Sardegna",
+   "date": "2021-05-23",
+   "weeks": 7,
+   "z_last": -2.7576625192351725,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 18.67924528301887
+  },
+  {
+   "region": "Valle d'Aosta",
+   "date": "2021-05-23",
+   "weeks": 6,
+   "z_last": -2.407353876225725,
+   "direction": "below",
+   "zone": "orange",
+   "cases_per_100k": 95.83333333333333
+  },
+  {
+   "region": "Abruzzo",
+   "date": "2021-05-30",
+   "weeks": 23,
+   "z_last": -3.5466419229366397,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 26.328125
+  },
+  {
+   "region": "Campania",
+   "date": "2021-06-06",
+   "weeks": 16,
+   "z_last": -3.860579419452312,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 37.84697508896797
+  },
+  {
+   "region": "Liguria",
+   "date": "2021-06-06",
+   "weeks": 11,
+   "z_last": -3.9843235330106404,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 14.304635761589404
+  },
+  {
+   "region": "Marche",
+   "date": "2021-06-06",
+   "weeks": 24,
+   "z_last": -2.1611235395258466,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 32.53333333333333
+  },
+  {
+   "region": "P.A. Bolzano",
+   "date": "2021-06-06",
+   "weeks": 7,
+   "z_last": -1.601285858530127,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 32.83018867924528
+  },
+  {
+   "region": "Toscana",
+   "date": "2021-06-06",
+   "weeks": 15,
+   "z_last": -2.124084931404898,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 30.731707317073173
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-06-06",
+   "weeks": 6,
+   "z_last": -2.6433460400006283,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 17.790697674418606
+  },
+  {
+   "region": "Veneto",
+   "date": "2021-06-06",
+   "weeks": 24,
+   "z_last": -2.408702879624655,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 15.092402464065708
+  },
+  {
+   "region": "Basilicata",
+   "date": "2021-06-13",
+   "weeks": 3,
+   "z_last": -0.6280894078166359,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 35.45454545454545
+  },
+  {
+   "region": "Lombardia",
+   "date": "2021-06-20",
+   "weeks": 26,
+   "z_last": -1.6980490753178765,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 12.164328657314629
+  },
+  {
+   "region": "Piemonte",
+   "date": "2021-06-20",
+   "weeks": 4,
+   "z_last": -2.6855461843597532,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 10.491803278688524
+  },
+  {
+   "region": "Valle d'Aosta",
+   "date": "2021-06-20",
+   "weeks": 4,
+   "z_last": -1.8622541762738616,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 14.999999999999998
+  },
+  {
+   "region": "Calabria",
+   "date": "2021-06-27",
+   "weeks": 27,
+   "z_last": -2.5935440226435347,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 13.225806451612904
+  },
+  {
+   "region": "Lazio",
+   "date": "2021-06-27",
+   "weeks": 16,
+   "z_last": -1.5945183491302637,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 10.506108202443281
+  },
+  {
+   "region": "Marche",
+   "date": "2021-06-27",
+   "weeks": 3,
+   "z_last": -2.2314985896377677,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 5.0
+  },
+  {
+   "region": "P.A. Bolzano",
+   "date": "2021-06-27",
+   "weeks": 3,
+   "z_last": -2.3997229933885382,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 6.415094339622641
+  },
+  {
+   "region": "Emilia-Romagna",
+   "date": "2021-07-04",
+   "weeks": 28,
+   "z_last": -2.7120706493105664,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 8.108108108108107
+  },
+  {
+   "region": "Puglia",
+   "date": "2021-07-04",
+   "weeks": 28,
+   "z_last": -3.0205786290836816,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 6.564885496183206
+  },
+  {
+   "region": "Marche",
+   "date": "2021-07-18",
+   "weeks": 3,
+   "z_last": 3.790792353336247,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 19.666666666666664
+  },
+  {
+   "region": "Sardegna",
+   "date": "2021-07-18",
+   "weeks": 8,
+   "z_last": 19.180079760522545,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 59.55974842767295
+  },
+  {
+   "region": "Campania",
+   "date": "2021-07-25",
+   "weeks": 7,
+   "z_last": 2.4268507023912154,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 34.35943060498221
+  },
+  {
+   "region": "Emilia-Romagna",
+   "date": "2021-07-25",
+   "weeks": 3,
+   "z_last": 17.084162955996756,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 60.4054054054054
+  },
+  {
+   "region": "Friuli Venezia Giulia",
+   "date": "2021-07-25",
+   "weeks": 10,
+   "z_last": 7.823731250367624,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 26.583333333333332
+  },
+  {
+   "region": "Lazio",
+   "date": "2021-07-25",
+   "weeks": 4,
+   "z_last": 24.199588666087745,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 85.20069808027922
+  },
+  {
+   "region": "Lombardia",
+   "date": "2021-07-25",
+   "weeks": 5,
+   "z_last": 10.500285879645324,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 34.24849699398798
+  },
+  {
+   "region": "Molise",
+   "date": "2021-07-25",
+   "weeks": 9,
+   "z_last": 0.05484579842224688,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 19.333333333333332
+  },
+  {
+   "region": "Piemonte",
+   "date": "2021-07-25",
+   "weeks": 5,
+   "z_last": 12.607300051706563,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 19.601873536299767
+  },
+  {
+   "region": "Puglia",
+   "date": "2021-07-25",
+   "weeks": 3,
+   "z_last": 11.875704975919653,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 21.704834605597966
+  },
+  {
+   "region": "Toscana",
+   "date": "2021-07-25",
+   "weeks": 7,
+   "z_last": 13.415348333702726,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 70.32520325203252
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-07-25",
+   "weeks": 7,
+   "z_last": 19.35409323165175,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 63.837209302325576
+  },
+  {
+   "region": "Veneto",
+   "date": "2021-07-25",
+   "weeks": 7,
+   "z_last": 10.756534172101011,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 79.38398357289527
+  },
+  {
+   "region": "Basilicata",
+   "date": "2021-08-01",
+   "weeks": 7,
+   "z_last": 5.385422713527618,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 36.54545454545455
+  },
+  {
+   "region": "Calabria",
+   "date": "2021-08-01",
+   "weeks": 5,
+   "z_last": 7.053289440826946,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 47.41935483870968
+  },
+  {
+   "region": "Liguria",
+   "date": "2021-08-01",
+   "weeks": 8,
+   "z_last": 3.994160907629986,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 60.397350993377486
+  },
+  {
+   "region": "P.A. Bolzano",
+   "date": "2021-08-01",
+   "weeks": 5,
+   "z_last": 3.4997076550465103,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 31.32075471698113
+  },
+  {
+   "region": "Abruzzo",
+   "date": "2021-08-08",
+   "weeks": 10,
+   "z_last": 3.0692735489394516,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 48.125
+  },
+  {
+   "region": "Marche",
+   "date": "2021-08-08",
+   "weeks": 3,
+   "z_last": 4.026231668477503,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 79.13333333333334
+  },
+  {
+   "region": "Molise",
+   "date": "2021-08-22",
+   "weeks": 4,
+   "z_last": -1.1607763199809407,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 22.666666666666664
+  },
+  {
+   "region": "Lazio",
+   "date": "2021-09-05",
+   "weeks": 6,
+   "z_last": -2.0115551047973597,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 45.532286212914485
+  },
+  {
+   "region": "Liguria",
+   "date": "2021-09-05",
+   "weeks": 5,
+   "z_last": -1.5628773082350704,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 58.80794701986755
+  },
+  {
+   "region": "Marche",
+   "date": "2021-09-05",
+   "weeks": 4,
+   "z_last": -2.526462483832072,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 68.2
+  },
+  {
+   "region": "Sardegna",
+   "date": "2021-09-05",
+   "weeks": 7,
+   "z_last": -2.9097864147962746,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 103.77358490566039
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-09-05",
+   "weeks": 6,
+   "z_last": -1.829523232439876,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 80.0
+  },
+  {
+   "region": "Abruzzo",
+   "date": "2021-09-12",
+   "weeks": 5,
+   "z_last": -1.943340737917218,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 46.25
+  },
+  {
+   "region": "Veneto",
+   "date": "2021-09-12",
+   "weeks": 7,
+   "z_last": -1.9131112304435467,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 77.43326488706366
+  },
+  {
+   "region": "Molise",
+   "date": "2021-09-19",
+   "weeks": 4,
+   "z_last": -2.5285118540189884,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 16.0
+  },
+  {
+   "region": "Sicilia",
+   "date": "2021-09-19",
+   "weeks": 39,
+   "z_last": -2.7317687761050506,
+   "direction": "below",
+   "zone": "yellow",
+   "cases_per_100k": 91.80124223602483
+  },
+  {
+   "region": "Liguria",
+   "date": "2021-09-26",
+   "weeks": 3,
+   "z_last": -2.6948079913694247,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 33.04635761589404
+  },
+  {
+   "region": "Marche",
+   "date": "2021-09-26",
+   "weeks": 3,
+   "z_last": -2.8841116034268715,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 34.06666666666667
+  },
+  {
+   "region": "Sardegna",
+   "date": "2021-09-26",
+   "weeks": 3,
+   "z_last": -3.0689481331557995,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 21.069182389937104
+  },
+  {
+   "region": "Toscana",
+   "date": "2021-09-26",
+   "weeks": 9,
+   "z_last": -2.2329212739342164,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 53.170731707317074
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-09-26",
+   "weeks": 3,
+   "z_last": -2.422217005368964,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 40.697674418604656
+  },
+  {
+   "region": "Abruzzo",
+   "date": "2021-10-03",
+   "weeks": 3,
+   "z_last": -2.419443140723885,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 24.453125
+  },
+  {
+   "region": "P.A. Bolzano",
+   "date": "2021-10-03",
+   "weeks": 9,
+   "z_last": 0.2838326209605693,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 75.47169811320754
+  },
+  {
+   "region": "Lazio",
+   "date": "2021-10-10",
+   "weeks": 5,
+   "z_last": -1.6136842782551064,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 30.558464223385688
+  },
+  {
+   "region": "Basilicata",
+   "date": "2021-10-17",
+   "weeks": 11,
+   "z_last": -2.9816637097574628,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 18.727272727272727
+  },
+  {
+   "region": "Sicilia",
+   "date": "2021-10-17",
+   "weeks": 4,
+   "z_last": -1.6762870707098456,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 36.356107660455486
+  },
+  {
+   "region": "Friuli Venezia Giulia",
+   "date": "2021-11-07",
+   "weeks": 15,
+   "z_last": 1.3035095419635112,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 157.66666666666669
+  },
+  {
+   "region": "Lazio",
+   "date": "2021-11-14",
+   "weeks": 5,
+   "z_last": 3.0042156627113608,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 103.29842931937173
+  },
+  {
+   "region": "P.A. Bolzano",
+   "date": "2021-11-14",
+   "weeks": 6,
+   "z_last": 2.9101556858908686,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 391.6981132075472
+  },
+  {
+   "region": "Sardegna",
+   "date": "2021-11-14",
+   "weeks": 7,
+   "z_last": 6.541483511634402,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 34.59119496855346
+  },
+  {
+   "region": "Sicilia",
+   "date": "2021-11-14",
+   "weeks": 4,
+   "z_last": 4.67946961406162,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 71.84265010351967
+  },
+  {
+   "region": "Valle d'Aosta",
+   "date": "2021-11-14",
+   "weeks": 21,
+   "z_last": 14.63929148599407,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 94.16666666666667
+  },
+  {
+   "region": "Abruzzo",
+   "date": "2021-11-21",
+   "weeks": 7,
+   "z_last": 1.45289993267272,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 102.96875
+  },
+  {
+   "region": "Marche",
+   "date": "2021-11-21",
+   "weeks": 8,
+   "z_last": 2.0161698165515665,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 133.0
+  },
+  {
+   "region": "Molise",
+   "date": "2021-11-21",
+   "weeks": 9,
+   "z_last": 1.100753124222523,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 52.66666666666667
+  },
+  {
+   "region": "Piemonte",
+   "date": "2021-11-28",
+   "weeks": 18,
+   "z_last": 2.4373265042624994,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 110.6791569086651
+  },
+  {
+   "region": "Umbria",
+   "date": "2021-11-28",
+   "weeks": 9,
+   "z_last": 0.4747612856258555,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 64.30232558139535
+  },
+  {
+   "region": "Basilicata",
+   "date": "2021-12-05",
+   "weeks": 7,
+   "z_last": 1.6114368266353303,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 50.0
+  },
+  {
+   "region": "Liguria",
+   "date": "2021-12-05",
+   "weeks": 10,
+   "z_last": 2.486967074060159,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 213.57615894039733
+  },
+  {
+   "region": "Molise",
+   "date": "2021-12-12",
+   "weeks": 3,
+   "z_last": -2.895859854785295,
+   "direction": "below",
+   "zone": "white",
+   "cases_per_100k": 25.0
+  },
+  {
+   "region": "Campania",
+   "date": "2021-12-19",
+   "weeks": 21,
+   "z_last": 2.895443392405029,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 209.7864768683274
+  },
+  {
+   "region": "Sicilia",
+   "date": "2021-12-19",
+   "weeks": 5,
+   "z_last": 3.396230832473838,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 179.52380952380952
+  },
+  {
+   "region": "Toscana",
+   "date": "2021-12-19",
+   "weeks": 12,
+   "z_last": 3.4655461696733463,
+   "direction": "above",
+   "zone": "white",
+   "cases_per_100k": 203.30623306233062
+  }
+ ],
+ "regional_phases": [
+  {
+   "start": "2021-01-01",
+   "end": "2021-04-11",
+   "n": 13,
+   "above": 10,
+   "median_cases_per_100k": 173.49040139616056,
+   "white": 0
+  },
+  {
+   "start": "2021-04-12",
+   "end": "2021-07-10",
+   "n": 27,
+   "above": 0,
+   "median_cases_per_100k": 18.67924528301887,
+   "white": 8
+  },
+  {
+   "start": "2021-07-11",
+   "end": "2021-08-15",
+   "n": 19,
+   "above": 19,
+   "median_cases_per_100k": 47.41935483870968,
+   "white": 19
+  },
+  {
+   "start": "2021-08-16",
+   "end": "2021-10-31",
+   "n": 20,
+   "above": 1,
+   "median_cases_per_100k": 43.11498031575957,
+   "white": 19
+  },
+  {
+   "start": "2021-11-01",
+   "end": "2021-12-31",
+   "n": 17,
+   "above": 16,
+   "median_cases_per_100k": 103.29842931937173,
+   "white": 17
+  }
+ ]
+}
