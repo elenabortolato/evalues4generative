@@ -49,10 +49,13 @@ taken, and we show that this condition cannot be dropped.
 Second, learned scores: we analyse the growth rate through the null tilted by
 the score, $\hat Q$, which gives $\KL(Q\|P) - \KL(Q\|\hat Q)$ with an unlimited
 budget and an efficiency of exactly $M/(M+1)$ for local alternatives.
-Third, posterior predictive scores: the posterior predictive is the
-Bayes-optimal bet, and it turns the infinite-budget process into a Bayes
-factor. We compute it online with one natural-gradient step of the Bayesian
-learning rule per observation.
+Third, a predictive view of the score: every score is a one-step predictive
+distribution for the next real outcome, and the wealth is the prequential
+likelihood ratio of these predictives against the simulator. The monitor
+therefore needs a rule that updates a predictive distribution at every step,
+which is the primitive of martingale posteriors. Because the simulator can
+only be sampled, the exact Bayesian update is unavailable, and we use one
+natural-gradient step of the Bayesian learning rule per observation.
 In experiments with a drifting generative model and a Thompson-sampling bandit
 checked against a digital twin, the method keeps false alarms below the
 nominal level. Applied to Italian COVID-19 data from 2020 and 2021, where
@@ -106,13 +109,43 @@ outcome is exchangeable with the simulated ones, so each bet is fair whatever
 the score, and the running product is a test martingale: by Ville's
 inequality, the probability that it ever exceeds $1/\alpha$ is at most
 $\alpha$, at any stopping time and under any policy. The score is free, so it
-can be \emph{learned} from the stream. We learn it as a Bayesian posterior
-predictive, updated with one step of the Bayesian learning rule per
-observation. For an i.i.d.\ null without actions, the single bet is the
+can be \emph{learned} from the stream. For an i.i.d.\ null without actions, the single bet is the
 soft-rank e-value of \citet{wang2022false}, and its sequential product is the
 Besag--Clifford e-process that \citet{dombowsky2026besag} developed for
 unnormalised models, where it is log-optimal as $M$ grows when the score is the
 likelihood ratio.
+
+\paragraph{Betting is predicting.} Choosing the score is the same as choosing a
+predictive distribution for the next real outcome: the score $T$ bets on the
+density $T p / \E_P[T]$, where $p$ is the simulator's. With many simulations
+the log wealth is the sum of the one-step log predictive scores of these
+densities minus those of the simulator, the prequential likelihood ratio of
+\citet{dawid1984present}. The monitor rejects when a forecaster that uses only
+the past has predicted reality $1/\alpha$ times better than the simulator.
+Validity comes for free from exchangeability; power is a matter of prediction.
+This places the method in the predictive approach to Bayesian inference, in
+which the sequence of one-step predictives, rather than a prior and a
+likelihood, is the primitive, and a \emph{martingale posterior}
+\citep{fong2023martingale} is obtained from any rule that updates the
+predictive coherently. The monitor needs exactly this primitive, a rule that
+turns the current predictive and a new observation into the next predictive,
+and never the posterior itself. Such a rule is not optional here, for four
+reasons developed in Section~\ref{sec:predictive}:
+\begin{itemize}
+  \item the bet must be fixed before each outcome is seen, so the score must be
+        a sequential update, not a batch estimate;
+  \item the growth rate is the one-step log score of the rule, so a rule built
+        to predict the next outcome optimises the right objective;
+  \item the real system is modelled as a tilt of the simulator whose
+        normalising constant is unknown, because the simulator can only be
+        sampled, so exact Bayesian updating is unavailable;
+  \item early bets must be cautious, since an overconfident score can lose all
+        its growth (Theorem~\ref{thm:growth}), and a predictive hedges over
+        what has not yet been learned.
+\end{itemize}
+We use the Bayesian learning rule \citep{khan2023bayesian,jones2024bong}, one
+natural-gradient step per observation, to update a Gaussian approximation of
+the generalised posterior of the tilt.
 
 \paragraph{Contributions.} We make three methodological contributions, each
 answering a question that the i.i.d.\ theory leaves open.
@@ -133,11 +166,14 @@ answering a question that the i.i.d.\ theory leaves open.
         simulations keeps exactly a fraction $M/(M+1)$ of it
         (Theorem~\ref{thm:growth}). The two costs, simulation and learning,
         therefore separate, and $M = 16$ already keeps 94\%.
-  \item \textbf{How should the score be learned?} As a posterior predictive.
-        The growth rate is a logarithmic score, so the posterior predictive is
-        the Bayes-optimal bet (Proposition~\ref{prop:bayesopt}), and it turns
-        the process into a Bayes factor whose total learning cost is
-        $(d/2)\log t$ (Proposition~\ref{prop:bayes}). We compute it online
+  \item \textbf{How should the score be learned?} As a sequence of one-step
+        predictives, updated by a rule. Every score is a predictive and the
+        wealth is their prequential likelihood ratio against the simulator
+        (Section~\ref{sec:predictive}). The posterior predictive is the
+        Bayes-optimal bet (Proposition~\ref{prop:bayesopt}), and with exact
+        Bayesian updating the process becomes a Bayes factor whose total
+        learning cost is $(d/2)\log t$ (Proposition~\ref{prop:bayes}). Exact
+        updating is unavailable for a sampler, so we compute the predictive online
         with one natural-gradient step of the Bayesian learning rule per
         observation \citep{khan2023bayesian,jones2024bong}, at a cost of a few
         matrix operations and without refitting (Section~\ref{sec:blr-practice}
@@ -177,9 +213,11 @@ of conditional independence \citep{shaer2023modelx}.
 Section~\ref{sec:related} compares the contributions with this work in detail.
 
 \paragraph{Organisation.} Section~\ref{sec:setting} sets up the problem,
-Section~\ref{sec:method} gives the method and its validity,
-Section~\ref{sec:power} its power, and Section~\ref{sec:scores} the
-posterior predictive scores and the Bayesian learning rule.
+Section~\ref{sec:method} gives the method and its validity.
+Section~\ref{sec:predictive} shows that a score is a predictive, introduces
+martingale posteriors and explains why the monitor needs a predictive update
+rule. Section~\ref{sec:power} gives the power, and Section~\ref{sec:scores}
+the update rules: exact Bayes, and the Bayesian learning rule used in practice.
 Sections~\ref{sec:experiments}--\ref{sec:italy} contain the experiments and
 applications, and Section~\ref{sec:discussion} discusses limitations.
 
@@ -307,6 +345,131 @@ $\E_{P_a}[T] = \int (dP_a/d\bar P)^2\, d\bar P = 1 + \chi^2(P_a\|\bar P)$.
 The order of the last two steps is what makes the score predictable.
 
 %======================================================================
+\section{Betting is predicting}\label{sec:predictive}
+%======================================================================
+
+Theorem~\ref{thm:valid} leaves the score free. This section explains what
+choosing a score means, and why it calls for a rule that updates a predictive
+distribution at every step.
+
+\subsection{The score as a one-step predictive}
+
+Fix $t$, condition on $\G_t$, and let $p_t$ be the density of the simulator's
+next outcome under the action taken. Any score $T_t = e^{s_t}$ with
+$\E_{P_t}[T_t] < \infty$ defines a density
+\[
+\hat q_t(x) = \frac{T_t(x)\, p_t(x)}{\E_{P_t}[T_t]},
+\]
+the \emph{tilted null}, which is the distribution of the next real outcome on
+which the score implicitly bets. Conversely, any predictive density $q_t$ for
+the next real outcome, computed from $\G_t$, defines the score
+$T_t = q_t/p_t$, for which $\hat q_t = q_t$. The factor \eqref{eq:mc} does not
+change when $T_t$ is multiplied by a constant, so scores and predictives are
+in one-to-one correspondence up to that constant. The score needs $q_t/p_t$
+only, never $p_t$ itself: a classifier of real against simulated outcomes
+estimates the ratio directly.
+
+As $M \to \infty$, $E_t \to \hat q_t(X_t)/p_t(X_t)$
+(Theorem~\ref{thm:growth}(ii)), so for the betting fraction $\lambda = 1$
+\[
+\log W_t \;\to\; \sum_{i \le t} \log \hat q_i(X_i) - \sum_{i \le t} \log p_i(X_i).
+\]
+This is the prequential likelihood ratio \citep{dawid1984present} of the
+forecaster $(\hat q_i)$ against the simulator: the monitor rejects when a
+forecaster that uses only the past has predicted the real outcomes $1/\alpha$
+times better than the simulator did. With finite $M$ the same holds up to the
+simulation cost quantified in Theorem~\ref{thm:growth}. Validity comes for free
+from exchangeability; power is a matter of prediction.
+
+\subsection{Predictive sequences and martingale posteriors}
+
+In a Bayesian model with parameter $\theta$, prior $\pi_0$ and likelihood
+$q_\theta$, the one-step predictives are
+$q_t(x) = \int q_\theta(x)\, \pi_{t-1}(d\theta)$, and the posterior is updated
+by Bayes' rule. The predictive approach reverses the order. The one-step
+predictives determine the joint law of the observations, and for exchangeable
+sequences de Finetti's theorem recovers the prior and the likelihood from them,
+so the predictives can serve as the primitive: one specifies a rule
+\[
+q_{t+1} = \mathcal U_t(q_t, X_t)
+\]
+that turns the current predictive and a new observation into the next one.
+\citet{fong2023martingale} showed how to recover posterior uncertainty from
+such a rule. Starting from the data, draw a future outcome from $q_t$, update,
+and continue indefinitely; the quantity of interest computed from the limiting
+predictive is a draw from the \emph{martingale posterior}. For the imputation
+to converge, the predictives must form a martingale,
+\[
+\E_{X \sim q_t}\big[\,\mathcal U_t(q_t, X)(x)\,\big] = q_t(x) \quad \text{for all } x,
+\]
+so that imputing a future outcome does not, on average, move the prediction.
+Sequences with this property are the conditionally identically distributed
+sequences of \citet{berti2004limit}. Bayesian predictives satisfy it, and so
+do the nonparametric copula updates of \citet{fong2023martingale}, which
+require no likelihood at all.
+
+The monitor needs only the first half of this construction: at each step, the
+current predictive $q_t$, and a rule to produce the next one once $X_t$ has
+been observed. It never imputes the future.
+
+\subsection{Why the monitor needs a predictive update rule}
+
+Four features of the problem make an update rule necessary.
+
+\paragraph{The bet must be fixed before the outcome.} Theorem~\ref{thm:valid}
+requires $q_t$ to be computed from $\G_t$. Refitting an estimator on data that
+include $X_t$ and then betting on $X_t$ is not valid; this is what the plug-in
+and peeking baselines of Section~\ref{sec:experiments} do. The score must
+therefore be a sequential rule: predict, bet, observe, update.
+
+\paragraph{Power is the one-step log score.} By the previous subsection, the
+growth rate is the expected log predictive score of $q_t$ relative to the
+simulator. A rule designed to predict the next outcome well optimises exactly
+the objective that determines power. This is why posterior predictives, and
+not point estimates, are the natural scores: the logarithmic score is strictly
+proper, so the posterior predictive is the Bayes-optimal bet
+(Proposition~\ref{prop:bayesopt}), and exact Bayesian predictives make the
+wealth a Bayes factor, with a total learning cost of $(d/2)\log t$
+(Proposition~\ref{prop:bayes}).
+
+\paragraph{Exact Bayes is unavailable.} A natural model for the real system is
+an exponential tilt of the simulator,
+$q_\theta(x) = p(x) \exp\{\theta^\top\phi(x) - A(\theta)\}$ with
+$A(\theta) = \log \E_P[e^{\theta^\top\phi}]$. Bayes' rule needs $A(\theta)$ at
+every step, and $A(\theta)$ is an integral against a law that can only be
+sampled. There are two ways around this, both in the spirit of the predictive
+approach:
+\begin{itemize}
+  \item specify the update of the predictive directly, as martingale-posterior
+        rules do;
+  \item replace the likelihood by a loss that simulator draws make computable.
+        The loss of a classifier of real against simulated outcomes identifies
+        the tilt, with the intercept absorbing $-A(\theta)$
+        \citep{gutmann2012noise}, and gives a generalised posterior
+        \citep{bissiri2016general}.
+\end{itemize}
+We follow the second route. The Bayesian learning rule
+\citep{khan2023bayesian} computes a Gaussian approximation of the generalised
+posterior, and in its online form \citep{jones2024bong} it is itself a
+predictive update rule: one natural-gradient step per observation, with the
+previous approximation as the prior (Section~\ref{sec:blr}).
+
+\paragraph{Early bets must be cautious.} Theorem~\ref{thm:growth} shows that
+an overconfident score can lose all its growth. A point estimate fitted on few
+observations is overconfident by construction. A predictive averages over the
+tilts that are still plausible and, on the probability scale of
+Section~\ref{sec:scales}, shrinks the bet where the posterior is uncertain, so
+the monitor risks little while it knows little.
+
+\paragraph{Coherence affects power, not validity.} The martingale condition is
+not needed for Theorem~\ref{thm:valid}, which holds for every predictable
+score. It matters for power guarantees: exact Bayesian predictives, which are
+coherent, attain the Bayes-factor growth of Proposition~\ref{prop:bayes}. The
+Bayesian learning rule is coherent only approximately, because each step
+projects onto Gaussians. This can cost power but never validity, and the
+experiments of Section~\ref{sec:exp-blr} measure the cost.
+
+%======================================================================
 \section{Power: the growth rate}\label{sec:power}
 %======================================================================
 
@@ -314,9 +477,9 @@ The time needed to reach $1/\alpha$ is governed by the growth rate
 $\E[\log E_t \mid \G_t]$ \citep{grunwald2024safe}. Fix a time, condition on
 $\G_t$ and drop the index. Let $P$ be the simulator law and $Q$ the true law of
 the next outcome, with $Q \ll P$; let $T = e^{s}$, $Z = \E_P[T] < \infty$, and
-define the \emph{tilted null} $\hat Q$ by $d\hat Q/dP = T/Z$. It is the
-alternative on which the score implicitly bets; a perfect score has
-$\hat Q = Q$. Write $\rho = \E_Q[T]/Z$, and let
+let $\hat Q$, with $d\hat Q/dP = T/Z$, be the tilted null of
+Section~\ref{sec:predictive}, the predictive on which the score bets; a perfect
+score has $\hat Q = Q$. Write $\rho = \E_Q[T]/Z$, and let
 $g_M = \E_{Q \otimes P^M}[\log E^{(M)}]$ be the growth rate with $M$
 simulator draws.
 
@@ -378,14 +541,13 @@ $\log E_i - \E[\log E_i \mid \G_i]$.
 \end{proof}
 
 %======================================================================
-\section{Scores: posterior predictives and the Bayesian learning rule}\label{sec:scores}
+\section{Predictive update rules}\label{sec:scores}
 %======================================================================
 
-Theorem~\ref{thm:valid} leaves the score free, and Theorem~\ref{thm:growth}
-says what a good score is: one whose tilted null $\hat Q_t$ is close to the
-truth. This section argues that the natural choice is a \emph{posterior
-predictive} score, and explains how to compute one online with the Bayesian
-learning rule.
+Theorem~\ref{thm:growth} says what a good score is: one whose predictive
+$\hat Q_t$ is close to the truth. This section gives the update rules. We first
+state what exact Bayesian predictives achieve, which is the benchmark, and
+then describe the rule we use in practice, the Bayesian learning rule.
 
 \subsection{Scores by classification}
 
@@ -397,7 +559,7 @@ Using the odds $e^{\eta(X_t)}$ directly as the bet (the ``plug-in'') is not
 valid, because nothing ensures $\E_P[e^\eta] \le 1$. Inserted in
 \eqref{eq:mc}, the same score is exactly valid.
 
-\subsection{Why posterior predictives}
+\subsection{Exact Bayesian predictives}
 
 \paragraph{The growth rate is a logarithmic score.} With an unlimited budget
 the factor is $E^\infty = (d\hat Q/dP)(X) = \hat q(X)/p(X)$, where $\hat q$ is
@@ -464,26 +626,12 @@ Early on it bets everything on one tilt, and Theorem~\ref{thm:growth} shows
 that an overconfident tilt can lose all its growth. The predictive instead
 bets on a mixture of tilts, weighted by the posterior.
 
-\paragraph{Relation to martingale posteriors.} The monitor uses the Bayesian
-model only through its one-step predictive: at time $t$ it needs a density
-$q_t$ for the next outcome given the past, and nothing else. This is the point
-of view of martingale posteriors \citep{fong2023martingale}. There, the
-predictive sequence $q_1, q_2, \ldots$ is the primitive; the posterior on a
-parameter is recovered, if wanted, by imputing the unobserved future outcomes
-from the predictives and computing the parameter from the completed
-population. The sequence must be a martingale, so that imputing does not drift,
-for this posterior to be coherent. Our monitor needs only the first half of
-this construction, the one-step predictive, and never imputes. Its validity
-does not even need the martingale property, only that $q_t$ is computed from
-the past (Theorem~\ref{thm:valid}). Hence:
-\begin{itemize}
-  \item any predictive update rule gives a valid score, including the
-        nonparametric copula updates of \citet{fong2023martingale};
-  \item a rule whose predictives are coherent, such as exact Bayes, attains the
-        Bayes-factor guarantee of Proposition~\ref{prop:bayes};
-  \item the Bayesian learning rule below is a parametric, Gaussian rule. It is
-        coherent only approximately, which costs power, not validity.
-\end{itemize}
+\paragraph{Other predictive rules.} Any predictive update rule gives a valid
+score. The copula updates of \citet{fong2023martingale} are an attractive
+alternative when the outcome is low-dimensional, since they need neither a
+parametric tilt nor a likelihood; they are coherent by construction, and
+applying them to the ratio $q_t/p_t$ is a natural extension that we do not
+pursue here.
 
 \subsection{The Bayesian learning rule, one step per observation}\label{sec:blr}
 
@@ -1596,6 +1744,9 @@ alternative. Relative to their work, the present paper adds:
         (Proposition~\ref{prop:necessary});
   \item the analysis of arbitrary learned scores through the tilted null, and
         the local efficiency $M/(M+1)$ (Theorem~\ref{thm:growth}(ii) and (iv));
+  \item the reading of every score as a one-step predictive, and of the wealth
+        as a prequential likelihood ratio, which motivates predictive update
+        rules (Section~\ref{sec:predictive});
   \item posterior predictive scores, their Bayes optimality and Bayes-factor
         limit, and their online computation with the Bayesian learning rule
         (Section~\ref{sec:scores});
@@ -1628,11 +1779,15 @@ from observed states and simulating conditionally on part of the trace
 \citep{ghasemloo2026subtrace} uses the same conditioning idea with
 fixed-sample tests.
 
-\paragraph{Bayesian updating.} The score update is an instance of the Bayesian
-learning rule \citep{khan2023bayesian}, in the one-step online form of
-\citet{jones2024bong}. The link between predictive scores and Bayes factors
-is the prequential view of the marginal likelihood
-\citep{clarke1990information}.
+\paragraph{Predictive inference and Bayesian updating.} Reading the wealth as
+a prequential likelihood ratio follows \citet{dawid1984present}, and the link
+between predictive scores and Bayes factors is the prequential view of the
+marginal likelihood \citep{clarke1990information}. Taking the predictive
+sequence as the primitive is the approach of martingale posteriors
+\citep{fong2023martingale}, built on conditionally identically distributed
+sequences \citep{berti2004limit}. The score update is an instance of the
+Bayesian learning rule \citep{khan2023bayesian}, in the one-step online form
+of \citet{jones2024bong}.
 
 %======================================================================
 \section{Discussion}\label{sec:discussion}
