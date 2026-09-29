@@ -1,0 +1,6 @@
+[regularised/null] 61s  reject by T=500: mc=0.030  plugin=0.102  oracle=0.030  ks=0.323
+[regularised/alt] 64s  reject by T=500: mc=0.990  plugin=0.995  oracle=1.000  ks=0.750
+        median stopping time: mc=198.0  plugin=157.5  oracle=35.0  ks=250.0
+[flexible/null] 232s  reject by T=500: mc=0.028  plugin=0.588  oracle=0.030  ks=0.323
+[flexible/alt] 224s  reject by T=500: mc=0.838  plugin=0.998  oracle=1.000  ks=0.750
+        median stopping time: mc=320.0  plugin=65.5  oracle=35.0  ks=250.0
