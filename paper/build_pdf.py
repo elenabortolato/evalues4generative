@@ -169,6 +169,7 @@ def inline_text(s: str) -> str:
     # escaped characters first, so later rules cannot see them
     s = s.replace("\\%", "\x01PCT\x01").replace("\\&", "\x01AMP\x01")
     s = s.replace("\\_", "\x01USC\x01").replace("\\$", "\x01DLR\x01")
+    s = s.replace("\\#", "#")
     s = re.sub(r"\\textbf\{([^{}]*)\}", r"<strong>\1</strong>", s)
     s = re.sub(r"\\(?:emph|textit)\{([^{}]*)\}", r"<em>\1</em>", s)
     s = re.sub(r"\\texttt\{([^{}]*)\}", r"<code>\1</code>", s)
