@@ -1,5 +1,7 @@
 # evalues4generative
 
+**Paper draft:** [`paper/main.pdf`](paper/main.pdf) (source in `paper/`).
+
 A proof of concept for the research proposal *Simulation-Based E-Values and
 Mixtures for Valid Inference in Dynamic and Adaptive Systems*.
 
