@@ -190,6 +190,29 @@ False alarms are at most 4.5% everywhere.
 - In the adaptive bandit their i.i.d. formulation rejects a true null in every
   run (experiment 2).
 
+### Experiment 8: real data, a COVID-19 transmission twin for Italy
+
+This uses Italy's national daily ICU admissions (Protezione Civile) and the
+OxCGRT stringency index, December 2020 to December 2022 (`data/`). The twin is
+a stochastic renewal model: overdispersed daily counts, a day-of-week effect,
+and restrictions acting with a 7-day lag. It is calibrated on 8 weeks, frozen,
+and monitored weekly; after each alarm it is recalibrated and a new monitor
+starts.
+
+On synthetic series from the twin, with a data-driven tier policy, 93 weeks:
+
+| monitor | false alarms (null) | variant ×1.4 from week 10: detected, median delay |
+|---|---|---|
+| MC e-process, BLR score | **0.015** | 1.00, 3 weeks |
+| plug-in bet | 0.045 | 1.00, 2 weeks |
+| twin with the policy held fixed | **1.000** | — |
+| t-test recomputed weekly | 0.350 | — |
+
+On the real data, the first twin (calibrated 24 Dec 2020 – 17 Feb 2021) is
+rejected on **10 March 2021**, during the rise of the spring 2021 wave. That
+date is the same for b ∈ {−0.5, −1, −2}. Across 2021–22 there are 9–14 alarms,
+and a recalibrated twin lasts a median of 5.5–7 weeks.
+
 ## Novelty
 
 See [LITERATURE.md](LITERATURE.md). In short, the parts are known: Besag–Clifford
@@ -249,6 +272,8 @@ python experiments/exp4_growth_rate.py          # ~2 min
 python experiments/exp5_bayesian_learning_rule.py  # ~25 min
 python experiments/exp5b_predictive_scales.py      # ~10 min
 python experiments/exp6_compare_besag_clifford.py  # ~4 min
+python experiments/exp7_artificial_pancreas.py     # ~1 h
+python experiments/exp8_italy_covid.py             # ~2 min
 python experiments/make_figures.py
 ```
 

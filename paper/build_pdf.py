@@ -293,11 +293,21 @@ class Builder:
                 continue
             cells = re.split(r"(?<!\\)&", cell_src)
             tds = []
-            for k, c in enumerate(cells):
+            col = 0
+            for c in cells:
+                mc = re.fullmatch(r"\s*\\multicolumn\{(\d+)\}\{([lcr])\|?\}\{(.*)\}\s*", c, re.S)
+                if mc:
+                    n, al, body_ = int(mc.group(1)), mc.group(2), mc.group(3)
+                    a = {"l": "left", "c": "center", "r": "right"}[al]
+                    tds.append(f'<td colspan="{n}" style="text-align:{a}">'
+                               f'{self.text(body_.strip())}</td>')
+                    col += n
+                    continue
                 a = {"l": "left", "c": "center", "r": "right"}.get(
-                    align[k] if k < len(align) else "l", "left"
+                    align[col] if col < len(align) else "l", "left"
                 )
                 tds.append(f'<td style="text-align:{a}">{self.text(c.strip())}</td>')
+                col += 1
             rows_html.append(f'<tr class="{" ".join(cls)}">' + "".join(tds) + "</tr>")
         last = ' class="lastrow"' if pending_top else ""
         return f'<table class="booktabs"{last}><tbody>' + "".join(rows_html) + "</tbody></table>"

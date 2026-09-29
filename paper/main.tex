@@ -55,7 +55,9 @@ factor. We compute it online with one natural-gradient step of the Bayesian
 learning rule per observation.
 In experiments with a drifting generative model and a Thompson-sampling bandit
 checked against a digital twin, the method keeps false alarms below the
-nominal level. By contrast, using a learned ratio directly as the bet gives up
+nominal level. Applied to Italy's national COVID-19 ICU admissions under
+data-driven restrictions, it shows when a calibrated transmission twin stops
+describing the epidemic. By contrast, using a learned ratio directly as the bet gives up
 to 59\% false alarms, and re-running fixed-sample tests 32--39\%, at
 $\alpha = 0.05$. Predictive scores recover the power lost by overfitting
 learners.
@@ -141,6 +143,11 @@ chosen from the data, and a discrepancy that is unknown and must be
         check of the theory, and a head-to-head comparison with the
         Besag--Clifford e-process that quantifies the price of learning the
         discrepancy (Section~\ref{sec:exp-bc}).
+  \item \textbf{Two applications.} An artificial pancreas monitored against
+        the UVA/Padova type 1 diabetes simulator (Section~\ref{sec:application}),
+        and real data: a COVID-19 transmission twin for Italy, monitored on
+        national ICU admissions under data-driven restrictions from 2021 to
+        2022 (Section~\ref{sec:italy}).
 \end{enumerate}
 
 Several ingredients are known:
@@ -1007,6 +1014,157 @@ exchangeability, and the guarantees of \citet{barber2026montecarlo} for
 approximately exchangeable samples are the natural tool. Real CGM and insulin
 records, such as those collected in closed-loop trials, would be the next
 step.
+
+%======================================================================
+\section{Real data: a COVID-19 transmission twin for Italy}\label{sec:italy}
+%======================================================================
+
+\paragraph{The question.} During the COVID-19 pandemic, transmission models
+calibrated on recent data were used to project hospital and intensive-care
+demand and to decide restrictions. A calibrated model of this kind is a
+digital twin of the epidemic, and the practical question is again whether it
+still describes the data. Restrictions were themselves set in response to the
+epidemic. From November 2020 Italy assigned its regions to colour-coded tiers
+by rules based on incidence and reproduction-number indicators. Policy is
+therefore an action chosen from past data, the setting of
+Theorem~\ref{thm:valid}.
+
+\paragraph{Data.} We use Italy's national daily intensive-care admissions from
+the Civil Protection Department \citep{dpc2020covid}, available from
+3~December 2020, together with the Oxford COVID-19 Government Response Tracker
+stringency index for Italy \citep{hale2021global}, a daily score from 0 to 100
+summarising containment measures. The study period runs to 31~December 2022,
+when the stringency series ends. ICU admissions are less affected than case
+counts by changes in testing policy. The data are in the repository
+(\texttt{data/italy\_covid\_daily.csv}), with their provenance.
+
+\paragraph{The twin.} The twin is a stochastic renewal model
+\citep{cori2013new}. Daily admissions follow a negative binomial distribution
+with mean
+\[
+\mu_t = R_t\, \delta_{\mathrm{wd}(t)} \sum_{s=1}^{21} w_s\, y_{t-s},
+\qquad
+\log R_t = a + b\,\big(\mathrm{stringency}_{t-7}/100 - \tfrac12\big),
+\]
+where:
+\begin{itemize}
+  \item $w$ is a discretised gamma generation-interval distribution with mean
+        6.5 days and standard deviation 4 days;
+  \item $\delta$ are day-of-week reporting factors;
+  \item the negative binomial size $k$ controls overdispersion;
+  \item restrictions act with a lag of seven days.
+\end{itemize}
+The twin is calibrated by maximum likelihood on eight weeks of data and then
+frozen.
+
+The policy effect $b$ is not identifiable from a short observational window.
+Restrictions tighten because admissions rise, and an unconstrained fit returns
+$b > 0$, while the fit constrained to $b \le 0$ sits on the boundary $b = 0$.
+We therefore fix $b = -1$, a 59\% reduction in $R$ between no restrictions and
+stringency 90. This is a moderate value; \citet{flaxman2020estimating}
+estimated larger effects of full lockdowns. The remaining parameters ($a$, $k$
+and $\delta$) are estimated. The monitor tests the twin as a whole, including
+this assumption.
+
+\paragraph{Monitoring.} Every week, the twin simulates the next seven days
+$M = 16$ times from the observed history of admissions, and the monitor bets
+with the BLR predictive score on log-scale summaries of the week relative to
+the twin's noise-free path. Because the policy acts with a seven-day lag, the
+stringency that drives a week is already observed when the week starts, so the
+twin is simulated under the policy actually in force and
+Theorem~\ref{thm:valid} applies exactly. When the wealth reaches $1/\alpha = 20$
+the twin is declared inadequate. It is then recalibrated on the last eight
+weeks, and a new monitor starts. Each alarm is a level-$\alpha$ rejection of
+the twin that was active at the time.
+
+\paragraph{Validity and power where the truth is known.} Real data cannot
+reveal false alarms, so we first generate synthetic series from the
+calibrated twin over the same 93 weeks. The policy is chosen every week by a
+tier rule: stringency 80, 60 or 40 when the previous week's admissions exceed
+1000, exceed 400, or neither, mimicking the colour-coded tiers. In a second
+scenario a ``variant'' multiplies transmission by 1.4 from week 10. We compare
+the monitor with three alternatives:
+\begin{itemize}
+  \item the plug-in bet;
+  \item the same monitor with the twin simulated under the policy held at its
+        calibration-window mean, i.e.\ not conditioned on the action;
+  \item a $t$-test of standardised weekly residuals, recomputed every week.
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\caption{Synthetic series from the calibrated Italian twin with a
+data-driven tier policy (93 weeks; 200 null and 100 variant replications).}
+\label{tab:italy}
+\begin{tabular}{lrrrr}
+\toprule
+ & null & \multicolumn{3}{c}{variant from week 10} \\
+monitor & false alarms & alarm before change & detected & median delay (weeks) \\
+\midrule
+MC e-process, BLR score & 0.015 & 0.00 & 1.00 & 3 \\
+plug-in bet & 0.045 & 0.00 & 1.00 & 2 \\
+twin with policy held fixed & 1.000 & 0.51 & 0.49 & 2 \\
+$t$-test, recomputed weekly & 0.350 & 0.20 & 0.80 & 4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:italy} confirms the theory on a realistic twin:
+\begin{itemize}
+  \item The monitor keeps false alarms at 1.5\% over almost two years of weekly
+        looks, and detects the variant in every run, with a median delay of
+        three weeks.
+  \item The twin that ignores the policy in force rejects a true null in every
+        run: when the tier rule changes the restrictions, the unconditioned
+        twin's predictions are simply wrong.
+  \item The recomputed $t$-test raises false alarms in 35\% of null runs.
+  \item In this model the plug-in bet happens to be nearly calibrated
+        (4.5\%) and is a week faster, but nothing guarantees it.
+\end{itemize}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{exp8_italy_covid.png}
+\caption{Italy, February 2021 to December 2022. Top: observed daily ICU
+admissions (black) and the twin's 90\% predictive band for each coming week
+(blue); orange lines mark alarms, after which the twin is recalibrated on the
+last eight weeks. Bottom: the monitor's log wealth, restarted at each
+recalibration, with the threshold $\log 20$.}
+\label{fig:italy}
+\end{figure}
+
+\paragraph{Results on the real data.} Figure~\ref{fig:italy} shows the
+monitor on the Italian series.
+\begin{itemize}
+  \item \textbf{First alarm.} The first twin, calibrated on 24~December
+        2020 to 17~February 2021, is rejected on 10~March 2021, after three
+        weeks, as admissions rose faster than it predicted during the spring
+        2021 wave.
+  \item \textbf{Later alarms.} Over the whole period there are 14 alarms, and
+        a recalibrated twin survives a median of 5.5 weeks. Alarms cluster at
+        turning points of the epidemic: the declines of May and June 2021, the
+        summer 2021 plateau (which the twin, extrapolating growth,
+        over-predicted), the winter rise of autumn 2021, and the peak and
+        decline of the winter 2021--22 wave, and the smaller waves of 2022.
+  \item \textbf{Robustness.} The first alarm date is the same for
+        $b \in \{-0.5, -1, -2\}$. The number of alarms varies (9, 14 and 12),
+        with a median of 5.5 to 7 weeks between them.
+\end{itemize}
+The conclusion is that a renewal twin calibrated on eight weeks describes
+Italian ICU admissions for about one to two months at a time. This is useful
+information for anyone relying on such a model for projections. The monitor
+provides it with a guarantee that holds under the data-driven policy.
+
+\paragraph{Caveats.} An alarm says that the twin is wrong, not why.
+Candidate reasons include new variants, vaccination, seasonality, and changes
+in admission practice; attributing alarms to causes requires further
+modelling. The twin's likelihood happens to be tractable, which makes the
+example transparent. But the monitor uses only simulation, so the same
+analysis applies unchanged to agent-based or compartmental models with latent
+states, whose likelihoods are not available. Finally, the recalibrate-and-restart
+procedure is a sequence of tests of different twins. Each alarm is valid for
+the twin active at the time; the alarms are not a simultaneous statement about
+all periods.
 
 %======================================================================
 \section{Related work}\label{sec:related}
