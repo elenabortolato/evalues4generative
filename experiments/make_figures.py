@@ -152,9 +152,43 @@ def fig_exp3():
     fig.savefig(FIG / "exp3_simulation_budget.png", dpi=150)
 
 
+def fig_exp4():
+    rows = json.loads((RES / "exp4.json").read_text())
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4), sharey=True)
+    ms = sorted({r["m"] for r in rows})
+    grid = np.array(ms, dtype=float)
+    for ax, delta, title in [(axes[0], 0.25, "Local alternative (δ = 0.25)"),
+                             (axes[1], 1.0, "Large alternative (δ = 1)")]:
+        ax.plot(grid, grid / (grid + 1), color=REF, lw=2, ls="--")
+        for (mult, lab), color in zip([(1.0, "perfect score"), (0.5, "under-confident (θ = δ/2)"),
+                                       (1.5, "over-confident (θ = 1.5δ)")], SLOT):
+            sel = [r for r in rows if r["delta"] == delta and abs(r["theta"] - mult * delta) < 1e-9]
+            sel.sort(key=lambda r: r["m"])
+            eff = [r["g"] / r["g_inf"] for r in sel]
+            err = [2 * r["se"] / r["g_inf"] for r in sel]
+            ax.errorbar([r["m"] for r in sel], eff, yerr=err, color=color, lw=2,
+                        marker="o", ms=5, capsize=0)
+        ax.set_xscale("log", base=2)
+        ax.set_xticks(ms, [str(m) for m in ms])
+        ax.set_xlabel("simulator draws per step, M")
+        ax.set_title(title, color=INK)
+        ax.set_ylim(0.3, 1.1)
+    axes[0].set_ylabel(r"growth rate $g_M / g_\infty$")
+    styles = {"t": ("M/(M+1), Theorem 1(iv)", REF, "--"),
+              "a": ("perfect score", SLOT[0], "-"),
+              "b": ("under-confident score (θ = δ/2)", SLOT[1], "-"),
+              "c": ("over-confident score (θ = 1.5δ)", SLOT[2], "-")}
+    fig.suptitle("Exp. 4: growth rate with M simulator draws, relative to M = ∞",
+                 x=0.01, ha="left", fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.86))
+    legend(fig, styles, 0.93)
+    fig.savefig(FIG / "exp4_growth_rate.png", dpi=150)
+
+
 if __name__ == "__main__":
     FIG.mkdir(exist_ok=True)
-    for f, name in [(fig_exp1, "exp1"), (fig_exp2, "exp2"), (fig_exp3, "exp3")]:
+    for f, name in [(fig_exp1, "exp1"), (fig_exp2, "exp2"), (fig_exp3, "exp3"),
+                      (fig_exp4, "exp4")]:
         if (RES / f"{name}.json").exists():
             f()
             print("wrote", name)

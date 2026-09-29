@@ -91,6 +91,40 @@ replications.
 The method is valid for every M, including M = 1. Power saturates quickly: M = 4
 already comes close to M = 64.
 
+### Experiment 4: checking the growth-rate theorem
+
+The growth-rate result is Theorem 1 in the proposal. Here the null is
+N(0, 1), the alternative N(δ, 1), and the score T(x) = exp(θx), so every
+quantity in the theorem has a closed form, and the growth rate g_M is
+estimated from 400,000 draws. Results:
+
+- **Parts (i) and (iii) hold in every case tested:** the ceiling KL(Q‖P) and
+  the finite-M lower bound. The lower bound is conservative.
+- **Part (iv), local efficiency g_M / g_∞ ≈ M/(M+1), matches to within Monte
+  Carlo error for δ = 0.25:** 0.48 / 0.66 / 0.80 / 0.89 / 0.93 at
+  M = 1 / 2 / 4 / 8 / 16, against 0.50 / 0.67 / 0.80 / 0.89 / 0.94 predicted.
+- **For a large shift (δ = 1) a perfect score does a little worse than
+  M/(M+1)** (0.40 at M = 1).
+- **An overconfident score can do better at finite M than at M = ∞.** With
+  θ = 2δ, g_∞ = 0 but g_4 ≈ 0.18. The Monte Carlo e-value is capped at M+1,
+  which tempers the score's bets.
+
+![exp4](figures/exp4_growth_rate.png)
+
+In practice, one simulator draw per real observation roughly halves the growth
+rate and doubles the time to detection; M ≈ 9 keeps 90%. Experiment 3 agrees:
+the median stopping time at M = 1 is 1.8 times that at M = 64.
+
+## Novelty
+
+See [LITERATURE.md](LITERATURE.md). In short, the parts are known: Besag–Clifford
+exchangeability, testing by betting, classifier-based ratios, and per-step null
+sampling for conditional independence (Shaer et al., 2023). The combination is
+what we believe is new: a stream, a simulator-only null, adaptive actions and
+learned scores, together with the growth theory. That claim is provisional
+until the full text of Dombowsky, Engelhardt & Ramdas (2026), the closest
+paper, has been read.
+
 ## What this does and does not show
 
 - **Shown.**
@@ -116,11 +150,12 @@ already comes close to M = 64.
 ## Layout and reproduction
 
 ```
+LITERATURE.md       related-work table and novelty claims
 e4g/evalues.py      Monte Carlo factor, plug-in factor, lambda-mixture, product process
 e4g/learners.py     online balanced logistic ratio estimator (polynomial features)
 e4g/monitor.py      runs the competing e-processes side by side
 experiments/        exp1_generative_drift.py, exp2_adaptive_bandit.py,
-                    exp3_simulation_budget.py, make_figures.py
+                    exp3_simulation_budget.py, exp4_growth_rate.py, make_figures.py
 tests/              exactness tests (E[E_t] = 1 for arbitrary scores, etc.)
 results/            JSON results and run logs; figures/  PNG figures
 ```
@@ -131,6 +166,7 @@ python -m pytest -q tests                        # ~30 s
 python experiments/exp1_generative_drift.py      # ~10 min on 4 cores
 python experiments/exp2_adaptive_bandit.py       # ~2.5 min
 python experiments/exp3_simulation_budget.py     # ~4 min
+python experiments/exp4_growth_rate.py          # ~2 min
 python experiments/make_figures.py
 ```
 
