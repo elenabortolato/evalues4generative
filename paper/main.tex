@@ -1016,7 +1016,7 @@ records, such as those collected in closed-loop trials, would be the next
 step.
 
 %======================================================================
-\section{Real data: a COVID-19 transmission twin for Italy}\label{sec:italy}
+\section{Real data: COVID-19 transmission twins for Italy}\label{sec:italy}
 %======================================================================
 
 \paragraph{The question.} During the COVID-19 pandemic, transmission models
@@ -1028,6 +1028,175 @@ epidemic. From November 2020 Italy assigned its regions to colour-coded tiers
 by rules based on incidence and reproduction-number indicators. Policy is
 therefore an action chosen from past data, the setting of
 Theorem~\ref{thm:valid}.
+
+We present two analyses. The first uses the regional colour zones, where
+the actions are explicit decisions (Section~\ref{sec:italy-regions}). The
+second uses national ICU admissions with a continuous stringency index
+(Section~\ref{sec:italy-national}).
+
+\subsection{Regional colour zones: explicit, data-driven actions}\label{sec:italy-regions}
+
+\paragraph{The actions.} From 6~November 2020 to spring 2022, each of Italy's
+21 regions and autonomous provinces was placed every week, by government
+ordinance, in one of four zones:
+\begin{itemize}
+  \item \textbf{white:} almost no restrictions;
+  \item \textbf{yellow:} curfew, and restaurants closed in the evening;
+  \item \textbf{orange:} restaurants closed, travel between municipalities
+        restricted;
+  \item \textbf{red:} a near-lockdown.
+\end{itemize}
+The assignment followed published rules based on incidence, the
+reproduction number and hospital indicators, so each action is an explicit,
+discrete decision taken from the data. The actions change often: there are
+392 changes of colour across the 21 regions, a median of 19 per region. Before
+July 2021, 43\% of region-days were yellow, 32\% orange, 17\% red and 8\%
+white.
+
+\paragraph{Data.} Daily new positives for each region come from the Civil
+Protection Department \citep{dpc2020covid}. The daily colour of each region
+comes from a public compilation of the ordinances
+\citep{imcatta2022restrizioni}. Together they cover 6~November 2020 to
+15~May 2022 (\texttt{data/italy\_regions\_daily.csv}).
+
+\paragraph{The twin.} For region $r$, daily new positives follow a negative
+binomial distribution with mean
+\[
+\mu_{rt} = \exp\big(a_r + \beta_{\mathrm{zone}(r,\, t-7)} + \varepsilon_{r,\mathrm{week}(t)}\big)\,
+\delta_{\mathrm{wd}(t)} \sum_{s=1}^{21} w_s\, y_{r,t-s},
+\]
+with the following components:
+\begin{itemize}
+  \item a baseline $a_r$ for each region;
+  \item zone effects $\beta$ relative to yellow, shared across regions and
+        acting with a seven-day lag;
+  \item shared day-of-week factors $\delta$ and overdispersion $k$;
+  \item a week-level shock $\varepsilon \sim \mathcal N(0, \sigma^2)$, which
+        represents reporting and testing variability that is common to the
+        days of a week.
+\end{itemize}
+
+All parameters are estimated on 13~November 2020 to 28~February 2021, before
+monitoring starts, so the twin is predictable:
+\begin{itemize}
+  \item $a$, $\beta$, $\delta$ and $k$ by pooled maximum likelihood;
+  \item $\sigma$ by requiring one-week-ahead 90\% intervals for weekly totals
+        to cover 90\% of region-weeks in that window, which gives $\sigma = 0.10$.
+\end{itemize}
+Two further choices are needed:
+\begin{itemize}
+  \item \textbf{Ordering.} We impose red $\le$ orange $\le$ yellow. Without the
+        constraint, reverse causation (regions turned red because cases were
+        growing) makes red look less restrictive than orange.
+  \item \textbf{White zones.} They began on 1~March 2021, so their effect cannot
+        be estimated before monitoring, and the twin treats white as yellow.
+\end{itemize}
+The estimated effect is modest: orange and red both multiply $R$ by 0.94.
+This is probably attenuated by the same confounding, so we also report a
+sensitivity analysis with orange $\times 0.85$ and red $\times 0.70$.
+
+\paragraph{Monitoring.} From 1~March 2021, each region is monitored every
+week. Its twin simulates the region's next seven days $M = 16$ times, under
+the zone the region was actually assigned. Because zones act with a
+seven-day lag, those zones are known when the week starts, and
+Theorem~\ref{thm:valid} applies exactly. After an alarm, the region's baseline
+$a_r$ is recalibrated on its last eight weeks and a new monitor starts. Two
+further tools use the multiplicity of regions:
+\begin{itemize}
+  \item \textbf{A national monitor.} Under the twin, regions are conditionally
+        independent given their pasts. The average of the 21 regional wealth
+        processes (with the frozen twin, no recalibration) is then a test
+        martingale for the null that the twin holds in \emph{every} region.
+  \item \textbf{Which regions.} The e-BH procedure \citep{wang2022false}, applied
+        to the regional e-values stopped at their first crossing, identifies
+        the regions whose twin fails, with false-discovery-rate control.
+\end{itemize}
+
+\paragraph{Validity where the truth is known.} We generate the 21 regional
+series from the twin, with zones assigned every week by a documented rule
+that mimics the official one: red, orange, yellow or white when the previous
+week's cases exceed 250, 150 or 50 per 100\,000 inhabitants, or none of
+these. We compare four monitors: ours; the same monitor with a twin that
+assumes every region is always yellow, i.e.\ ignores the actions; the plug-in
+bet; and a $t$-test recomputed weekly. There are 100 null replications for
+each setting of the zone effects, and 60 replications with a variant that
+multiplies transmission by 1.3 in every region from week 8.
+
+\begin{table}[t]
+\centering
+\caption{Synthetic regional series with data-driven zones (62 weeks,
+21 regions). Regional: share of region-runs with a false alarm. National: share
+of runs in which the average-of-wealths monitor rejects. Variant: detection
+by the national monitor and median delay in weeks.}
+\label{tab:regions}
+\begin{tabular}{lrrrrr}
+\toprule
+ & \multicolumn{2}{c}{estimated effects} & \multicolumn{2}{c}{strong effects} & variant \\
+monitor & regional & national & regional & national & national \\
+\midrule
+MC e-process, zone-conditioned twin & 0.020 & 0.01 & 0.019 & 0.02 & 1.00, 8 \\
+twin assuming ``always yellow'' & 0.031 & 0.03 & 0.131 & 0.29 & 1.00, 10 \\
+plug-in bet & 0.426 & -- & 0.429 & -- & -- \\
+$t$-test, recomputed weekly & 0.335 & -- & 0.318 & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:regions} shows the role of the actions directly.
+\begin{itemize}
+  \item \textbf{The zone-conditioned monitor is valid} in both settings (2\%
+        regional, 1--2\% national false alarms).
+  \item \textbf{Ignoring the actions is safe only when they barely matter.} With
+        the small estimated effects it is nearly valid (3\%). When zones have
+        the strong effects, it raises false alarms in 13\% of region-runs, and
+        the national monitor built on it rejects a true null in 29\% of runs.
+        In the variant scenario with strong effects, the ``always yellow'' twin
+        detects the variant in only 28\% of region-runs, because its
+        mispredictions of the zone effects swamp the signal. The conditioned
+        monitor detects it in 99.5\%.
+  \item \textbf{The plug-in and recomputed-test baselines fail}, with false
+        alarms in 43\% and 32--34\% of region-runs.
+  \item \textbf{Detection.} The national monitor detects the variant in every
+        run, after a median of eight weeks; individual regions take longer (a
+        median of 13 weeks), because each has less data.
+\end{itemize}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{exp9_italy_regions.png}
+\caption{Italy's regional colour zones, March 2021 to May 2022. Top: the zone
+assigned to each region (cells) and the monitor's alarms (triangles), after
+each of which the region's twin is recalibrated. Bottom: the national monitor,
+the average of the 21 regional wealths for the frozen twin, with the threshold
+$\log 20$.}
+\label{fig:regions}
+\end{figure}
+
+\paragraph{Results on the real data.} Figure~\ref{fig:regions} shows the
+analysis.
+\begin{itemize}
+  \item \textbf{Conditioning on the zones helps prediction out of sample.} Over
+        the first twelve weeks, the observed weekly total falls inside the
+        twin's 90\% interval in 79\% of region-weeks, against 75\% for the twin
+        that ignores the zones. Coverage below 90\% already shows that the
+        frozen twin is imperfect.
+  \item \textbf{National monitor.} It rejects the twin on 13~June 2021.
+  \item \textbf{Which regions.} e-BH rejects the original twin in all 21
+        regions by the end of the period.
+  \item \textbf{Regional alarms.} There are 100 in total, a median of five per
+        region and between 0 and 10. They cluster in two periods: July to
+        September 2021 (31 alarms), when most regions were white, the zone
+        the twin had to treat as yellow, and cases rose again; and January to
+        February 2022 (25 alarms), during the winter 2021--22 wave.
+\end{itemize}
+
+The conclusion is that a pooled renewal twin with frozen zone effects
+describes regional case counts for a few weeks to a few months at a time. The
+assumption forced on it by the data, that white behaves like yellow, is among
+the first things to fail. Both findings are reached with a guarantee that
+holds although the zones themselves were chosen from the data.
+
+\subsection{National ICU admissions under a stringency index}\label{sec:italy-national}
 
 \paragraph{Data.} We use Italy's national daily intensive-care admissions from
 the Civil Protection Department \citep{dpc2020covid}, available from
