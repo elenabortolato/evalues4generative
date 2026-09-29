@@ -38,25 +38,27 @@ Simulators, generative models and digital twins are increasingly used inside
 decision loops, where actions are chosen from the data and the analyst can
 only \emph{sample} from the model. We ask how to monitor, as data arrive,
 whether reality has departed from such a model, with a false-alarm guarantee
-that holds at every time and under any stopping rule. At each step we draw $M$
-fresh samples from the simulator for the context and action actually taken,
-score them together with the real observation using a score learned from the
-past, and bet on the rank-like statistic
-$(M+1)\,T(X_t)/\{T(X_t) + \sum_j T(Y_{t,j})\}$. By exchangeability, the bet has
-conditional null expectation exactly one, whatever the learner, so the running
-wealth is a test martingale. No density is evaluated. We show that simulating
-conditionally on the action is sufficient for validity under arbitrary
-adaptive policies and that it cannot be dropped. We then characterise power. The
-growth rate is bounded by $\KL(Q\|P)$, equals $\KL(Q\|P) - \KL(Q\|\hat Q)$ with
-an unlimited simulation budget, where $\hat Q$ is the null tilted by the score,
-and loses a factor $M/(M+1)$ for local alternatives. With posterior predictive
-scores the infinite-budget process is a Bayes factor, and we compute the
-posterior online with one natural-gradient step of the Bayesian learning rule
-per observation. In experiments with a drifting generative model and a
-Thompson-sampling bandit checked against a digital twin, the method keeps
-false alarms below the nominal level, whereas using a learned ratio directly
-as the bet gives up to 59\% false alarms, and re-running fixed-sample tests
-32--39\%, at $\alpha = 0.05$.
+that holds at every time and under any stopping rule. Our starting point is the
+Besag--Clifford e-process of \citet{dombowsky2026besag}. At each step, $M$
+fresh null samples are drawn and the real observation's share of the total
+score, $(M+1)\,T(X_t)/\{T(X_t) + \sum_j T(Y_{t,j})\}$, is used as the bet. We
+extend it in three directions.
+First, adaptive control: when actions depend on the data, the construction is
+valid for every policy if the simulator is run conditionally on the action
+taken, and we show that this condition cannot be dropped.
+Second, learned scores: we analyse the growth rate through the null tilted by
+the score, $\hat Q$, which gives $\KL(Q\|P) - \KL(Q\|\hat Q)$ with an unlimited
+budget and an efficiency of exactly $M/(M+1)$ for local alternatives.
+Third, posterior predictive scores: the posterior predictive is the
+Bayes-optimal bet, and it turns the infinite-budget process into a Bayes
+factor. We compute it online with one natural-gradient step of the Bayesian
+learning rule per observation.
+In experiments with a drifting generative model and a Thompson-sampling bandit
+checked against a digital twin, the method keeps false alarms below the
+nominal level. By contrast, using a learned ratio directly as the bet gives up
+to 59\% false alarms, and re-running fixed-sample tests 32--39\%, at
+$\alpha = 0.05$. Predictive scores recover the power lost by overfitting
+learners.
 \end{abstract}
 
 %======================================================================
@@ -87,48 +89,73 @@ martingales \citep{vovk2003testing,vovk2021testing} monitor a stream without
 a model, but they test whether the stream is exchangeable, not whether it
 agrees with a simulator.
 
-We propose a simple construction. At each step, draw $M$ samples from the
-simulator \emph{for the same context and action as the real observation},
-score all $M+1$ points with a score fitted on the past, and bet the share of
-the real point in the total score, rescaled by $M+1$. Under the null the real
-point is exchangeable with the simulated ones, so the bet is fair for every
-score; the product of bets is a test martingale; and Ville's inequality gives
-an anytime-valid test. The learner affects power but never validity.
+The idea we build on is simple. At each step, draw $M$ samples from the
+simulator, score all $M+1$ points, and bet the share of the real point in the
+total score, rescaled by $M+1$. Under the null the real point is exchangeable
+with the simulated ones, so the bet is fair for every score. This is the
+soft-rank e-variable \citep{wang2022false}. Recently,
+\citet{dombowsky2026besag} turned it into Besag--Clifford e-values and
+e-processes for unnormalised models, sampled by MCMC, and showed that with the
+likelihood ratio as score it is log-optimal as $M$ grows. Their sequential
+setting has an i.i.d.\ null and no actions, and their scores are likelihood
+ratios or plug-in estimates. The settings above add two ingredients: actions
+chosen from the data, and a discrepancy that is unknown and must be
+\emph{learned}.
 
 \paragraph{Contributions.}
 \begin{enumerate}
   \item \textbf{Validity under adaptive control} (Theorem~\ref{thm:valid}).
-        The Monte Carlo e-process is a test martingale under any adaptive
-        policy, provided the simulator is run conditionally on the action
-        taken. Proposition~\ref{prop:necessary} shows that this condition
-        cannot be dropped: simulating from the wrong action mixture makes
-        the wealth grow under the null.
-  \item \textbf{Power} (Theorem~\ref{thm:growth}). The growth rate is at most
-        $\KL(Q\|P)$; with an unlimited budget it equals
-        $\KL(Q\|P) - \KL(Q\|\hat Q)$, where $\hat Q$ is the null tilted by the
-        score; a non-asymptotic bound controls finite budgets; and for local
-        alternatives the finite-budget efficiency is exactly $M/(M+1)$ to
-        second order. A finite budget also tempers overconfident scores.
-  \item \textbf{Bayesian predictive scores} (Proposition~\ref{prop:bayes}).
-        With posterior predictive scores under an exponential tilt of the
-        simulator, the infinite-budget process is the Bayes factor of the
-        tilted family against the simulator, so the total learning cost is
-        $(d/2)\log t$. We compute the posterior online with the Bayesian
-        learning rule \citep{khan2023bayesian,jones2024bong}. Its
-        approximations cannot affect validity.
-  \item \textbf{Experiments} on a drifting generative model, a
-        Thompson-sampling bandit checked against a digital twin, and a
-        numerical check of the theory.
+        With actions chosen by an arbitrary policy, the Monte Carlo e-process
+        is a test martingale, provided the simulator is run conditionally on
+        the history and on the action taken. Proposition~\ref{prop:necessary}
+        shows that this condition cannot be dropped: simulating from a mixture
+        over actions makes the expected bet $1 + \chi^2 > 1$ under the null,
+        and in our bandit experiment every run rejects a true null.
+  \item \textbf{Power of learned scores} (Theorem~\ref{thm:growth}). We describe
+        an arbitrary score by the tilted null $\hat Q$ on which it implicitly
+        bets. With an unlimited budget the growth rate is
+        $\KL(Q\|P) - \KL(Q\|\hat Q)$, which reduces to the log-optimality result
+        of \citet{dombowsky2026besag} when the score is the likelihood ratio.
+        For local alternatives the finite-budget efficiency is exactly
+        $M/(M+1)$ to second order, so the efficiency factorises into a
+        simulation term and a learning term. A finite budget also tempers
+        overconfident scores.
+  \item \textbf{Posterior predictive scores and the Bayesian learning rule}
+        (Section~\ref{sec:scores}).
+        \begin{itemize}
+          \item The growth rate is a logarithmic score, so the posterior
+                predictive is the Bayes-optimal bet
+                (Proposition~\ref{prop:bayesopt}).
+          \item Under an exponential tilt of the simulator, predictive scores
+                make the infinite-budget process the Bayes factor, with total
+                learning cost $(d/2)\log t$ (Proposition~\ref{prop:bayes}).
+          \item We compute the predictive online with one natural-gradient step
+                of the Bayesian learning rule per observation
+                \citep{khan2023bayesian,jones2024bong}. We compare two notions
+                of predictive, on the probability scale and on the ratio scale,
+                and explain why the more conservative one wins when the
+                posterior is approximate.
+        \end{itemize}
+  \item \textbf{Experiments} on a drifting generative model and a
+        Thompson-sampling bandit checked against a digital twin, together with
+        a numerical check of the theory.
 \end{enumerate}
 
-The single-step argument is the exchangeability argument of Monte Carlo tests
-\citep{besag1989generalized}, and betting on a stream is the framework of
-\citet{shafer2021testing} and \citet{ramdas2023game}. Per-step sampling from a
-known conditional null already appears in model-X sequential testing of
-conditional independence \citep{shaer2023modelx}, and Besag--Clifford
-e-values have recently been developed for unnormalised models
-\citep{dombowsky2026besag}. Section~\ref{sec:related} discusses how our
-setting and results differ.
+Several ingredients are known:
+\begin{itemize}
+  \item the single-step e-value and its sequential product, for an i.i.d.\
+        null \citep{wang2022false,dombowsky2026besag};
+  \item the exchangeability argument of Monte Carlo tests
+        \citep{besag1989generalized};
+  \item the betting framework \citep{shafer2021testing,ramdas2023game};
+  \item the non-asymptotic finite-$M$ bound in Theorem~\ref{thm:growth}(iii),
+        which is Theorem~3 of \citet{dombowsky2026besag} rewritten in terms of
+        the tilted null;
+  \item per-step sampling from a known conditional null, which appears in
+        model-X sequential testing of conditional independence
+        \citep{shaer2023modelx}.
+\end{itemize}
+Section~\ref{sec:related} states precisely what is new.
 
 %======================================================================
 \section{Setting}\label{sec:setting}
@@ -175,7 +202,7 @@ $Y_{t,1}, \ldots, Y_{t,M}$ from the simulator under action $A_t$ and set
 E_t = \frac{(M+1)\, T_t(X_t)}{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})}.
 \end{equation}
 
-\begin{proposition}[One-step exactness]\label{prop:exact}
+\begin{proposition}[One-step exactness; \citealp{wang2022false}; \citealp{dombowsky2026besag}, Proposition~1]\label{prop:exact}
 Let $Z_0, \ldots, Z_M$ be exchangeable and $T > 0$. Then
 $\E\big[(M+1)\,T(Z_0)/\sum_{k} T(Z_k)\big] = 1$.
 \end{proposition}
@@ -213,8 +240,11 @@ for each $\lambda$. Each product is a nonnegative martingale with initial
 value one, and so is their average. Ville's inequality concludes.
 \end{proof}
 
-Nothing in Theorem~\ref{thm:valid} involves a density, the quality of the
-score, or the policy, which may depend on the data and on the wealth itself.
+For an i.i.d.\ null, no actions and simulations independent across time,
+Theorem~\ref{thm:valid} reduces to the Besag--Clifford e-process of
+\citet[Proposition~6]{dombowsky2026besag}. Nothing in Theorem~\ref{thm:valid}
+involves a density, the quality of the score, or the policy, which may depend
+on the data and on the wealth itself.
 The policy enters only through the requirement that the simulator be run
 under the action actually taken, and this requirement is essential.
 
@@ -271,7 +301,8 @@ Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
   \item[(ii)] (Unlimited budget.) As $M \to \infty$,
         $E^{(M)} \to (d\hat Q/dP)(X)$ almost surely, and
         $g_\infty = \E_Q[\log (d\hat Q/dP)(X)] = \KL(Q\|P) - \KL(Q\|\hat Q)$.
-  \item[(iii)] (Finite budget.) $g_M \ge g_\infty - (\rho - 1)/(M+1)$.
+  \item[(iii)] (Finite budget.) $g_M \ge g_\infty - \log\{1 + (\rho - 1)/(M+1)\}
+        \ge g_\infty - (\rho - 1)/(M+1)$.
   \item[(iv)] (Local alternatives.) If $dQ/dP = 1 + \varepsilon g$ and
         $T = e^{\varepsilon h}$ with $g, h$ bounded and $\E_P[g] = 0$, and
         $\tilde h = h - \E_P[h]$, then
@@ -281,7 +312,12 @@ Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
 \end{enumerate}
 \end{theorem}
 
-The proof is in Appendix~\ref{app:proofs}. Part (iv) factorises the
+The proof is in Appendix~\ref{app:proofs}. Part (i) is the log-optimality of
+the likelihood ratio. When the score is the likelihood ratio, $\hat Q = Q$ and
+(ii) is the limit in Theorem~1 of \citet{dombowsky2026besag}. Part (iii) is
+their Theorem~3, rewritten in terms of the tilted null. What is new is the
+reading of an arbitrary score through $\hat Q$ in (ii), and the local constant
+in (iv). Part (iv) factorises the
 efficiency relative to the oracle likelihood ratio into two terms:
 \[
 \frac{g_M}{\KL(Q\|P)} \approx
@@ -294,7 +330,9 @@ $M/(M+1)$ is neither an upper nor a lower bound. For a large mean shift and a
 perfect score the efficiency at $M = 1$ is lower (0.40), while an
 overconfident score does \emph{better} with a finite budget than with an
 infinite one. Because $E^{(M)} \le M+1$, a finite budget truncates the bets of
-an overconfident score (Section~\ref{sec:exp-budget}).
+an overconfident score (Section~\ref{sec:exp-budget}). This complements
+\citet[Corollary~1]{dombowsky2026besag}, who show that the Monte Carlo
+normalisation improves on an under-powered exact e-value.
 
 \begin{corollary}[Cumulative growth]\label{cor:cumulative}
 If $1 \in \Lambda$ and the scores are bounded, $|s_t| \le B$, then
@@ -317,19 +355,62 @@ $\log E_i - \E[\log E_i \mid \G_i]$.
 \section{Scores: posterior predictives and the Bayesian learning rule}\label{sec:scores}
 %======================================================================
 
-\paragraph{Scores by classification.} Train a classifier to separate real
-outcomes (label 1) from simulator draws (label 0) with balanced class
-weights. Its logit estimates $\log(dQ/dP)$ \citep{thomas2022lfire}, and it is
-trained only on data in $\G_t$. Using its odds directly as the bet (the
-``plug-in'') is not valid, because nothing ensures $\E_P[T] \le 1$. Inserted
-in \eqref{eq:mc}, the same score is exactly valid.
+Theorem~\ref{thm:valid} leaves the score free, and Theorem~\ref{thm:growth}
+says what a good score is: one whose tilted null $\hat Q_t$ is close to the
+truth. This section argues that the natural choice is a \emph{posterior
+predictive} score, and explains how to compute one online with the Bayesian
+learning rule.
 
-\paragraph{Posterior predictive scores.} Theorem~\ref{thm:growth} asks for
-scores whose tilted null approaches $Q$. A Bayesian answer is to model the
-real outcomes as an exponential tilt of the simulator,
+\subsection{Scores by classification}
+
+Train a classifier to separate real outcomes (label 1) from simulator draws
+(label 0) with balanced class weights. Its logit $\eta(x)$ estimates
+$\log(dQ/dP)(x)$ \citep{thomas2022lfire}, and it is trained only on data in
+$\G_t$. For a logistic model on features $z = z(x)$, $\eta = z^\top\theta$.
+Using the odds $e^{\eta(X_t)}$ directly as the bet (the ``plug-in'') is not
+valid, because nothing ensures $\E_P[e^\eta] \le 1$. Inserted in
+\eqref{eq:mc}, the same score is exactly valid.
+
+\subsection{Why posterior predictives}
+
+\paragraph{The growth rate is a logarithmic score.} With an unlimited budget
+the factor is $E^\infty = (d\hat Q/dP)(X) = \hat q(X)/p(X)$, where $\hat q$ is
+the density of the tilted null (Theorem~\ref{thm:growth}(ii)). Maximising the
+growth rate is therefore the same as maximising the expected logarithmic score
+$\E[\log \hat q(X_t)]$ of the density on which the score implicitly bets. The
+logarithmic score is strictly proper, so under a Bayesian model the optimal
+bet is the posterior predictive.
+
+\begin{proposition}[The posterior predictive is the Bayes-optimal bet]\label{prop:bayesopt}
+Let $\{Q_\theta\}$ be a model with prior $\pi_0$, under which, given $\theta$,
+the outcomes are i.i.d.\ $Q_\theta$ given the past and the action, and let $q_t$
+be the posterior predictive density of $X_t$ given $\G_t$. For every
+$\G_t$-measurable score $T$ with $\E_P[T] < \infty$, the Bayes-expected growth
+satisfies
+\[
+\E\big[\log E_t^\infty \mid \G_t\big] \le
+\E\Big[\log \frac{q_t}{p}(X_t) \Bigm| \G_t\Big]
+\quad \text{under the Bayesian model,}
+\]
+with equality if and only if $T \propto q_t/p$, $P$-almost everywhere.
+\end{proposition}
+
+\begin{proof}
+$E_t^\infty = \tilde q(X_t)/p(X_t)$, where $\tilde q = T p/\E_P[T]$ is a
+density. Under the Bayesian model, $X_t$ given $\G_t$ has density $q_t$, so
+the difference between the two sides is
+$\E_{q_t}[\log (\tilde q/q_t)] = -\KL(q_t\|\tilde q) \le 0$.
+\end{proof}
+
+Proposition~\ref{prop:bayesopt} is a statement \emph{on average over the
+prior}. Theorem~\ref{thm:growth} describes what happens under the true $Q$,
+and Proposition~\ref{prop:bayes} connects the two over time.
+
+\paragraph{Predictive scores give the Bayes factor.} Model the real outcomes as
+an exponential tilt of the simulator,
 $dQ_\theta/dP = \exp\{\theta^\top \phi(x) - A(\theta)\}$ with
-$A(\theta) = \log \E_P[e^{\theta^\top\phi}]$, place a prior $\pi_0$ on $\theta$, and
-score with the posterior predictive ratio
+$A(\theta) = \log \E_P[e^{\theta^\top\phi}]$. Place a prior $\pi_0$ on $\theta$,
+and score with the posterior predictive ratio
 $T_t = \int (dQ_\theta/dP)\, \pi_{t-1}(d\theta)$.
 
 \begin{proposition}[Predictive scores give the Bayes factor]\label{prop:bayes}
@@ -346,39 +427,122 @@ $\KL(Q\|P) - \inf_\theta \KL(Q\|Q_\theta)$.
 \begin{proof}
 $\E_P[dQ_\theta/dP] = 1$ for every $\theta$. The product of one-step predictive
 ratios is the ratio of marginal likelihoods, and the expansion is the
-Laplace approximation of \citet{clarke1990information}.
+Laplace approximation of \citet{clarke1990information}; see
+Appendix~\ref{app:proofs}.
 \end{proof}
 
-So with predictive scores the learning penalty of Theorem~\ref{thm:growth}
-totals $(d/2)\log t$, plus the approximation error of the tilted family.
+With predictive scores, the learning penalty of Theorem~\ref{thm:growth} is
+therefore paid once, $(d/2)\log t$ in total, plus the approximation error of
+the tilted family. A plug-in estimate $\hat\theta_{t-1}$ has no such guarantee.
+Early on it bets everything on one tilt, and Theorem~\ref{thm:growth} shows
+that an overconfident tilt can lose all its growth. The predictive instead
+bets on a mixture of tilts, weighted by the posterior.
 
-\paragraph{The Bayesian learning rule, one step per observation.} The exact
-posterior is not available, because $A(\theta)$ is the normalising constant of
-the tilt. Balanced classification of real against simulated outcomes
-identifies the same tilt, with the intercept absorbing $-A(\theta)$; this is
-noise-contrastive estimation \citep{gutmann2012noise}, and its posterior is a
-generalised posterior \citep{bissiri2016general}. We approximate it by a
-Gaussian $\mathcal N(m_t, S_t^{-1})$ updated with the Bayesian learning rule
-\citep{khan2023bayesian} in its online form \citep{jones2024bong}: one
-natural-gradient step per observation, starting from the previous posterior,
+\paragraph{Updating the predictive directly.} The score needs only a sequence
+of predictive distributions, not a prior or a likelihood. Martingale
+posteriors \citep{fong2023martingale} take the predictive sequence as the
+primitive and update it at each step. Any such predictive update rule gives a
+$\G_t$-measurable score, and hence a valid Monte Carlo e-process. The Bayesian
+learning rule below is one way to produce the sequence; predictive-first rules
+are another.
+
+\subsection{The Bayesian learning rule, one step per observation}\label{sec:blr}
+
+\paragraph{Target.} The exact tilt posterior is not available, because
+$A(\theta)$ is the normalising constant of the tilt. Balanced classification of
+real against simulated outcomes identifies the same tilt, with the intercept
+absorbing $-A(\theta)$. This is noise-contrastive estimation
+\citep{gutmann2012noise}. The resulting target is the generalised posterior
+\citep{bissiri2016general}
+\[
+\pi_t(\theta) \propto \pi_0(\theta)\exp\Big\{-\sum_{i \le t} \ell_i(\theta)\Big\},
+\qquad
+\ell_i(\theta) = \sum_{k=0}^{M} w_k \Big[\log\big(1 + e^{z_{ik}^\top\theta}\big)
+- y_{k}\, z_{ik}^\top\theta\Big],
+\]
+where $z_{i0}$ are the features of $X_i$ (label $y_0 = 1$, weight $w_0 = 1$)
+and $z_{ik}$, $k \ge 1$, those of $Y_{i,k}$ (label 0, weight $1/M$). The
+weights balance the classes and play the role of the learning rate of a
+generalised posterior. Their calibration is irrelevant for validity.
+
+\paragraph{Variational form.} The Bayesian learning rule \citep{khan2023bayesian}
+approximates $\pi_t$ within an exponential family $\mathcal Q$ by solving
+$\min_{q \in \mathcal Q} \E_q[\sum_i \ell_i] + \KL(q\|\pi_0)$ by natural-gradient
+descent in the natural parameters of $q$. For the Gaussian family
+$q = \mathcal N(m, S^{-1})$ with $\pi_0 = \mathcal N(0, S_0^{-1})$, and step
+size $\rho$, the update reads
+\[
+S \leftarrow (1-\rho) S + \rho\big(S_0 + \E_q[\nabla^2 L]\big), \qquad
+m \leftarrow m - \rho\, S^{-1}\big(\E_q[\nabla L] + S_0 m\big),
+\]
+with $L = \sum_i \ell_i$. Newton's method, ridge regression and the Kalman
+filter are special cases \citep{khan2023bayesian}.
+
+\paragraph{Online form.} In a stream the previous posterior summarises the
+past. So instead of re-solving the whole problem, we take the previous
+approximation $q_{t-1}$ as the prior and perform a single natural-gradient step
+with $\rho = 1$ on the new batch. This is the Bayesian online natural gradient
+\citep{jones2024bong}, and it gives \eqref{eq:blr}:
 \begin{equation}\label{eq:blr}
 S_t = S_{t-1} + \E_{q_{t-1}}[\nabla^2 \ell_t], \qquad
-m_t = m_{t-1} - S_t^{-1}\, \E_{q_{t-1}}[\nabla \ell_t],
+m_t = m_{t-1} - S_t^{-1}\, \E_{q_{t-1}}[\nabla \ell_t].
 \end{equation}
-where $\ell_t$ is the balanced logistic loss on $X_t$ and $Y_{t,1:M}$. The
-update is exact in conjugate models (it is then a Kalman filter) and costs
-$O(d^2)$ per step. The score is the log-odds of the posterior predictive. With
-the probit approximation it is $\kappa\,\mu$, where $\mu = z^\top m_t$ and
-$\kappa = (1 + \pi z^\top S_t^{-1} z/8)^{-1/2}$, and $\kappa < 1$ shrinks the bet
-where the posterior is uncertain.
+For a Gaussian likelihood this is exact Bayesian updating, the Kalman filter.
+In general it is accurate when a single batch moves the posterior little,
+which is the case in a stream.
 
-None of these approximations affects validity. The surrogate loss, the
-Gaussian family, the single natural-gradient step and the probit
-approximation all produce a $\G_t$-measurable score, so
-Theorem~\ref{thm:valid} applies. Their only cost is the gap
-$\KL(Q\|\hat Q_t)$ of Theorem~\ref{thm:growth}. Martingale posteriors
-\citep{fong2023martingale}, which update a predictive distribution directly,
-give another family of admissible scores.
+\paragraph{Computing the expectations.} By Bonnet's and Price's theorems,
+$\E_q[\nabla\ell] = \nabla_m \E_q[\ell]$ and
+$\E_q[\nabla^2\ell] = \nabla_m^2 \E_q[\ell]$ \citep[see][]{khan2023bayesian}.
+For the logistic loss we use the probit approximation
+$\E_q[\sigma(z^\top\theta)] \approx \sigma(\kappa\mu)$ with $\mu = z^\top m$,
+$v = z^\top S^{-1} z$ and $\kappa = (1 + \pi v/8)^{-1/2}$. Differentiating with
+respect to $\mu$ gives the gradient $\sum_k w_k(\sigma(\kappa\mu_k) - y_k) z_k$
+and the Hessian $\sum_k w_k \kappa_k \sigma'(\kappa_k\mu_k) z_k z_k^\top$.
+Monte Carlo samples from $q$, or linearisation at $m$, are alternatives.
+
+\paragraph{Cost and predictability.} Each update is a rank-$(M+1)$ change of
+the precision. With the Woodbury identity it costs $O((M+1)d^2)$, with no
+refitting and no burn-in. Two details keep the score $\G_t$-measurable:
+\begin{itemize}
+  \item the update \eqref{eq:blr} with $(X_t, Y_{t,1:M})$ is made only after
+        the bet at time $t$;
+  \item the features are standardised with statistics computed from
+        simulator draws only, before any real data are seen.
+\end{itemize}
+
+\paragraph{Drifting systems.} If the real system may change at an unknown
+time, the posterior should not become arbitrarily confident. Replacing
+$S_{t-1}$ by $\gamma S_{t-1}$, $\gamma < 1$, before each update is equivalent
+to a random walk on $\theta$; it keeps the monitor responsive to late changes
+and, like every choice of score, leaves validity untouched.
+
+\subsection{Which predictive: probability scale or ratio scale}\label{sec:scales}
+
+Under a Gaussian posterior the logit $\eta = z^\top\theta$ has mean $\mu$ and
+variance $v$, and there are two natural predictive scores:
+\begin{itemize}
+  \item \textbf{Probability scale.} The log-odds of the predictive class
+        probability, $\log\{\bar p/(1-\bar p)\}$ with
+        $\bar p = \E_q[\sigma(\eta)] \approx \sigma(\kappa\mu)$, is
+        $s = \kappa\mu$. It is the Bayes act for the classification log-loss,
+        and it \emph{shrinks} the bet towards zero where the posterior is
+        uncertain.
+  \item \textbf{Ratio scale.} The logarithm of the predictive density ratio,
+        $\log \E_q[e^{\eta}] = \mu + v/2$, which is exact for a Gaussian $q$.
+        It is the predictive of Propositions~\ref{prop:bayesopt}
+        and~\ref{prop:bayes}. It \emph{inflates} the bet where the posterior is
+        uncertain, adding an uncertainty premium $v/2$ that rewards regions not
+        yet learned.
+\end{itemize}
+Both are valid in \eqref{eq:mc}. Under the Gaussian approximation the ratio
+scale is no longer exactly normalised ($\E_P[T_t] \ne 1$), but the Monte Carlo
+factor renormalises by simulation, so this does not matter. They differ only
+in power. The ratio scale is optimal if the posterior is right. The
+probability scale is more conservative, which Theorem~\ref{thm:growth}
+suggests is safer when the posterior approximation is overconfident.
+Section~\ref{sec:exp-blr} compares them. In every setting the
+probability-scale predictive is the clear winner.
 
 %======================================================================
 \section{Experiments}\label{sec:experiments}
@@ -559,7 +723,8 @@ results:
 
 We replace the refitted point estimate by the online Bayesian learning rule
 \eqref{eq:blr}, updated at every step with no burn-in, and bet either with the
-posterior predictive log-odds $\kappa\mu$ or with the posterior mean $\mu$.
+probability-scale predictive $\kappa\mu$, the ratio-scale predictive
+$\mu + v/2$, or the posterior mean $\mu$ (Section~\ref{sec:scales}).
 Features are standardised using simulator draws only. Seeds are as in
 Sections~\ref{sec:exp-drift}--\ref{sec:exp-bandit}, so the real data are
 identical.
@@ -575,13 +740,16 @@ task & score & false alarms & power & median stop \\
 \midrule
 drift, degree 4 & refitted point estimate & 0.030 & 0.990 & 198 \\
  & BLR, posterior mean & 0.030 & 0.965 & 238 \\
- & BLR, predictive & 0.018 & 0.983 & 209 \\
+ & BLR, predictive (probability scale) & 0.018 & 0.983 & 209 \\
+ & BLR, predictive (ratio scale) & 0.015 & 0.810 & 340 \\
 drift, degree 6 & refitted point estimate & 0.028 & 0.838 & 320 \\
  & BLR, posterior mean & 0.033 & 0.940 & 242 \\
- & BLR, predictive & 0.015 & 0.965 & 214 \\
+ & BLR, predictive (probability scale) & 0.015 & 0.965 & 214 \\
+ & BLR, predictive (ratio scale) & 0.013 & 0.738 & 364 \\
 bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
  & BLR, posterior mean & 0.025 & 1.000 & 51 \\
- & BLR, predictive & 0.030 & 1.000 & 38 \\
+ & BLR, predictive (probability scale) & 0.030 & 1.000 & 38 \\
+ & BLR, predictive (ratio scale) & 0.025 & 0.995 & 106 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -590,24 +758,32 @@ bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
 \centering
 \includegraphics[width=\textwidth]{exp5_bayesian_learning_rule.png}
 \caption{Median stopping time under the alternative, by score, with power
-and false-alarm rates.}
+and false-alarm rates. The ratio-scale predictive is reported in
+Table~\ref{tab:blr}.}
 \label{fig:blr}
 \end{figure}
 
-Table~\ref{tab:blr} and Figure~\ref{fig:blr} show three effects:
+Table~\ref{tab:blr} and Figure~\ref{fig:blr} show four effects:
 \begin{itemize}
-  \item The posterior predictive beats the posterior mean in every setting,
-        as the tempering result of Section~\ref{sec:power} suggests.
-  \item It makes the method insensitive to the flexibility of the features:
+  \item The probability-scale predictive beats the posterior mean in every
+        setting, as the tempering result of Section~\ref{sec:power} suggests.
+  \item The ratio-scale predictive is the worst score in every setting:
+        detection falls to 0.74--0.81 in the drift task, and the median
+        stopping time in the bandit almost triples (106 against 38). Its
+        uncertainty premium $v/2$ over-bets where the Gaussian approximation
+        is least reliable. The ratio-scale predictive is Bayes-optimal only
+        when the posterior is exact (Proposition~\ref{prop:bayesopt}); with an
+        approximate posterior, the conservative predictive is the one to use.
+  \item The probability-scale predictive makes the method insensitive to the\n        flexibility of the features:
         with degree 6, power rises from 0.84 to 0.97 and the median stopping
         time falls from 320 to 214, close to the degree-4 value.
-  \item It is the fastest score in the bandit (38 against 49 steps) and on
+  \item It is also the fastest score in the bandit (38 against 49 steps) and on
         par with refitting for well-regularised features (209 against 198),
         without refitting.
 \end{itemize}
-False alarms stay between 1.5\% and 3.3\%. The posterior does not make the
+False alarms stay between 1.3\% and 3.3\% for every score. The posterior does not make the
 plug-in valid: using the BLR odds directly as the bet gives between 14\% and
-74\% false alarms.
+74\% false alarms, and 100\% on the ratio scale.
 
 %======================================================================
 \section{Related work}\label{sec:related}
@@ -621,20 +797,31 @@ simulations for a fixed dataset, in order to save computation, and
 exchangeability. In our setting the data themselves arrive over time, and
 fresh simulations are drawn for each new observation.
 
-\paragraph{Besag--Clifford e-values.} \citet{dombowsky2026besag} construct
-e-values from samples that are exchangeable with the data under the null,
-generated by parallel Markov chains, for models with intractable normalising
-constants. They prove log-optimality as the number of samples grows, and they
-list generative-model evaluation and sequential testing among the
-applications. This is the closest work to Proposition~\ref{prop:exact} and to
-parts of Theorem~\ref{thm:growth}. Our focus differs in three respects:
+\paragraph{Besag--Clifford e-values.} \citet{dombowsky2026besag} is the closest
+work. They normalise an arbitrary nonnegative statistic into an e-value (the
+soft-rank construction of \citealp{wang2022false}) using samples that are
+exchangeable with the data under the null, produced by the parallel method of
+\citet{besag1989generalized} when the null can only be sampled by MCMC. For
+the unnormalised likelihood ratio they show log-optimality as $M \to \infty$,
+up to a factor governed by the mixing of the chain, and a non-asymptotic lower
+bound on the e-power (their Theorem~3). They also give composite nulls of
+finite cardinality, confidence regions, and a Besag--Clifford e-process for an
+i.i.d.\ stream (their Section~4), including a plug-in score for a composite
+alternative. Relative to their work, the present paper adds:
 \begin{itemize}
-  \item a data stream under adaptive control, with the necessity result of
-        Proposition~\ref{prop:necessary};
-  \item arbitrary learned scores, analysed through the tilted null;
-  \item the explicit finite-budget constant $M/(M+1)$.
+  \item actions chosen adaptively from the data, with the conditioning
+        requirement of Theorem~\ref{thm:valid} and its necessity
+        (Proposition~\ref{prop:necessary});
+  \item the analysis of arbitrary learned scores through the tilted null, and
+        the local efficiency $M/(M+1)$ (Theorem~\ref{thm:growth}(ii) and (iv));
+  \item posterior predictive scores, their Bayes optimality and Bayes-factor
+        limit, and their online computation with the Bayesian learning rule
+        (Section~\ref{sec:scores});
+  \item experiments with learned scores on generative-model drift and on an
+        adaptive bandit.
 \end{itemize}
-The precise overlap should be settled against their full text.
+Conversely, their MCMC-based sampling is directly applicable here when the
+simulator is itself an MCMC sampler, which is a natural extension.
 
 \paragraph{Sequential tests with a sampled null.} Model-X sequential testing
 of conditional independence \citep{shaer2023modelx} draws, at each step, a
@@ -724,10 +911,11 @@ and applying Jensen's inequality over $Y_{1:M}$,
 \[
 \E\big[\log E^\infty - \log E^{(M)} \mid X\big]
 \le \log\frac{T(X) + MZ}{(M+1)Z}
-= \log\Big(1 + \frac{T(X)/Z - 1}{M+1}\Big)
-\le \frac{T(X)/Z - 1}{M+1}.
+= \log\Big(1 + \frac{T(X)/Z - 1}{M+1}\Big).
 \]
-Taking the expectation under $Q$ gives $g_\infty - g_M \le (\rho - 1)/(M+1)$.
+Taking the expectation under $Q$ and applying Jensen's inequality once more
+gives $g_\infty - g_M \le \log\{1 + (\rho - 1)/(M+1)\} \le (\rho-1)/(M+1)$.
+This is Theorem~3 of \citet{dombowsky2026besag} in our notation.
 
 (iv) Let $Z_0 = X$ and $Z_k = Y_k$, and let $\bar h$ and $\overline{h^2}$ be
 the averages of $h(Z_k)$ and $h(Z_k)^2$ over $k = 0, \ldots, M$. The cumulant

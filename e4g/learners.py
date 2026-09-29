@@ -91,8 +91,13 @@ class BLRRatio:
     kappa = (1 + pi v / 8)^{-1/2}, with mu, v the mean and variance of eta.
 
     Scores (mode):
-      "predictive"  log-odds of the posterior predictive, kappa * mu. The bet is
-                    shrunk automatically where the posterior is uncertain.
+      "predictive"  log-odds of the posterior predictive CLASS probability,
+                    kappa * mu (probit approximation). The bet is shrunk
+                    where the posterior is uncertain.
+      "ratio"       log of the posterior predictive DENSITY RATIO,
+                    log E_q[exp(eta)] = mu + v / 2 (exact for a Gaussian
+                    posterior on the logit). The bet is inflated where the
+                    posterior is uncertain.
       "mean"        plug-in posterior mean, mu (no shrinkage), for comparison.
 
     Features are standardised with statistics from simulator draws only
@@ -150,6 +155,11 @@ class BLRRatio:
 
     def score(self, x: np.ndarray) -> np.ndarray:
         z = self._design(x)
-        mean, _, kappa = self._moments(z)
-        s = kappa * mean if self.mode == "predictive" else mean
+        mean, var, kappa = self._moments(z)
+        if self.mode == "predictive":
+            s = kappa * mean
+        elif self.mode == "ratio":
+            s = mean + var / 2
+        else:
+            s = mean
         return np.clip(s, -30, 30)

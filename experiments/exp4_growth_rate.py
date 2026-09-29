@@ -10,7 +10,8 @@ learner; theta != delta a misspecified one. Closed forms:
 Theorem (see the proposal):
   (ii) M = infinity:  g_inf = KL(Q||P) - KL(Q||Q_hat) = theta delta - theta^2/2
   (i)  ceiling:      g_M <= KL(Q||P)
-  (iii) finite M:    g_M >= g_inf - (rho - 1) / (M + 1)
+  (iii) finite M:    g_M >= g_inf - log(1 + (rho - 1) / (M + 1))   [Dombowsky et al.
+                     2026, Thm 3, in tilted-null form]; implies g_inf - (rho-1)/(M+1)
   (iv) locally:      g_M ~ M / (M + 1) * g_inf
 
 g_M = E_Q[log E_M] is estimated by Monte Carlo with common random numbers.
@@ -53,7 +54,7 @@ def main():
             for m in MS:
                 g, se = growth(delta, theta, m, rng)
                 rows.append(dict(delta=delta, theta=theta, m=m, g=g, se=se, g_inf=g_inf,
-                                 kl=delta ** 2 / 2, bound=g_inf - (rho - 1) / (m + 1),
+                                 kl=delta ** 2 / 2, bound=g_inf - np.log1p((rho - 1) / (m + 1)),
                                  local=m / (m + 1) * g_inf))
     print(f"{'delta':>5} {'theta':>5} {'M':>4} {'g_M (MC)':>12} {'bound (b)':>10} "
           f"{'M/(M+1) g_inf':>14} {'g_inf':>8} {'KL':>7} {'eff':>5}")

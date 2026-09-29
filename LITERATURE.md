@@ -15,7 +15,7 @@ Each paper is checked against five questions:
 |---|---|---|---|---|---|---|
 | Besag & Clifford (1989), Monte Carlo tests | no | yes | no | no | no | single-step validity argument |
 | Fischer & Ramdas (JRSSB 2025), sequential MC testing by betting | no (fixed data) | yes | no | no | in the simulations | sequential in the Monte Carlo draws, not in the data |
-| ★ Dombowsky, Engelhardt & Ramdas (arXiv 2603.15845, 2026), Besag–Clifford e-values | ? | via MCMC | not mentioned | unnormalised likelihood ratio | ? | nearest neighbour; mentions generative-model evaluation and sequential testing; log-optimality as samples grow |
+| ★ Dombowsky, Engelhardt & Ramdas (arXiv 2603.15845v2, 2026), Besag–Clifford e-values | **yes (§4, i.i.d. null)** | via MCMC or exact sampling | no | likelihood ratio, or plug-in MLE (§3.2, §6.3) | **yes** | same one-step e-value (their Prop. 1) and sequential product (their Prop. 6); log-optimality (Thm 1, 2); non-asymptotic bound (Thm 3) |
 | Barber & Ramdas (arXiv 2607.23010, 2026), MC testing without joint exchangeability | no | yes | no | – | no | extension route for approximate or MCMC simulators |
 | ★ Shaer, Maman & Romano (AISTATS 2023), model-X sequential CI testing | yes | known conditional law | no | yes | yes | same mechanism with M = 1, for conditional independence |
 | Vovk et al. (2003); Vovk (Stat. Sci. 2021), conformal test martingales | yes | no reference model | no | yes | yes | tests exchangeability of the stream itself |
@@ -57,3 +57,37 @@ classifier-based ratio estimation, and per-step conditional null sampling
 2. Shaer et al.: do they analyse the number of dummy draws per step and the
    power as a function of it?
 3. Fischer & Ramdas, Barber & Ramdas: is there any data-stream version?
+
+## Update after reading Dombowsky, Engelhardt & Ramdas (v2, 27 April 2026) in full
+
+The full text answers the first question above, and it narrows our claims.
+
+**Already in their paper:**
+- The one-step e-value (their Prop. 1). They credit it as the "soft-rank"
+  e-variable of Wang & Ramdas (2022, JRSSB).
+- The **sequential** Besag–Clifford e-process (their §4, Prop. 6). There are
+  fresh null draws at every step and a predictable betting fraction, but the
+  null is i.i.d., simulations are independent across time, and there are no
+  actions.
+- The limit M → ∞ with the likelihood ratio as score: log-optimality (Thm 1,
+  Props. 7–8).
+- The **non-asymptotic** bound g_M ≥ g_∞ − log(1 + (ρ−1)/(M+1)) (their Thm 3).
+  Our Theorem 2(iii) is this bound, in a weaker form. The paper now states it
+  in their tighter form, with attribution. It holds in all 56 cases of
+  experiment 4.
+- Plug-in scores for a composite alternative, in a sequential example (§6.3).
+- The improvement over under-powered exact e-values (their Cor. 1), which is
+  related to our tempering remark.
+
+**Still ours:**
+- Actions chosen adaptively from the data, conditional simulation given
+  history and action, and the necessity result (Proposition 2 of the paper).
+- Arbitrary learned scores analysed through the tilted null: the
+  decomposition KL(Q‖P) − KL(Q‖Q̂), and the explicit local efficiency M/(M+1).
+- Posterior predictive scores: Bayes optimality, the Bayes-factor limit, the
+  online Bayesian learning rule, and the comparison of probability-scale and
+  ratio-scale predictives.
+- The generative-drift and bandit experiments with learned scores.
+
+The paper's abstract, introduction, attributions of Proposition 1 and
+Theorem 2, and related-work section have been revised accordingly.

@@ -173,6 +173,7 @@ def inline_text(s: str) -> str:
     s = s.replace("\\newblock", " ").replace("\\ldots", "…").replace("\\dots", "…")
     s = s.replace("---", "&mdash;").replace("--", "&ndash;")
     s = s.replace("``", "&ldquo;").replace("''", "&rdquo;")
+    s = re.sub(r"(?<!\\)\\\n", " ", s)  # control space at a line end
     s = s.replace("~", "&nbsp;").replace("\\,", "&thinsp;").replace("\\ ", " ")
     s = s.replace("\x01PCT\x01", "%").replace("\x01AMP\x01", "&amp;")
     s = s.replace("\x01USC\x01", "_").replace("\x01DLR\x01", "$")
@@ -458,7 +459,7 @@ class Builder:
         # bibliography from references.bib (author-year)
         self.bib = parse_bib(BIB.read_text()) if BIB.exists() else {}
         cited = []
-        for m in re.finditer(r"\\cite(?:p|t|alp)?\{([^}]*)\}", body):
+        for m in re.finditer(r"\\cite(?:p|t|alp)?(?:\[[^\]]*\])*\{([^}]*)\}", body):
             for k in m.group(1).split(","):
                 if k.strip() not in cited:
                     cited.append(k.strip())
@@ -567,14 +568,22 @@ class Builder:
             abstract_html = abstract_html.replace(f"\\cite{{{key}}}", f"[{n}]")
 
         def cite(m):
-            keys = [k.strip() for k in m.group(2).split(",")]
+            kind, o1, o2 = m.group(1), m.group(2), m.group(3)
+            # natbib: one optional arg is a postnote; two are prenote, postnote
+            pre, post = (o1, o2) if o2 is not None else ("", o1 or "")
+            pre = (pre + " ") if pre else ""
+            post = (", " + post) if post else ""
+            keys = [k.strip() for k in m.group(4).split(",")]
             ents = [(self.bib[k] if k in self.bib else {"author": "??", "year": "??"}) for k in keys]
-            if m.group(1) == "t":
-                return "; ".join(f"{cite_name(e)} ({e.get('year')})" for e in ents)
-            inner = "; ".join(f"{cite_name(e)}, {e.get('year')}" for e in ents)
-            return f"({inner})" if m.group(1) == "p" else inner
-        html_body = re.sub(r"\\cite(p|t|alp)\{([^}]*)\}", cite, html_body)
-        abstract_html = re.sub(r"\\cite(p|t|alp)\{([^}]*)\}", cite, abstract_html)
+            if kind == "t":
+                parts = [f"{cite_name(e)} ({e.get('year')}" for e in ents]
+                return "; ".join(p_ + ")" for p_ in parts[:-1]) + \
+                    ("; " if len(parts) > 1 else "") + parts[-1] + post + ")"
+            inner = pre + "; ".join(f"{cite_name(e)}, {e.get('year')}" for e in ents) + post
+            return f"({inner})" if kind == "p" else inner
+        pat = r"\\cite(p|t|alp)(?:\[([^\]]*)\])?(?:\[([^\]]*)\])?\{([^}]*)\}"
+        html_body = re.sub(pat, cite, html_body)
+        abstract_html = re.sub(pat, cite, abstract_html)
 
         page = TEMPLATE.format(
             title=inline_text(title.replace("\\\\", " ")),

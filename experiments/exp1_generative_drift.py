@@ -60,7 +60,9 @@ def log_banana(x, b):
 BLR_LEARNERS = {"blr-deg4-predictive": dict(degree=4, mode="predictive"),
                 "blr-deg4-mean": dict(degree=4, mode="mean"),
                 "blr-deg6-predictive": dict(degree=6, mode="predictive"),
-                "blr-deg6-mean": dict(degree=6, mode="mean")}
+                "blr-deg6-mean": dict(degree=6, mode="mean"),
+                "blr-deg4-ratio": dict(degree=4, mode="ratio"),
+                "blr-deg6-ratio": dict(degree=6, mode="ratio")}
 
 
 def make_learner(name, seed):

@@ -157,6 +157,10 @@ The seeds are the same as in experiments 1–2, so the real data are identical;
 - **It is the fastest learner in the bandit** (median 38 vs 49).
 - **With well-regularised degree-4 features it is on par with refitting**
   (median 209 vs 198), at a fraction of the computational cost.
+- **The ratio-scale predictive, log E_q[exp(eta)] = mu + v/2, is the worst
+  score everywhere** (experiment 5b): power 0.74–0.81 on drift, and a median
+  stop of 106 vs 38 in the bandit. It is valid, but its uncertainty premium
+  over-bets under an approximate posterior.
 - **Validity is unchanged, as it must be.** But the posterior does not make
   the plug-in bet valid: using the learned ratio directly as the bet still
   gives 14–74% false alarms with BLR scores.
@@ -172,9 +176,11 @@ See [LITERATURE.md](LITERATURE.md). In short, the parts are known: Besag–Cliff
 exchangeability, testing by betting, classifier-based ratios, and per-step null
 sampling for conditional independence (Shaer et al., 2023). The combination is
 what we believe is new: a stream, a simulator-only null, adaptive actions and
-learned scores, together with the growth theory. That claim is provisional
-until the full text of Dombowsky, Engelhardt & Ramdas (2026), the closest
-paper, has been read.
+learned scores, together with the growth theory. After reading the full text of Dombowsky, Engelhardt & Ramdas (2026, v2),
+the sequential e-process for an i.i.d. null and the finite-M bound are
+theirs. What is ours: adaptive actions (and the necessity of conditioning on
+them), learned and predictive scores, the local constant M/(M+1), and the
+Bayesian learning rule. See LITERATURE.md.
 
 ## What this does and does not show
 
@@ -221,6 +227,7 @@ python experiments/exp2_adaptive_bandit.py       # ~2.5 min
 python experiments/exp3_simulation_budget.py     # ~4 min
 python experiments/exp4_growth_rate.py          # ~2 min
 python experiments/exp5_bayesian_learning_rule.py  # ~25 min
+python experiments/exp5b_predictive_scales.py      # ~10 min
 python experiments/make_figures.py
 ```
 
