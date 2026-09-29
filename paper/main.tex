@@ -855,6 +855,153 @@ conditioning on the action rejects a true null in every run
 (Table~\ref{tab:bandit}).
 
 %======================================================================
+\section{Application: an artificial pancreas and its digital twin}\label{sec:application}
+%======================================================================
+
+\paragraph{The problem.} People with type 1 diabetes produce no insulin, and a
+growing share of them are treated by automated insulin delivery. A continuous
+glucose monitor (CGM) reports interstitial glucose every few minutes, and an
+algorithm doses insulin from those readings. Such algorithms are designed and
+tested in silico on the UVA/Padova type 1 diabetes simulator
+\citep{dallaman2007meal,kovatchev2009insilico,dallaman2014uva}, which was
+accepted by the US Food and Drug Administration as a substitute for animal
+trials in the preclinical testing of closed-loop control algorithms
+\citep{kovatchev2009insilico}. A patient-specific instance of the simulator is
+a \emph{digital twin} of that patient.
+
+Once the controller is deployed, the question of this paper arises in a
+concrete form: \emph{does the patient still respond as the twin predicts?}
+Insulin sensitivity can fall during illness or rise with exercise, sensors
+lose calibration, and eating habits change. Each of these makes the twin, and
+therefore the controller tuned on it, unreliable, with direct safety
+consequences.
+
+The setting has all three features of Section~\ref{sec:intro}:
+\begin{itemize}
+  \item the twin is an ordinary differential equation model with stochastic
+        inputs, so the law of a CGM trace has no tractable density;
+  \item data arrive continuously, and an alarm should be raised as soon as
+        evidence suffices;
+  \item the controller doses from the data, so the observations are not
+        exchangeable across time.
+\end{itemize}
+
+\paragraph{The simulator.} We use the open-source implementation
+\texttt{simglucose} \citep{xie2018simglucose} of the 2008 academic version of
+the UVA/Padova simulator. It is a 13-dimensional ordinary differential
+equation system with 30 virtual patients, covering:
+\begin{itemize}
+  \item gastric emptying, intestinal absorption and the rate of appearance of
+        meal glucose;
+  \item glucose kinetics in plasma and tissue, with insulin-dependent
+        utilisation;
+  \item hepatic glucose production;
+  \item subcutaneous insulin absorption and insulin kinetics;
+  \item interstitial glucose, which is what the CGM measures.
+\end{itemize}
+For speed we wrote a vectorised port of its right-hand side, which propagates
+the real patient and all twin draws together with a fixed-step Runge--Kutta
+scheme. Over 24 hours with two meals it reproduces \texttt{simglucose}'s
+trajectories to within $5 \times 10^{-4}$~mg/dL for an adult, an adolescent and
+a child (\texttt{tests/test\_t1d.py}).
+
+Four sources of randomness make the twin a stochastic simulator. They are
+identical in the patient under the null:
+\begin{itemize}
+  \item \textbf{Variability of insulin sensitivity.} Within each 5-minute
+        interval, the insulin-action parameters $V_{mx}$ and $k_{p3}$ are
+        multiplied by $e^{0.15\eta}$, $\eta \sim \mathcal N(0,1)$.
+  \item \textbf{Carbohydrate-counting error.} A meal announced as $C$ grams is
+        eaten as $C e^{0.2\eta}$.
+  \item \textbf{Unannounced snacks.} With probability 0.01 per 5-minute
+        interval, a snack of between 5 and 25 grams is eaten.
+  \item \textbf{CGM noise.} The Johnson-$S_U$ error model used by
+        \texttt{simglucose} \citep{breton2008analysis}, drawn independently at
+        each one-minute reading.
+\end{itemize}
+
+\paragraph{The data.} The ``real'' patient is \texttt{simglucose}'s
+\texttt{adult\#001}, followed for 48 hours with three meals a day at jittered
+times. It is treated by basal--bolus therapy with feedback, using the
+patient's own basal rate, carbohydrate ratio and correction factor. Every 30
+minutes (an \emph{epoch}) the controller commits to a basal rate from the
+current CGM reading:
+\begin{itemize}
+  \item basal is suspended below 80~mg/dL;
+  \item a correction is added above 180~mg/dL;
+  \item within the epoch, meal boluses follow the announced carbohydrates.
+\end{itemize}
+All dosing decisions therefore depend on the data. At hour 12 the patient may
+change in one of three ways, chosen to mimic common clinical failures:
+\begin{itemize}
+  \item \textbf{Insulin resistance:} $V_{mx}$ and $k_{p3}$ fall by 30\%, as
+        during an infection.
+  \item \textbf{Sensor drift:} the CGM gain increases linearly from 1 to 1.15
+        over the following 24 hours, a slow calibration failure.
+  \item \textbf{Snacking:} unannounced snacks become six times as frequent.
+\end{itemize}
+In the null scenario the patient remains the twin throughout.
+
+\paragraph{Monitoring.} At the start of each epoch the twin is
+re-initialised at the patient's current state and run $M = 16$ times under the
+committed dosing plan and the announced meals, producing 16 simulated 30-minute
+CGM traces. A seventeenth, noise-free run gives the twin's prediction $g_t$.
+Each trace is summarised relative to $g_t$ by:
+\begin{itemize}
+  \item its mean residual and its residual over the last five minutes;
+  \item the change in residual between the first and the last ten minutes;
+  \item two context variables: the predicted glucose level and the committed
+        insulin rate.
+\end{itemize}
+The score is the BLR predictive of Section~\ref{sec:scores} on these
+summaries, updated after every epoch.
+
+Because the dosing plan is committed at the start of the epoch, the epoch's
+action is $\G_t$-measurable, and Theorem~\ref{thm:valid} applies with each
+epoch as one step. The 30-minute epoch is a design choice made for power. With
+the twin re-initialised every five minutes, a 30\% loss of insulin sensitivity
+moves the one-step prediction by only about 0.1~mg/dL, against a CGM noise of
+several mg/dL. Over 30 minutes the mean residual moves by about 3~mg/dL,
+against a spread of about 2~mg/dL between twin draws.
+
+We compare four monitors:
+\begin{itemize}
+  \item the BLR predictive score;
+  \item a fixed score equal to the mean residual of the epoch, with no
+        learning;
+  \item the same BLR monitor with the twin run under the \emph{open-loop}
+        plan (basal and meal boluses, without suspension or correction), that
+        is, not conditioned on the action actually taken;
+  \item a $t$-test of standardised epoch residuals, recomputed after every
+        epoch.
+\end{itemize}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{exp7_artificial_pancreas.png}
+\caption{One monitored patient whose insulin sensitivity falls by 30\% at
+hour 12. Top: CGM readings (black) and the twin's 5--95\% predictive band,
+recomputed at the start of every 30-minute epoch from the patient's current
+state and the committed dose. Middle: the committed basal rate, suspended below
+80~mg/dL and corrected above 180~mg/dL. Bottom: log wealth of the monitor, with
+the rejection threshold $\log 20$.}
+\label{fig:application}
+\end{figure}
+
+\paragraph{Results.} RESULTS-PLACEHOLDER
+
+\paragraph{Limitations of the application.} The patient is itself
+simulated, so this is a realistic benchmark rather than a clinical
+validation. The twin is re-initialised at the patient's true physiological
+state, which is observable in silico but must be estimated in practice. With
+an estimated state, the null law of the next epoch is the twin's filtering
+predictive distribution; sampling from it approximately breaks exact
+exchangeability, and the guarantees of \citet{barber2026montecarlo} for
+approximately exchangeable samples are the natural tool. Real CGM and insulin
+records, such as those collected in closed-loop trials, would be the next
+step.
+
+%======================================================================
 \section{Related work}\label{sec:related}
 %======================================================================
 
@@ -948,7 +1095,11 @@ Several limitations remain.
         is open.
   \item \textbf{Low-dimensional experiments.} High-dimensional generative
         models call for learned feature maps and structured posterior
-        approximations.
+        approximations. High-energy physics is a natural target: searches for
+        new physics already compare collision data with large samples from
+        the Standard Model simulator using learned classifiers
+        \citep{dagnolo2019learning}, and the Monte Carlo e-process would make
+        such comparisons anytime-valid as data accumulate.
 \end{itemize}
 
 \paragraph{Reproducibility.} Code, results and figures are in the repository

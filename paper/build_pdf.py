@@ -107,6 +107,9 @@ def bib_item(e: dict) -> str:
         tail += f", {html.escape(delatex(e['edition']))} edition"
     if tail:
         bits.append(tail + ".")
+    if e.get("note") and not venue:
+        note = re.sub(r"\\url\{([^}]*)\}", r"\1", e["note"])
+        bits.append(html.escape(delatex(note)) + ".")
     return " ".join(bits)
 
 
