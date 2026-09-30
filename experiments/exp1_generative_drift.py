@@ -39,7 +39,7 @@ from scipy.stats import ks_2samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, Monitor, OnlineRatio  # noqa: E402
+from e4g import BLRRatio, ChoiceBLR, Monitor, OnlineRatio  # noqa: E402
 
 B0, B1 = 0.5, 0.8
 LEARNERS = {"regularised": dict(degree=4, ridge=1.0),
@@ -65,9 +65,32 @@ BLR_LEARNERS = {"blr-deg4-predictive": dict(degree=4, mode="predictive"),
                 "blr-deg6-ratio": dict(degree=6, mode="ratio")}
 
 
+CHOICE_LEARNERS = {"choice-deg4-mixture": dict(degree=4, mode="mixture"),
+                   "choice-deg4-mean": dict(degree=4, mode="mean"),
+                   "choice-deg6-mixture": dict(degree=6, mode="mixture"),
+                   "choice-deg6-mean": dict(degree=6, mode="mean"),
+                   "choice-deg4-shrunk": dict(degree=4, mode="shrunk"),
+                   "choice-deg6-shrunk": dict(degree=6, mode="shrunk"),
+                   "choice-deg4-mixture-p01": dict(degree=4, mode="mixture", prior_var=0.1),
+                   "choice-deg4-shrunk-p01": dict(degree=4, mode="shrunk", prior_var=0.1),
+                   "choice-deg4-mixture-p003": dict(degree=4, mode="mixture", prior_var=0.03),
+                   "choice-deg4-mixture-p001": dict(degree=4, mode="mixture", prior_var=0.01),
+                   "choice-deg4-mixture-p01-eta05": dict(degree=4, mode="mixture", prior_var=0.1,
+                                                         eta=0.5),
+                   "choice-deg6-mixture-p003": dict(degree=6, mode="mixture", prior_var=0.03),
+                   "choice-deg4-mixture-p003-eta2": dict(degree=4, mode="mixture", prior_var=0.03,
+                                                         eta=2.0),
+                   "choice-deg4-mixture-p003-eta4": dict(degree=4, mode="mixture", prior_var=0.03,
+                                                         eta=4.0),
+                   "choice-deg4-mean-p003": dict(degree=4, mode="mean", prior_var=0.03)}
+
+
 def make_learner(name, seed):
     if name in LEARNERS:
         return OnlineRatio(**LEARNERS[name])
+    if name in CHOICE_LEARNERS:
+        sims = banana(np.random.default_rng(10**7 + seed), 2000, B0)
+        return ChoiceBLR(**CHOICE_LEARNERS[name]).fit_scaler(sims)
     # the scaler sees simulator draws only, from a stream independent of the data
     sims = banana(np.random.default_rng(10**7 + seed), 2000, B0)
     return BLRRatio(**BLR_LEARNERS[name]).fit_scaler(sims)

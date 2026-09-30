@@ -39,8 +39,14 @@ class Monitor:
 
     def step(self, row_real: np.ndarray, rows_sim: np.ndarray, oracle_lr: float | None = None):
         self.t += 1
-        s = self.learner.score(np.vstack([row_real[None, :], rows_sim]))
-        e = {"mc": mc_factor(s[0], s[1:]), "plugin": plugin_factor(s[0])}
+        if hasattr(self.learner, "factor"):
+            # simulation-likelihood learner (ChoiceBLR): the bet is its
+            # posterior-predictive factor; a plug-in bet is not defined, since
+            # the conditional logit leaves the score's level unidentified
+            e = {"mc": self.learner.factor(row_real[None, :], rows_sim)}
+        else:
+            s = self.learner.score(np.vstack([row_real[None, :], rows_sim]))
+            e = {"mc": mc_factor(s[0], s[1:]), "plugin": plugin_factor(s[0])}
         if oracle_lr is not None:
             e["oracle"] = oracle_lr
         for k, v in e.items():

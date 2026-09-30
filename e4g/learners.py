@@ -163,3 +163,104 @@ class BLRRatio:
         else:
             s = mean
         return np.clip(s, -30, 30)
+
+
+class ChoiceBLR:
+    """Bayesian learning rule on the simulation likelihood (Theorem 3).
+
+    For a score theta' phi(x), the Monte Carlo factor of one step,
+
+        E(theta) = (M+1) exp(theta' z_0) / sum_k exp(theta' z_k),
+
+    with z_0 the features of the real outcome and z_1..z_M those of the
+    simulations, is a conditional-logit likelihood ("which of the M+1 outcomes
+    is the real one?") whose normaliser the simulations provide. A Gaussian
+    posterior q = N(m, S^{-1}) over theta is updated at every step by one
+    natural-gradient step of the Bayesian learning rule on the loss -log E:
+
+        S_t = S_{t-1} + E_q[Cov_w(z)],   m_t = m_{t-1} - S_t^{-1} E_q[sum_k w_k z_k - z_0],
+
+    where w_k = softmax(theta' z)_k. There is no intercept: it cancels in E.
+    Expectations under q use fixed antithetic nodes theta_s = m + L xi_s
+    (L L' = S^{-1}), so everything is a deterministic function of the past.
+
+    Bets (mode):
+      "mixture"  the posterior-predictive bet  mean_s E(theta_s), the
+                 approximate version of the exact mixture of Theorem 3
+                 (valid for any predictable q, Proposition 5)
+      "mean"     the plug-in factor at the posterior mean, E(m)
+      "shrunk"   the Monte Carlo factor of the probit-shrunk score
+                 kappa(x) m'z(x), kappa = (1 + pi v(x) / 8)^{-1/2} with
+                 v(x) = z(x)' S^{-1} z(x): the probability-scale predictive of
+                 Section 5.5 applied to the choice posterior
+
+    Features are standardised with statistics of simulator draws only
+    (fit_scaler), fixed before any real data are seen.
+    """
+
+    def __init__(self, degree: int = 4, prior_var: float = 1.0, mode: str = "mixture",
+                 n_nodes: int = 32, feature_map=None, seed: int = 0, eta: float = 1.0):
+        self.eta = eta                    # learning rate of a generalised posterior
+        self.degree = degree
+        self.feature_map = feature_map or (lambda x: poly_features(x, degree))
+        self.prior_var = prior_var
+        self.mode = mode
+        self.n_nodes = n_nodes
+        self.seed = seed
+        self.mu = self.sd = self.m = self.prec = self.xi = None
+
+    def fit_scaler(self, x_sim: np.ndarray) -> "ChoiceBLR":
+        f = self.feature_map(x_sim)
+        self.mu, self.sd = f.mean(0), f.std(0) + 1e-8
+        d = f.shape[1]
+        self.m = np.zeros(d)
+        self.prec = np.eye(d) / self.prior_var
+        xi = np.random.default_rng(self.seed).standard_normal((self.n_nodes // 2, d))
+        self.xi = np.vstack([xi, -xi])
+        return self
+
+    def _z(self, x):
+        return (self.feature_map(np.atleast_2d(x)) - self.mu) / self.sd
+
+    def _nodes(self):
+        chol = np.linalg.cholesky(np.linalg.inv(self.prec))
+        return self.m[None, :] + self.xi @ chol.T                 # (S, d)
+
+    @staticmethod
+    def _log_e(theta, z):
+        """log E(theta) for thetas (S, d) and outcomes z (M+1, d), row 0 real."""
+        s = theta @ z.T                                           # (S, M+1)
+        smax = s.max(1, keepdims=True)
+        lse = smax[:, 0] + np.log(np.exp(s - smax).sum(1))
+        return np.log(z.shape[0]) + s[:, 0] - lse, s
+
+    def factor(self, x_real: np.ndarray, x_sim: np.ndarray) -> float:
+        z = self._z(np.vstack([x_real, x_sim]))
+        if self.mode == "mean":
+            le, _ = self._log_e(self.m[None, :], z)
+            return float(np.exp(le[0]))
+        if self.mode == "shrunk":
+            v = np.einsum("ij,jk,ik->i", z, np.linalg.inv(self.prec), z)
+            sc = (z @ self.m) / np.sqrt(1.0 + np.pi * v / 8.0)
+            sc = sc - sc.max()
+            return float(z.shape[0] * np.exp(sc[0]) / np.exp(sc).sum())
+        le, _ = self._log_e(self._nodes(), z)
+        return float(np.exp(le).mean())
+
+    def score(self, x: np.ndarray) -> np.ndarray:
+        """Posterior-mean score theta' phi(x) (defined up to a constant)."""
+        return np.clip(self._z(x) @ self.m, -30, 30)
+
+    def update(self, x_real: np.ndarray, x_sim: np.ndarray) -> "ChoiceBLR":
+        z = self._z(np.vstack([x_real, x_sim]))
+        theta = self._nodes()
+        _, s = self._log_e(theta, z)
+        w = np.exp(s - s.max(1, keepdims=True))
+        w /= w.sum(1, keepdims=True)                              # (S, M+1)
+        mean_z = w @ z                                            # (S, d)
+        grad = (mean_z - z[0]).mean(0)
+        second = np.einsum("sk,ki,kj->ij", w, z, z) / len(theta)
+        hess = second - (mean_z.T @ mean_z) / len(theta)          # E_q[Cov_w(z)]
+        self.prec = self.prec + self.eta * hess
+        self.m = self.m - np.linalg.solve(self.prec, self.eta * grad)
+        return self

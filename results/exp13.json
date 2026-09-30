@@ -1,0 +1,104 @@
+{
+ "blr-deg4-predictive": {
+  "null": {
+   "reject": 0.0175,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.9825,
+   "median_stop": 209.0
+  },
+  "diagnostics": {
+   "mean_minus_1": 0.17938849900748544,
+   "sd": 1.1528786202502415,
+   "best_lambda": 0.49999999999999994,
+   "best_growth": 0.031730744012444946,
+   "growth_lambda1": 0.004018663107345293
+  }
+ },
+ "choice-deg4-mixture": {
+  "null": {
+   "reject": 0.025,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.82,
+   "median_stop": 290.5
+  },
+  "diagnostics": {
+   "mean_minus_1": 0.17550775828941756,
+   "sd": 1.495414344943478,
+   "best_lambda": 0.2,
+   "best_growth": 0.013635798780403701,
+   "growth_lambda1": -Infinity
+  }
+ },
+ "choice-deg4-mixture-p003": {
+  "null": {
+   "reject": 0.0125,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.9675,
+   "median_stop": 223.0
+  },
+  "diagnostics": {
+   "mean_minus_1": 0.08112656102296256,
+   "sd": 0.61652367750164,
+   "best_lambda": 0.75,
+   "best_growth": 0.02221481080140281,
+   "growth_lambda1": 0.019920509610037853
+  }
+ },
+ "choice-deg4-mean-p003": {
+  "null": {
+   "reject": 0.025,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.9375,
+   "median_stop": 265.0
+  },
+  "diagnostics": {
+   "mean_minus_1": 0.07686251137564004,
+   "sd": 0.6536738649182487,
+   "best_lambda": 0.65,
+   "best_growth": 0.018542310731886284,
+   "growth_lambda1": 0.005298472619212964
+  }
+ },
+ "blr-deg6-predictive": {
+  "null": {
+   "reject": 0.015,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.965,
+   "median_stop": 213.5
+  },
+  "diagnostics": {
+   "mean_minus_1": 0.23224882602631425,
+   "sd": 1.5453162137315388,
+   "best_lambda": 0.39999999999999997,
+   "best_growth": 0.029828784792657825,
+   "growth_lambda1": -0.07867927988180852
+  }
+ },
+ "choice-deg6-mixture-p003": {
+  "null": {
+   "reject": 0.0175,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.915,
+   "median_stop": 222.0
+  },
+  "diagnostics": {
+   "mean_minus_1": 0.11330461854575935,
+   "sd": 0.886881771777054,
+   "best_lambda": 0.6,
+   "best_growth": 0.023311510013676397,
+   "growth_lambda1": -0.0007022218749139146
+  }
+ }
+}

@@ -71,7 +71,7 @@ from scipy.stats import ttest_1samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, LambdaMixture, mc_factor, plugin_factor, t1d  # noqa: E402
+from e4g import BLRRatio, ChoiceBLR, LambdaMixture, mc_factor, plugin_factor, t1d  # noqa: E402
 
 ADULTS = [f"adult#{i:03d}" for i in range(1, 11)]
 ARMS = {"A": (1.0, 140.0, 80.0), "B": (1.5, 100.0, 60.0), "C": (0.8, 160.0, 90.0),
@@ -169,15 +169,25 @@ def pilot(seed=10 ** 6, n=200):
     return rows(tr[:n], tr[n:], arm)
 
 
+LEARNER = "logistic"   # or "choice": BLR on the simulation likelihood (Theorem 3)
+
+
 class Monitor:
     def __init__(self, scaler):
-        self.blr = BLRRatio(feature_map=feature_map).fit_scaler(scaler)
+        if LEARNER == "choice":
+            self.blr = ChoiceBLR(feature_map=feature_map, prior_var=0.03).fit_scaler(scaler)
+        else:
+            self.blr = BLRRatio(feature_map=feature_map).fit_scaler(scaler)
         self.w, self.wp = LambdaMixture(), LambdaMixture()
 
     def step(self, rx, ry):
-        sc = self.blr.score(np.vstack([rx, ry]))
-        wv = self.w.update(mc_factor(sc[0], sc[1:]))
-        wp = self.wp.update(plugin_factor(sc[0]))
+        if LEARNER == "choice":
+            wv = self.w.update(self.blr.factor(rx, ry))
+            wp = 0.0               # no plug-in bet for the conditional logit
+        else:
+            sc = self.blr.score(np.vstack([rx, ry]))
+            wv = self.w.update(mc_factor(sc[0], sc[1:]))
+            wp = self.wp.update(plugin_factor(sc[0]))
         self.blr.update(rx, ry)
         return wv, wp
 
@@ -319,10 +329,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--reps", type=int, default=100)
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--learner", default="logistic", choices=["logistic", "choice"])
+    ap.add_argument("--scenarios", default="null,resistance,snacking")
     args = ap.parse_args()
+    global LEARNER
+    LEARNER = args.learner
+    wanted = args.scenarios.split(",")
     res = {"config": dict(M=M, alpha=ALPHA, stages=STAGES, new_per_stage=NEW_PER_STAGE,
-                          futility=FUTILITY, arms=ARMS, reps=args.reps)}
+                          futility=FUTILITY, arms=ARMS, reps=args.reps, learner=LEARNER)}
     for sc, offset in (("null", 0), ("resistance", 10 ** 5), ("snacking", 2 * 10 ** 5)):
+        if sc not in wanted:
+            continue
         t0 = time.time()
         seeds = np.arange(args.reps) + offset
         chunks = [list(c) for c in np.array_split(seeds, args.workers * 4)]
@@ -331,7 +348,8 @@ def main():
         res[sc] = summarise(runs)
         show = {k: v for k, v in res[sc].items() if not k.startswith("_")}
         print(f"[{sc}] {time.time() - t0:.0f}s", json.dumps(show), flush=True)
-    (ROOT / "results" / "exp11.json").write_text(json.dumps(res, indent=1))
+    name = "exp11.json" if LEARNER == "logistic" else "exp11_choice.json"
+    (ROOT / "results" / name).write_text(json.dumps(res, indent=1))
 
 
 if __name__ == "__main__":
