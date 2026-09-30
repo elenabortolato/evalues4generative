@@ -1,0 +1,526 @@
+% Draft. Compile with:
+%   pdflatex main && bibtex main && pdflatex main && pdflatex main
+% Figures are read from ../figures/, produced by ../experiments/make_figures.py.
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[round,authoryear]{natbib}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{../figures/}}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\G}{\mathcal{G}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\title{Supplement to ``Betting against the simulator: anytime-valid criticism of\\
+generative models and digital twins under adaptive control''}
+
+\author{Elena Bortolato\\ CUNEF Universidad}
+
+\date{Draft --- \today}
+
+\begin{document}
+\maketitle
+
+This supplement contains four analyses referred to in the main text. Theorem,
+section, equation and table numbers without an S refer to the main text.
+
+\section{Monitoring one patient under closed-loop control}\label{sec:t1d-patient}
+
+This section uses the simulator of Section~6.1 of the main
+text, with one additional source of randomness: unannounced snacks of between
+5 and 25~g, with probability 0.01 per five-minute interval.
+
+\paragraph{The data.} The ``real'' patient is \texttt{simglucose}'s
+\texttt{adult\#001}, followed for 48 hours with three meals a day at jittered
+times. It is treated by basal--bolus therapy with feedback, using the
+patient's own basal rate, carbohydrate ratio and correction factor. Every 30
+minutes (an \emph{epoch}) the controller commits to a basal rate from the
+current CGM reading:
+\begin{itemize}
+  \item basal is suspended below 80~mg/dL;
+  \item a correction is added above 180~mg/dL;
+  \item within the epoch, meal boluses follow the announced carbohydrates.
+\end{itemize}
+All dosing decisions therefore depend on the data. At hour 12 the patient may
+change in one of three ways, chosen to mimic common clinical failures:
+\begin{itemize}
+  \item \textbf{Insulin resistance:} $V_{mx}$ and $k_{p3}$ fall by 30\%, as
+        during an infection.
+  \item \textbf{Sensor drift:} the CGM gain increases linearly from 1 to 1.15
+        over the following 24 hours, a slow calibration failure.
+  \item \textbf{Snacking:} unannounced snacks become six times as frequent.
+\end{itemize}
+In the null scenario the patient remains the twin throughout.
+
+\paragraph{Monitoring.} At the start of each epoch the twin is
+re-initialised at the patient's current state and run $M = 16$ times under the
+committed dosing plan and the announced meals, producing 16 simulated 30-minute
+CGM traces. A seventeenth, noise-free run gives the twin's prediction $g_t$.
+Each trace is summarised relative to $g_t$ by:
+\begin{itemize}
+  \item its mean residual and its residual over the last five minutes;
+  \item the change in residual between the first and the last ten minutes;
+  \item two context variables: the predicted glucose level and the committed
+        insulin rate.
+\end{itemize}
+The score is the BLR predictive of Section~4.1 on these
+summaries, updated after every epoch.
+
+Because the dosing plan is committed at the start of the epoch, the epoch's
+action is $\G_t$-measurable, and Theorem~1 applies with each
+epoch as one step. The 30-minute epoch is a design choice made for power. With
+the twin re-initialised every five minutes, a 30\% loss of insulin sensitivity
+moves the one-step prediction by only about 0.1~mg/dL, against a CGM noise of
+several mg/dL. Over 30 minutes the mean residual moves by about 3~mg/dL,
+against a spread of about 2~mg/dL between twin draws.
+
+We compare four monitors:
+\begin{itemize}
+  \item the BLR predictive score;
+  \item a fixed score equal to the mean residual of the epoch, with no
+        learning;
+  \item the same BLR monitor with the twin run under the \emph{open-loop}
+        plan (basal and meal boluses, without suspension or correction), that
+        is, not conditioned on the action actually taken;
+  \item a $t$-test of standardised epoch residuals, recomputed after every
+        epoch.
+\end{itemize}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{exp7_artificial_pancreas.png}
+\caption{One monitored patient whose insulin sensitivity falls by 30\% at
+hour 12. Top: CGM readings (black) and the twin's 5--95\% predictive band,
+recomputed at the start of every 30-minute epoch from the patient's current
+state and the committed dose. Middle: the committed basal rate, suspended below
+80~mg/dL and corrected above 180~mg/dL. Bottom: log wealth of the monitor, with
+the rejection threshold $\log 20$.}
+\label{fig:application}
+\end{figure}
+
+\paragraph{Results.} Table~\ref{tab:t1d} summarises 200 null runs and 80 runs
+of each failure scenario.
+
+\begin{table}[t]
+\centering
+\caption{Artificial pancreas against its digital twin (48 hours; changes at
+hour 12). Null: share of runs with an alarm. Failure scenarios: share
+detected within the 36 hours after the change, and median delay in hours.
+For the recomputed $t$-test, 22.5\% of runs in every scenario had already
+raised a (false) alarm before the change.}
+\label{tab:t1d}
+\begin{tabular}{lrrrr}
+\toprule
+monitor & null & insulin resistance & sensor drift & snacking \\
+\midrule
+MC e-process, BLR score & 0.010 & 1.00, 10.5 h & 1.00, 10.0 h & 0.14, 27 h \\
+MC e-process, fixed residual score & 0.030 & 1.00, 9.0 h & 1.00, 8.8 h & 0.30, 23 h \\
+twin under the open-loop plan & 0.000 & 1.00, 9.8 h & 1.00, 10.0 h & 0.16, 30 h \\
+$t$-test, recomputed every epoch & 0.350 & 0.78, 7.5 h & 0.78, 8.5 h & 0.23, 20 h \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Validity with a black-box simulator.} The Monte Carlo
+        e-process keeps false alarms at 1\% over 48 hours, with a simulator
+        whose outcome law has no tractable density. The recomputed $t$-test
+        raises false alarms in 35\% of runs, and in 22.5\% of runs before any
+        change has occurred.
+  \item \textbf{Physiological and sensor failures are detected within a
+        day.} A 30\% loss of insulin sensitivity is detected in every run,
+        after a median of 10.5 hours; a slow calibration drift after 10 hours
+        (Figure~\ref{fig:application}).
+  \item \textbf{Sparse disturbances are hard.} More frequent unannounced
+        snacks are detected in only 14\% of runs within 36 hours: they appear
+        as occasional upward jumps, which the smooth learned score captures
+        poorly. The fixed mean-residual score does better (30\%); a score
+        designed for jumps would do better still.
+  \item \textbf{When conditioning on the action does not matter.} Here the
+        twin run under the open-loop plan is also valid (no false alarms). For
+        this patient, suspension and correction are triggered rarely, and when
+        they are, they barely change the distribution of the next 30 minutes.
+        Proposition~2 shows where the danger lies: ignoring
+        the action inflates the bet when the actions taken change the law of
+        the outcome, $\chi^2(P_a\|\bar P) > 0$, and it is nearly harmless when
+        they do not. The bandit
+        (Section~5.2) and the Italian colour zones
+        (Section~7) are cases where it does.
+\end{itemize}
+
+\paragraph{Limitations.} The patient is itself
+simulated, so this is a realistic benchmark rather than a clinical
+validation. The twin is re-initialised at the patient's true physiological
+state, which is observable in silico but must be estimated in practice. With
+an estimated state, the null law of the next epoch is the twin's filtering
+predictive distribution; sampling from it approximately breaks exact
+exchangeability, and the guarantees of \citet{barber2026montecarlo} for
+approximately exchangeable samples are the natural tool. Real CGM and insulin
+records, such as those collected in closed-loop trials, would be the next
+step.
+
+\section{A single-stage response-adaptive trial}\label{sec:trial3}
+
+This is a simpler version of the trial of Section~6 of the main
+text, with three arms, one stage, one day per participant and Thompson-sampling
+allocation (Experiment~10 in the repository).
+
+\paragraph{The trial.} The same simulator is used to design clinical trials of
+dosing strategies: arms are compared in silico before the trial, and the
+simulator's predictions justify the design and sample size. We consider a
+three-arm trial of insulin-dosing strategies, each run by the pump in closed
+loop:
+\begin{itemize}
+  \item \textbf{A, standard:} carbohydrate bolus, correction to 140~mg/dL above
+        150, basal suspended below 80;
+  \item \textbf{B, aggressive:} bolus $\times 1.5$, correction to 100, suspend
+        below 60;
+  \item \textbf{C, conservative:} bolus $\times 0.8$, correction to 160, suspend
+        below 90.
+\end{itemize}
+Participants enter one at a time; each is one of the ten adult virtual
+patients, drawn at random, and spends one in-clinic day (06:00--18:00, with a
+standardised breakfast of 50~g at 07:00 and lunch of 70~g at 12:30) under the
+assigned arm. The primary outcome is time in range (70--180~mg/dL).
+Allocation is response-adaptive, as in Bayesian adaptive trials: after a
+burn-in of 15 participants in permuted blocks, each participant is assigned by
+Thompson sampling on the arms' mean time in range, with allocation
+probabilities floored at 0.1. The trial enrols 120 participants.
+
+\paragraph{The twin and the question.} The twin is the in-silico trial itself:
+for each participant, the simulator with that participant's virtual-patient
+parameters is run $M = 16$ times under the arm actually assigned and the same
+meal protocol. The monitor asks whether the in-silico trial still predicts
+what happens to the participants \emph{given the allocation the design has
+made}. The score is the BLR predictive of Section~4.4 on six
+summaries of the day relative to the twin's noise-free path (mean and standard
+deviation of the residual, time below 70 and above 180 mg/dL, and the arm),
+with interactions between the arm and the residual and time-below-range
+features, so that the score can learn a discrepancy confined to one arm. We
+compare it with the plug-in bet, a $t$-test of standardised time-in-range
+residuals recomputed after every participant, and a \emph{pooled} twin that
+simulates each participant under an arm drawn uniformly. The pooled twin is the
+pre-trial in-silico prediction, which ignores the allocation.
+
+\paragraph{Which arm?} A single alarm says that the twin fails somewhere; a
+trial team needs to know under which arm. We run one e-process per arm, each
+with its own BLR score, which bets only on the participants assigned to that
+arm and has factor one otherwise. Whether a participant goes to arm $k$ is
+decided before the outcome, so by Theorem~1 each is a test
+martingale for $H_{0,k}$: ``the twin is correct under arm $k$'', whatever the
+allocation. Each arm's e-value is its wealth at the end of the trial, or when
+it first reaches $K/\alpha$ with $K = 3$ (a bounded stopping time), and e-BH
+\citep{wang2022false} is applied across the arms. This is the bandit
+multiple-testing construction of \citet{xu2021unified}, with the twin as the
+null; e-BH controls the false discovery rate under arbitrary dependence
+between the arms, which the shared allocation creates.
+
+\paragraph{Scenarios.} Under the null, participants are the simulator. Two
+departures are considered:
+\begin{itemize}
+  \item \textbf{Insulin resistance.} Insulin sensitivity is 25\% lower than in
+        the virtual cohort, in every arm.
+  \item \textbf{Rescue carbohydrates.} Participants self-treat hypoglycaemia,
+        taking 15~g of carbohydrate when the CGM reads below 70~mg/dL, at most
+        every 30 minutes. The simulator omits this behaviour. Its effect
+        depends on the arm: it matters under the aggressive arm, which causes
+        most lows. In the twin, arm B spends 10\% of the day below 70~mg/dL; in
+        the participants it spends 2\% and has the best time in range.
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\caption{A response-adaptive three-arm trial of 120 participants checked
+against its in-silico twin (200 replications per scenario). Rejection rate by
+the end of the trial and, in brackets, the median number of participants
+before the first alarm. Allocation: share of participants assigned to the
+aggressive arm B after the burn-in. The last block reports which arms e-BH
+flags at $\alpha = 0.05$ at the end of the trial.}
+\label{tab:trial3}
+\begin{tabular}{lrrr}
+\toprule
+monitor & null & insulin resistance & rescue carbohydrates \\
+\midrule
+MC e-process, twin under the assigned arm & 0.025 & 1.00 (5) & 1.00 (27) \\
+plug-in bet & 0.095 & 1.00 (6) & 1.00 (33) \\
+pooled twin (ignores the allocation) & 0.415 & 1.00 (11) & 1.00 (38) \\
+$t$-test, recomputed & 0.390 & 1.00 (9) & 0.995 (23) \\
+\midrule
+share allocated to arm B & 0.36 & 0.83 & 0.74 \\
+time in range under B: participants / twin & 0.87 / 0.87 & 0.89 / 0.87 & 0.94 / 0.87 \\
+\midrule
+\multicolumn{4}{l}{\emph{per-arm e-processes and e-BH: share of trials in which each arm is flagged}} \\
+arm A (standard) & 0.000 & 1.00 & 0.005 \\
+arm B (aggressive) & 0.015 & 1.00 & 1.00 \\
+arm C (conservative) & 0.000 & 1.00 & 0.005 \\
+rescue events per trial on A / B / C & -- & -- & 3.7 / 155 / 0.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Results.} Table~\ref{tab:trial3} summarises 200 replications of
+each scenario.
+\begin{itemize}
+  \item \textbf{Only the conditioned monitor is valid.} Its false-alarm rate is
+        2.5\%. The pooled twin raises a false alarm in 42\% of trials: once the
+        allocation concentrates on arms A and B, the participants are no longer
+        a sample from the pre-trial mixture over arms, exactly as
+        Proposition~2 predicts. The recomputed $t$-test
+        raises false alarms in 39\% of trials, and the plug-in bet in 9.5\%.
+  \item \textbf{Insulin resistance} is detected in every trial after a median
+        of five participants. The allocation adapts to it: resistant
+        participants do best on the aggressive arm, which receives 83\% of
+        them.
+  \item \textbf{Rescue carbohydrates} change mainly arm B, and the monitor
+        detects them in every trial after a median of 27 participants. The
+        design reacts to the same discrepancy: arm B looks better than the
+        twin predicted, so it receives 74\% of the participants instead of
+        36\% under the null. The twin that justified the design is therefore
+        wrong precisely on the arm the design ends up favouring, and it is
+        wrong in a direction a sponsor would not look for, since the
+        participants do better than predicted. Detection is slower than for
+        resistance because the departure is confined to one arm and to the
+        hours around lows.
+  \item \textbf{e-BH names the arm.} Under the null, e-BH flags some arm in
+        1.5\% of trials. Under insulin resistance, which affects every arm, it
+        flags all three arms in every trial, including the conservative arm,
+        which receives only about 14 participants. Under rescue carbohydrates
+        it flags arm B in every trial and arms A and C in 0.5\% each, a false
+        discovery proportion of 0.5\% on average if A and C are counted as
+        nulls. Arm A is in fact affected weakly (3.7 rescue events per trial,
+        against 155 under B), too weakly to be detected: e-BH points to the
+        arm on which the twin materially fails.
+\end{itemize}
+The pooled twin and the $t$-test also reject under both departures, but they
+reject under the null as well, so their alarms carry no evidence. The trial
+illustrates the setting of Theorem~1 with clinical actions: the
+allocation is chosen from the outcomes, the null is only available as a
+simulator, and a monitor that ignores the allocation is invalid.
+
+%======================================================================
+\section{National COVID-19 deaths from spring 2020}\label{sec:italy-national}
+
+\paragraph{Data and twin.} Daily deaths are the differences of the Civil
+Protection cumulative count \citep{dpc2020covid}; one negative reporting
+correction (24~June 2020) is set to zero. They are available from February
+2020, and they depend much less on testing than case counts. The policy is
+the national stringency index of the Oxford COVID-19 Government Response
+Tracker \citep{hale2021global}, which covers the first lockdown of March 2020,
+the reopening of May 2020 and the autumn measures.
+
+The twin is the renewal model of Section~7.1 of the main text for
+a single national series, without zones or weekly shocks: daily deaths are
+negative binomial with mean $R_t\,\delta_{\mathrm{wd}(t)}\sum_{s=1}^{21} w_s y_{t-s}$
+and $\log R_t = a + b\,(\mathrm{stringency}_{t-21}/100 - \tfrac12)$, with a
+21-day lag because deaths follow infections by about three weeks, longer than
+the seven-day block, so that the policy driving a week is known when the week
+starts. Calibrated on 1~April to 26~May 2020, the twin has a baseline
+reproduction number of 0.78 at the mean stringency of 88 and overdispersion
+37.
+
+The policy effect $b$ is poorly identified: estimated freely, it ranges from
+$-0.4$ to $-3$ (the lower bound) depending on the 2020 window, as spontaneous
+behaviour change and immunity are confounded with the measures. We therefore
+fix $b = -1$, a 59\% reduction in $R$ between no restrictions and stringency
+90, which is moderate compared with the lockdown effects estimated by
+\citet{flaxman2020estimating}. We report $b \in \{-0.5, -1, -2\}$, a range
+bracketed by the free estimates. The remaining parameters are fitted on
+1~April to 26~May 2020, and monitoring runs from 27~May 2020 to 31~December
+2021. After each alarm the twin is recalibrated on the last eight weeks.
+
+\paragraph{Validity where the truth is known.} We generate series from the
+calibrated twin over the same 83 weeks, with the policy set every week by a
+tier rule on deaths: stringency 80, 60 or 40 when the previous week's deaths
+exceed 1500, exceed 500, or neither. A second scenario adds a variant that
+multiplies transmission by 1.4 from week 10.
+
+\begin{table}[t]
+\centering
+\caption{Synthetic national series of deaths from the twin calibrated on
+spring 2020, with a data-driven tier policy (83 weeks; 200 null and 100
+variant replications).}
+\label{tab:italy}
+\begin{tabular}{lrrrr}
+\toprule
+ & null & \multicolumn{3}{c}{variant from week 10} \\
+monitor & false alarms & alarm before change & detected & median delay (weeks) \\
+\midrule
+MC e-process, BLR score & 0.015 & 0.00 & 1.00 & 4 \\
+plug-in bet & 0.035 & 0.01 & 0.99 & 3 \\
+twin with policy held fixed & 1.000 & 1.00 & 0.00 & -- \\
+$t$-test, recomputed weekly & 0.405 & 0.19 & 0.81 & 5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:italy} repeats the regional lesson with a continuous policy.
+The monitor keeps false alarms at 1.5\% and detects the variant in every run,
+after a median of four weeks. The twin that holds the policy at its
+calibration level rejects a true null in every run, and the recomputed
+$t$-test raises false alarms in 41\% of runs.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{exp8b_italy_deaths.png}
+\caption{Italy, May 2020 to December 2021. Top: observed daily deaths (black)
+and the twin's 90\% predictive band for each coming week (blue); orange lines
+mark alarms, after which the twin is recalibrated on the last eight weeks.
+Bottom: the monitor's log wealth, restarted at each recalibration, with the
+threshold $\log 20$.}
+\label{fig:italy}
+\end{figure}
+
+\paragraph{Results on the real data.} Figure~\ref{fig:italy} shows ten alarms
+between May 2020 and December 2021. Four fire because deaths were above the
+twin and six because they were below it (average standardised deviation over
+the last three weeks before the alarm):
+\begin{itemize}
+  \item \textbf{below}, 30~June 2020: deaths fell faster after the reopening
+        than the spring twin predicted;
+  \item \textbf{above}, 22~September and 3~November 2020: the start and the
+        growth of the second wave;
+  \item \textbf{below}, 15~December 2020 and 5~January 2021: after the peak of
+        the second wave;
+  \item \textbf{below}, then \textbf{above}, 2 and 23~March 2021: the end of
+        the winter decline and the third wave;
+  \item \textbf{below}, 18~May and 8~June 2021: the decline of late spring,
+        with vaccination;
+  \item \textbf{above}, 17~August 2021: the summer rise.
+\end{itemize}
+
+\paragraph{An early warning: September 2020.} After the first alarm the twin
+is recalibrated on June 2020, when deaths were falling. With stringency almost
+constant (63--68), it predicts a further decline. Weekly deaths instead reach
+a minimum of about 40 in late August and then rise: 64, 69, 97 and 128 in the
+four weeks from 31~August, each in the upper part of the twin's range. The log
+wealth goes from $-0.6$ on 1~September to 0.85, 1.23 and 3.26 on 22~September,
+when it crosses $\log 20$. Weekly deaths then reached 795 in the week of
+19~October and 2568 in the week of 2~November. The alarm therefore precedes
+the October surge in deaths by four weeks, and the national decrees of October
+and the regional zones of 6~November by three to six weeks. Because the policy
+was held at the value in force, the alarm says that transmission was higher
+than the restrictions explain. Two qualifications apply: deaths lag infections,
+so a twin of cases or admissions would probably alarm earlier; and the
+comparison with the decrees is one of timing, not a counterfactual, since
+decision makers also followed cases. The monitor is also robust to an outlier
+in this segment: the 158 deaths reported on 15~August 2020 against 5--10 on
+the neighbouring days, a batch of late reports, lower the wealth (from $-0.30$
+to $-0.46$) instead of raising an alarm, because a bounded bet loses at most
+its stake.
+
+\paragraph{A correction, not a forecast: December 2020.} The alarm of
+15~December is the opposite case. The twin recalibrated after the November
+alarm expected continued growth, but deaths fell below its 90\% band in the
+weeks from 7 to 21~December (for example 4279 against a lower limit of 4318 in
+the week of 14~December). A plausible reading is that the November measures,
+including the regional zones, which the national stringency index barely
+records, reduced transmission more than the twin allowed. The alarm is
+therefore not an anticipation of the national red days of Christmas 2020; it
+says that the twin overpredicted.
+
+Each recalibrated twin lasts a median of six weeks. The first alarm falls
+between 16~June and 14~July 2020 for $b \in \{-0.5, -1, -2\}$, with 10 to 12
+alarms over the period. An analysis of national ICU admissions from December
+2020 to December 2022 with a seven-day lag leads to the same conclusions
+(repository, Experiment~8).
+
+\paragraph{Caveats.}
+\begin{itemize}
+  \item \textbf{An alarm says that the twin is wrong, not why.} Candidate
+        reasons include variants, vaccination, seasonality, and changes in
+        testing and reporting.
+  \item \textbf{The twins' likelihoods happen to be tractable,} which keeps the
+        examples transparent. The monitor uses only simulation, so the same
+        analysis applies unchanged to agent-based or compartmental models with
+        latent states.
+  \item \textbf{Recalibration and restart form a sequence of tests of
+        different twins.} Each alarm is valid for the twin active at the time,
+        not a simultaneous statement about all periods.
+\end{itemize}
+
+%======================================================================
+\section{Comparison with the Besag--Clifford e-process}\label{sec:exp-bc}
+
+On the drift task the null is i.i.d., so the Besag--Clifford e-process of
+\citet{dombowsky2026besag} applies directly. We compare statistics and betting
+strategies on identical data and identical simulator draws ($M = 16$).
+\begin{itemize}
+  \item \textbf{Statistics:}
+        \begin{itemize}
+          \item the likelihood ratio recommended by their Theorem~1, which
+                requires both densities and the true alternative (an oracle);
+          \item their plug-in approach for a composite alternative (their
+                Sections~3.2 and~6.3), with the maximum-likelihood curvature
+                computed from past data only, which requires the density of the
+                parametric family;
+          \item our BLR predictive score, which requires only samples from the
+                simulator.
+        \end{itemize}
+  \item \textbf{Betting:} all-in ($\lambda = 1$, their likelihood-ratio
+        process), aGRAPA \citep{waudbysmith2024estimating}, and the mixture
+        (3).
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\caption{Besag--Clifford e-process with different statistics and betting
+strategies on the drift task (400 replications). Entries: false-alarm rate,
+power, median stopping time.}
+\label{tab:bc}
+\begin{tabular}{llrrr}
+\toprule
+statistic (requires) & betting & false alarms & power & median stop \\
+\midrule
+likelihood ratio (both densities, true alternative) & all-in & 0.045 & 1.000 & 36 \\
+ & aGRAPA & 0.010 & 1.000 & 66 \\
+ & mixture & 0.018 & 1.000 & 48 \\
+plug-in MLE (density of the parametric family) & all-in & 0.022 & 1.000 & 58 \\
+ & aGRAPA & 0.010 & 1.000 & 86 \\
+ & mixture & 0.010 & 1.000 & 68 \\
+BLR predictive (simulator samples only) & all-in & 0.028 & 0.405 & -- \\
+ & aGRAPA & 0.005 & 0.938 & 289 \\
+ & mixture & 0.018 & 0.983 & 209 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:bc} quantifies the price of not knowing the model.
+\begin{itemize}
+  \item When the likelihood ratio is available, the Monte Carlo normalisation
+        costs almost nothing: the median stopping time with $M = 16$ is 36,
+        against 35 for the exact oracle (Table~1), as their
+        Theorem~1 predicts.
+  \item Knowing the parametric family of the drift is worth a factor of about
+        3.5 in stopping time over learning it from samples (58 against 209).
+  \item With a learned score, all-in betting fails: early misspecified bets
+        drive the wealth towards zero, and power falls to 0.41. The mixture over
+        $\lambda$ is the right strategy for learned scores, and it is faster
+        than aGRAPA (209 against 289).
+\end{itemize}
+The two approaches are therefore complementary. When the null density is
+known up to a constant and the alternative is parametric, the Besag--Clifford
+statistic of \citet{dombowsky2026besag} should be used. When the simulator is
+a black box, only a learned score is available, and the results of
+Sections~3--4.1 govern its power. In adaptive
+designs their i.i.d.\ formulation does not apply: simulating without
+conditioning on the action rejects a true null in every run
+(Table~2).
+
+%======================================================================
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

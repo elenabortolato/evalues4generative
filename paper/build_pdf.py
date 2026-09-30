@@ -31,9 +31,10 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-TEX = HERE / "main.tex"
-OUT_HTML = HERE / "main.html"
-OUT_PDF = HERE / "main.pdf"
+_NAME = sys.argv[1] if len(sys.argv) > 1 else "main"   # e.g. "supplement"
+TEX = HERE / f"{_NAME}.tex"
+OUT_HTML = HERE / f"{_NAME}.html"
+OUT_PDF = HERE / f"{_NAME}.pdf"
 KATEX = HERE / "vendor" / "katex"
 FIGURES = HERE.parent / "figures"
 BIB = HERE / "references.bib"
