@@ -1,0 +1,36 @@
+null
+  t=   10  regret mean   1.49 max   1.93  bound  10.88   log W    -0.93  best     0.56
+  t=   30  regret mean   2.64 max   2.93  bound  13.08   log W    -2.14  best     0.50
+  t=  100  regret mean   3.88 max   4.11  bound  15.49   log W    -3.19  best     0.69
+  t=  300  regret mean   5.01 max   5.07  bound  17.68   log W    -4.33  best     0.68
+  t= 1000  regret mean   6.24 max   6.29  bound  20.09   log W    -5.56  best     0.68
+  t= 2000  regret mean   6.94 max   7.01  bound  21.48   log W    -5.63  best     1.31
+  regret slope in log t between t=100 and t=2000: 1.02 (d/2 = 1.0)
+  bound holds on every path and time: True
+shift
+  t=   10  regret mean   1.83 max   2.56  bound  10.88   log W     0.08  best     1.91
+  t=   30  regret mean   2.76 max   3.08  bound  13.08   log W     1.52  best     4.29
+  t=  100  regret mean   3.79 max   4.01  bound  15.49   log W     9.24  best    13.03
+  t=  300  regret mean   4.89 max   4.99  bound  17.68   log W    32.35  best    37.25
+  t= 1000  regret mean   6.14 max   6.21  bound  20.09   log W   112.45  best   118.59
+  t= 2000  regret mean   6.83 max   6.92  bound  21.48   log W   228.05  best   234.88
+  regret slope in log t between t=100 and t=2000: 1.02 (d/2 = 1.0)
+  bound holds on every path and time: True
+scale
+  t=   10  regret mean   1.93 max   2.18  bound  10.88   log W    -0.37  best     1.56
+  t=   30  regret mean   3.17 max   3.35  bound  13.08   log W     1.49  best     4.66
+  t=  100  regret mean   4.42 max   4.49  bound  15.49   log W     7.81  best    12.23
+  t=  300  regret mean   5.54 max   5.58  bound  17.68   log W    33.17  best    38.71
+  t= 1000  regret mean   6.76 max   6.79  bound  20.09   log W   125.16  best   131.92
+  t= 2000  regret mean   7.45 max   7.48  bound  21.48   log W   257.24  best   264.69
+  regret slope in log t between t=100 and t=2000: 1.01 (d/2 = 1.0)
+  bound holds on every path and time: True
+drift
+  t=   10  regret mean   1.49 max   1.93  bound  10.88   log W    -0.93  best     0.56
+  t=   30  regret mean   2.64 max   2.93  bound  13.08   log W    -2.14  best     0.50
+  t=  100  regret mean   3.88 max   4.11  bound  15.49   log W    -3.19  best     0.69
+  t=  300  regret mean   5.01 max   5.07  bound  17.68   log W    -4.33  best     0.68
+  t= 1000  regret mean   6.46 max   6.51  bound  20.09   log W    52.53  best    58.99
+  t= 2000  regret mean   7.19 max   7.26  bound  21.48   log W   235.83  best   243.01
+  regret slope in log t between t=100 and t=2000: 1.10 (d/2 = 1.0)
+  bound holds on every path and time: True

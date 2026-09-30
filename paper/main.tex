@@ -52,9 +52,14 @@ score is a one-step predictive distribution and that the log wealth is the
 prequential likelihood ratio of these predictives against the simulator; the
 Bayes factor is the special case of exact Bayesian predictives. The e-process
 therefore needs only a rule that updates a predictive once per observation,
-which is the primitive of martingale posteriors, and never a recomputation. We
-learn the density ratio by classification and update it with one
-natural-gradient step of the Bayesian learning rule. The growth rate decomposes
+which is the primitive of martingale posteriors, and never a recomputation.
+Exact Bayesian updating is available on the \emph{simulation likelihood}, the
+probability that the real outcome is the observed one among the simulations,
+whose normalising constant the simulations provide: the resulting
+posterior-predictive bets factorise over time and, on every sample path, stay
+within $d\log t$ of the best score in the class chosen in hindsight. In practice
+we update a Gaussian approximation with one natural-gradient step of the
+Bayesian learning rule, which keeps exact validity at a bounded cost in power. The growth rate decomposes
 into a simulation cost, $M/(M+1)$ for local alternatives, and a learning cost,
 $\KL(Q\|\hat Q)$. In a multi-arm multi-stage trial of insulin-dosing strategies,
 with futility analyses and re-assignment of participants, the monitor controls
@@ -165,12 +170,15 @@ exact validity.
         predictive and a new observation into the next predictive, applied
         once per step. This is the primitive of the predictive approach to
         Bayesian inference and of martingale posteriors
-        \citep{fong2023martingale}, and it requires no recomputation. Exact
-        Bayesian updating is itself unavailable when the simulator can only
-        be sampled, so we update a Gaussian approximation of a generalised
-        posterior of the density ratio with one natural-gradient step of the
-        Bayesian learning rule per observation
-        \citep{khan2023bayesian,jones2024bong}.
+        \citep{fong2023martingale}, and it requires no recomputation. The
+        likelihood of a tilt of the simulator needs a normalising constant
+        that a sampler cannot provide, but the Monte Carlo bet itself, seen as
+        a function of the score's parameter, is a likelihood whose normalising
+        constant the simulations provide. Exact Bayesian updating on this
+        simulation likelihood gives predictive bets that factorise over time,
+        with a pathwise regret guarantee. In practice we update a Gaussian
+        approximation with one natural-gradient step of the Bayesian learning
+        rule per observation \citep{khan2023bayesian,jones2024bong}.
 \end{itemize}
 
 \paragraph{Contributions.}
@@ -188,13 +196,19 @@ exact validity.
         possible minus the learning error, and for local alternatives a budget
         of $M$ simulations keeps exactly a fraction $M/(M+1)$ of it. With
         $M = 16$, 94\% is kept.
-  \item \textbf{Predictive scores and their online update}
+  \item \textbf{Predictive updating without recomputation}
         (Sections~\ref{sec:predictive} and~\ref{sec:scores}). The posterior
-        predictive is the Bayes-optimal bet (Proposition~\ref{prop:bayesopt}),
-        and with exact Bayesian updating the process is the Bayes factor, with
-        total learning cost $(d/2)\log t$ (Proposition~\ref{prop:bayes}). We
-        explain why the monitor needs a predictive update rule and give one
-        that costs a few matrix operations per observation.
+        predictive is the Bayes-optimal bet (Proposition~\ref{prop:bayesopt}).
+        Exact Bayesian updating on the simulation likelihood factorises the
+        e-process over time and, on every sample path and with no assumption
+        on the alternative, keeps it within $d\log t$ of the best score in the
+        class chosen in hindsight, $(d/2)\log t$ for an interior optimum; it
+        therefore grows at the rate of the best tilt, up to the simulation cost
+        (Theorem~\ref{thm:simlik}). Approximate posteriors, such as the
+        Bayesian learning rule's, keep exact validity at a bounded cost
+        (Proposition~\ref{prop:approx}). The Bayes factor of
+        Proposition~\ref{prop:bayes} is the limit of infinitely many
+        simulations.
   \item \textbf{Which arm fails.} One e-process per arm, combined by e-BH
         \citep{wang2022false,xu2021unified}, identifies the arms on which the
         simulator fails, with false-discovery-rate control under arbitrary
@@ -452,13 +466,13 @@ proper, so the posterior predictive is the Bayes-optimal bet
 wealth a Bayes factor, with a total learning cost of $(d/2)\log t$
 (Proposition~\ref{prop:bayes}).
 
-\paragraph{Exact Bayes is unavailable.} A natural model for the real system is
-an exponential tilt of the simulator,
+\paragraph{The tilt likelihood is unavailable.} A natural model for the real
+system is an exponential tilt of the simulator,
 $q_\theta(x) = p(x) \exp\{\theta^\top\phi(x) - A(\theta)\}$ with
-$A(\theta) = \log \E_P[e^{\theta^\top\phi}]$. Bayes' rule needs $A(\theta)$ at
-every step, and $A(\theta)$ is an integral against a law that can only be
-sampled. There are two ways around this, both in the spirit of the predictive
-approach:
+$A(\theta) = \log \E_P[e^{\theta^\top\phi}]$. Bayes' rule for this likelihood
+needs $A(\theta)$ at every step, and $A(\theta)$ is an integral against a law
+that can only be sampled. Three ways around this are in the spirit of the
+predictive approach:
 \begin{itemize}
   \item specify the update of the predictive directly, as martingale-posterior
         rules do;
@@ -466,9 +480,16 @@ approach:
         The loss of a classifier of real against simulated outcomes identifies
         the tilt, with the intercept absorbing $-A(\theta)$
         \citep{gutmann2012noise}, and gives a generalised posterior
-        \citep{bissiri2016general}.
+        \citep{bissiri2016general};
+  \item change the likelihood. The Monte Carlo factor, viewed as a function of
+        the score's parameter, is itself a likelihood, that of the real
+        outcome's position among the simulations, and its normalising constant
+        is computed by the simulations. Exact Bayesian updating on it is
+        available, factorises over time, and has a pathwise regret of
+        $d\log t$ (Theorem~\ref{thm:simlik}).
 \end{itemize}
-We follow the second route. The Bayesian learning rule
+Theorem~\ref{thm:simlik} is the exact benchmark, and the second route is what
+we use in the experiments. The Bayesian learning rule
 \citep{khan2023bayesian} computes a Gaussian approximation of the generalised
 posterior, and in its online form \citep{jones2024bong} it is itself a
 predictive update rule: one natural-gradient step per observation, with the
@@ -484,10 +505,12 @@ the monitor risks little while it knows little.
 \paragraph{Coherence affects power, not validity.} The martingale condition is
 not needed for Theorem~\ref{thm:valid}, which holds for every predictable
 score. It matters for power guarantees: exact Bayesian predictives, which are
-coherent, attain the Bayes-factor growth of Proposition~\ref{prop:bayes}. The
-Bayesian learning rule is coherent only approximately, because each step
-projects onto Gaussians. This can cost power but never validity, and the
-experiments of Section~\ref{sec:exp-blr} measure the cost.
+coherent, attain the Bayes-factor growth of Proposition~\ref{prop:bayes}, and
+exact posteriors on the simulation likelihood attain the regret of
+Theorem~\ref{thm:simlik}. The Bayesian learning rule is coherent only
+approximately, because each step projects onto Gaussians. This can cost power
+but never validity; Proposition~\ref{prop:approx} bounds the cost, and the
+experiments of Section~\ref{sec:exp-blr} measure it.
 
 %======================================================================
 \section{Power: the growth rate}\label{sec:power}
@@ -645,6 +668,115 @@ the tilted family. A plug-in estimate $\hat\theta_{t-1}$ has no such guarantee.
 Early on it bets everything on one tilt, and Theorem~\ref{thm:growth} shows
 that an overconfident tilt can lose all its growth. The predictive instead
 bets on a mixture of tilts, weighted by the posterior.
+
+\subsection{Exact Bayes on the simulation likelihood}\label{sec:simlik}
+
+Proposition~\ref{prop:bayes} needs the normalising constant $A(\theta)$ of the
+tilt, which a sampler cannot provide. The Monte Carlo factor itself suggests
+the way out. Fix a parameter $\theta \in \mathbb{R}^d$ and $\G_t$-measurable
+features $\phi_t$, write $Z_{t,0} = X_t$ and $Z_{t,k} = Y_{t,k}$, and let
+\[
+E_t(\theta) = \frac{(M+1)\exp\{\theta^\top\phi_t(Z_{t,0})\}}
+{\sum_{k=0}^{M}\exp\{\theta^\top\phi_t(Z_{t,k})\}}
+\]
+be the factor \eqref{eq:mc} with score $s_t = \theta^\top\phi_t$. Up to the
+constant $M+1$, $E_t(\theta)$ is the probability that a conditional-logit model
+(``which of the $M+1$ outcomes is the real one?'') assigns to the real outcome.
+It is a likelihood for $\theta$ whose normalising constant is a sum over the
+simulations, and it is always computable. We call
+$L_t(\theta) = \prod_{i \le t} E_i(\theta)$ the \emph{simulation likelihood}.
+Its logarithm is, up to constants, the InfoNCE objective of contrastive
+learning \citep{oord2018representation}, and it is the partial likelihood of
+ranking-based noise-contrastive estimation \citep{ma2018noise}. Let $\pi_0$ be
+a prior on $\theta$, let $\pi_t \propto \pi_0 L_t$ be the posterior, and let
+the \emph{posterior-predictive bet} be
+\[
+\bar E_t = \int E_t(\theta)\, \pi_{t-1}(d\theta).
+\]
+
+\begin{theorem}[Predictive updating on the simulation likelihood]\label{thm:simlik}
+Suppose the conditions of Theorem~\ref{thm:valid} hold for each fixed $\theta$
+(simulations under the action taken, $\phi_t$ $\G_t$-measurable), that
+$\|\phi_t\| \le G$, and that $\pi_0$ is the uniform distribution on a convex
+compact set $\Theta \subset \mathbb{R}^d$ with nonempty interior and diameter at
+most $2D$.
+\begin{enumerate}
+  \item[(i)] (Exact factorisation and validity.) The wealth
+        $\bar W_t = \prod_{i \le t} \bar E_i$ equals
+        $\int L_t(\theta)\,\pi_0(d\theta)$. It is a test martingale under
+        $H_0$, for every policy, and it is updated by one posterior step per
+        observation, with no recomputation.
+  \item[(ii)] (Pathwise regret.) On every sample path, for every
+        $t \ge d/(4GD)$,
+        \[
+        \log \bar W_t \;\ge\; \sup_{\theta \in \Theta} \log L_t(\theta)
+        - d \log t - d \log\frac{4eGD}{d}.
+        \]
+        If the maximiser $\theta^*_t$ of $L_t$ lies in $\Theta$ at distance at
+        least $r_t = \sqrt{d/(tG^2)}$ from its boundary, the bound improves to
+        $\log \bar W_t \ge \log L_t(\theta_t^*) - \frac d2 \log t
+        - \frac d2 \log\frac{e G^2 (2D)^2}{d}$.
+  \item[(iii)] (Growth.) Let $g_{M,i}(\theta) = \E[\log E_i(\theta) \mid \G_i]$.
+        For every $\theta \in \Theta$, almost surely,
+        \[
+        \liminf_{t \to \infty} \frac1t \Big(\log \bar W_t - \sum_{i \le t} g_{M,i}(\theta)\Big) \ge 0 .
+        \]
+        In particular, for i.i.d.\ data under a fixed action and features,
+        $\liminf_t t^{-1}\log \bar W_t \ge \sup_{\theta\in\Theta} g_M(\theta)$,
+        and by Theorem~\ref{thm:growth}
+        $g_M(\theta) \ge \KL(Q\|P) - \KL(Q\|Q_\theta) - \log\{1 + (\rho_\theta - 1)/(M+1)\}$,
+        where $Q_\theta$ is the tilt of $P$ by $\theta^\top\phi$ and
+        $\rho_\theta = \E_Q[e^{\theta^\top\phi}]/\E_P[e^{\theta^\top\phi}]$.
+\end{enumerate}
+\end{theorem}
+
+The proof is in Appendix~\ref{app:proofs}. Part (i) says that exact Bayesian
+updating \emph{is} available once the likelihood is the right one: not the
+likelihood of the real outcome under the tilt, which needs $A(\theta)$, but the
+likelihood of the real outcome's position among the simulations, which the
+simulations normalise. The Bayes factor of Proposition~\ref{prop:bayes} is the
+limit $M \to \infty$. Part (ii) holds on every path, with no assumption on the
+alternative: the monitor is never more than $d\log t$ behind the best fixed
+score in the class chosen in hindsight, the same simulations included. Part
+(iii) turns this into growth. The mixture grows at the rate of the best tilt in
+the class, up to the simulation cost of Theorem~\ref{thm:growth}(iii), and
+Ville's inequality gives rejection after about
+$\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps. The theorem is
+checked numerically in Section~\ref{sec:exp-regret}.
+
+\paragraph{Approximate posteriors.} The integral in $\bar E_t$ is over
+$\theta$ only, and any $\G_t$-measurable distribution $q_{t-1}$ in place of
+$\pi_{t-1}$ still gives a valid bet $\hat E_t = \int E_t(\theta)\,q_{t-1}(d\theta)$,
+because $E_t(\theta)$ is fair for each $\theta$. This is how a Gaussian
+approximation produced by the Bayesian learning rule is used, with the integral
+computed by averaging $E_t$ over draws of $\theta$ from $q_{t-1}$. The price of
+the approximation is bounded as follows.
+
+\begin{proposition}[Approximate predictive bets]\label{prop:approx}
+Let $q_{t-1}$ be any $\G_t$-measurable distribution on $\mathbb{R}^d$ with mean
+$m_{t-1}$ and covariance $\Sigma_{t-1}$, and $\|\phi_t\| \le G$. Then
+$\hat E_t$ is an e-value given $\G_t$, and
+\[
+\log \hat E_t \;\ge\; \E_{q_{t-1}}\big[\log E_t(\theta)\big]
+\;\ge\; \log E_t(m_{t-1}) - \frac{G^2}{2}\,\mathrm{tr}\,\Sigma_{t-1}.
+\]
+\end{proposition}
+
+\begin{proof}
+Validity follows from Fubini's theorem. The first inequality is Jensen's.
+The function $\theta \mapsto \log E_t(\theta)$ is concave, with gradient
+$\phi_t(Z_{t,0}) - \sum_k w_k \phi_t(Z_{t,k})$ and Hessian
+$-\mathrm{Cov}_w(\phi_t)$, where $w_k \propto e^{\theta^\top\phi_t(Z_{t,k})}$;
+since $\mathrm{Cov}_w(\phi_t) \preceq G^2 I$, a second-order expansion around
+$m_{t-1}$ and the expectation under $q_{t-1}$ give the second inequality.
+\end{proof}
+
+A predictive bet built from an approximate posterior is therefore never worse
+than the plug-in bet at the posterior mean by more than
+$\frac{G^2}{2}\sum_i \mathrm{tr}\,\Sigma_{i-1}$. When the posterior
+precision grows linearly, as it does for the online update \eqref{eq:blr},
+this is $O(d \log t)$, the same order as the regret in
+Theorem~\ref{thm:simlik}(ii).
 
 \paragraph{Other predictive rules.} Any predictive update rule gives a valid
 score. The copula updates of \citet{fong2023martingale} are an attractive
@@ -1046,6 +1178,47 @@ Table~\ref{tab:blr} and Figure~\ref{fig:blr} show four effects:
 False alarms stay between 1.3\% and 3.3\% for every score. The posterior does not make the
 plug-in valid: using the BLR odds directly as the bet gives between 14\% and
 74\% false alarms, and 100\% on the ratio scale.
+
+\subsection{The regret of predictive updating}\label{sec:exp-regret}
+
+Theorem~\ref{thm:simlik} is checked with $P = \mathcal N(0,1)$, the bounded
+features $\phi(x) = (\mathrm{clip}(x, \pm 3), \mathrm{clip}(x^2 - 1, \pm 3))/3$
+(so $d = 2$ and $G = \sqrt 2$), a uniform prior on the disc of radius $D = 3$,
+and $M = 16$. The mixture $\bar W_t$ is computed exactly on a grid of 31\,000
+points of the disc, and the hindsight optimum $\sup_\theta \log L_t(\theta)$ by
+convex optimisation. Four scenarios are used, with 12 paths each: the null, a
+mean shift $\mathcal N(0.5, 1)$, a scale change $\mathcal N(0, 1.5^2)$, and a
+drift from $\mathcal N(0,1)$ to $\mathcal N(0.6, 1.3^2)$ at $t = 500$.
+
+\begin{table}[t]
+\centering
+\caption{Regret of the exact posterior-predictive e-process against the best
+score in hindsight, $\sup_\theta \log L_t(\theta) - \log \bar W_t$ (maximum
+over 12 paths), and the bound of Theorem~\ref{thm:simlik}(ii). Slope: increase
+of the mean regret per unit of $\log t$ between $t = 100$ and $t = 2000$.}
+\label{tab:regret}
+\begin{tabular}{lrrrrrrr}
+\toprule
+ & \multicolumn{5}{c}{maximum regret at $t =$} & & \\
+scenario & 10 & 100 & 300 & 1000 & 2000 & slope & $\log \bar W_{2000}$ \\
+\midrule
+null & 1.9 & 4.1 & 5.1 & 6.3 & 7.0 & 1.02 & $-5.6$ \\
+mean shift & 2.6 & 4.0 & 5.0 & 6.2 & 6.9 & 1.02 & 228 \\
+scale change & 2.2 & 4.5 & 5.6 & 6.8 & 7.5 & 1.01 & 257 \\
+drift at $t = 500$ & 1.9 & 4.1 & 5.1 & 6.5 & 7.3 & 1.10 & 236 \\
+\midrule
+bound, $d\log t + d\log(4eGD/d)$ & 10.9 & 15.5 & 17.7 & 20.1 & 21.5 & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:regret} shows the results. The bound holds on every path and at
+every time, with a margin of a factor of about three. The regret grows at the
+rate $(d/2)\log t$ of the interior case, with slopes between 1.01 and 1.10
+against $d/2 = 1$. Under the null the log wealth decreases, and under the
+alternatives the monitor keeps pace with the best fixed score chosen in
+hindsight, including after a change point, where the best fixed score is itself
+a compromise between the two regimes.
 
 \subsection{Comparison with the Besag--Clifford e-process}\label{sec:exp-bc}
 
@@ -1918,6 +2091,9 @@ alternative. Relative to their work, the present paper adds:
         (Proposition~\ref{prop:necessary});
   \item the analysis of arbitrary learned scores through the tilted null, and
         the local efficiency $M/(M+1)$ (Theorem~\ref{thm:growth}(ii) and (iv));
+  \item exact Bayesian updating on the simulation likelihood, with a pathwise
+        $d\log t$ regret bound and growth at the rate of the best tilt
+        (Theorem~\ref{thm:simlik});
   \item the reading of every score as a one-step predictive, and of the wealth
         as a prequential likelihood ratio, which motivates predictive update
         rules (Section~\ref{sec:predictive});
@@ -2062,6 +2238,47 @@ $T_t(x) = \int q_\theta(x) \prod_{i<t} q_\theta(X_i)\,\pi_0(d\theta) \big/
 telescopes to the marginal likelihood ratio. The Laplace expansion under
 regularity conditions is \citet{clarke1990information}. Finally
 $\E_Q[\log q_\theta] = \KL(Q\|P) - \KL(Q\|Q_\theta)$.
+
+\paragraph{Proof of Theorem~\ref{thm:simlik}.}
+(i) Write $L_t = L_{t-1} E_t$. Then
+$\int L_t\, d\pi_0 = \int L_{t-1}\,d\pi_0 \cdot \int E_t\, d\pi_{t-1}$ with
+$\pi_{t-1} = L_{t-1}\pi_0 / \int L_{t-1}\,d\pi_0$, and induction gives
+$\bar W_t = \int L_t\,d\pi_0$. The posterior $\pi_{t-1}$ is $\G_t$-measurable.
+For each fixed $\theta$, Theorem~\ref{thm:valid} gives
+$\E[E_t(\theta) \mid \G_t] = 1$ under $H_0$, so by Fubini's theorem
+$\E[\bar E_t \mid \G_t] = 1$, and $\bar W_t$ is a test martingale.
+
+(ii) Let $F(\theta) = \log L_t(\theta)$, a concave function, and let
+$\theta^* \in \Theta$ maximise it. Its gradient is
+$\sum_{i \le t}\{\phi_i(Z_{i,0}) - \sum_k w_{ik}\phi_i(Z_{i,k})\}$, of norm at
+most $2Gt$, so $F(\theta) \ge F(\theta^*) - 2Gt\|\theta - \theta^*\|$. For
+$0 < r \le 2D$, the set $\theta^* + \frac{r}{2D}(\Theta - \theta^*)$ lies in
+$\Theta$ by convexity and within distance $r$ of $\theta^*$, and its volume is
+$(r/2D)^d$ times that of $\Theta$. Hence
+\[
+\log \bar W_t = \log \int e^{F}\, d\pi_0 \ge F(\theta^*) - 2Gtr + d \log\frac{r}{2D}.
+\]
+The choice $r = d/(2Gt)$, admissible when $t \ge d/(4GD)$, gives the first
+bound. If $\theta^*$ is at distance at least $r$ from the boundary of
+$\Theta$, the gradient of $F$ vanishes there and its Hessian is at least
+$-tG^2 I$, so $F(\theta) \ge F(\theta^*) - \frac{tG^2}{2}\|\theta-\theta^*\|^2$
+on the ball $B_r$ of radius $r$ around $\theta^*$. This ball lies in
+$\Theta$, and $\Theta$ lies in the ball of radius $2D$ around $\theta^*$, so
+$\pi_0(B_r) = \mathrm{vol}(B_r)/\mathrm{vol}(\Theta) \ge (r/2D)^d$. Then
+$\log \bar W_t \ge F(\theta^*) - \frac{tG^2 r^2}{2} + d\log\frac{r}{2D}$, and
+$r = \sqrt{d/(tG^2)}$ gives the second bound.
+
+(iii) Let $B_\Theta = \max_{\theta\in\Theta}\|\theta\|$. For fixed
+$\theta \in \Theta$,
+$E_i(\theta) = (M+1)/\{1 + \sum_{k \ge 1} e^{\theta^\top(\phi_i(Z_{i,k}) - \phi_i(Z_{i,0}))}\}$
+lies in $[(M+1)/(1 + M e^{2GB_\Theta}),\, M+1]$. The differences
+$\log E_i(\theta) - g_{M,i}(\theta)$ are bounded martingale differences, so
+their average tends to zero almost surely. Part (ii) gives
+$\log \bar W_t \ge \sum_{i \le t} \log E_i(\theta) - d\log t - O(1)$ for every
+$\theta \in \Theta$, and $d\log t / t \to 0$. In the i.i.d.\ case
+$g_{M,i}(\theta) = g_M(\theta)$; taking a countable dense subset of $\Theta$
+and using the continuity of $g_M$ gives the supremum. The last inequality is
+Theorem~\ref{thm:growth}(ii)--(iii) applied to the score $e^{\theta^\top\phi}$.
 
 %======================================================================
 \section{Experimental details}\label{app:details}
