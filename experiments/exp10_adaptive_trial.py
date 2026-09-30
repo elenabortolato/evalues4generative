@@ -40,6 +40,16 @@ Monitors (alpha = 0.05, horizon 120 participants):
   ttest     one-sample t-test of standardised TIR residuals, recomputed after
             every participant from the fifth
 
+Which arm? One e-process per arm, betting only on the participants assigned to
+that arm (factor 1 otherwise), each with its own BLR score. Whether a
+participant goes to arm k is decided before the outcome, so each is a test
+martingale for H0_k: "the twin is correct under arm k", whatever the
+allocation (Theorem 1). Each arm's e-value is its wealth at the end of the
+trial, or when it first reaches K / alpha (a bounded stopping time), and e-BH
+(Wang & Ramdas 2022) is applied across the K = 3 arms. This is the bandit
+multiple-testing construction of Xu, Wang & Ramdas (2021) with the twin as the
+null. e-BH controls the FDR under arbitrary dependence between the arms.
+
 All replications of one scenario are simulated together: participant i of
 every replicate trial is stepped in the same batch (the patient parameters are
 per trajectory), which is exact and much faster than one trial at a time.
@@ -100,6 +110,7 @@ def simulate(idx, arm, noisy, vmx, rescue, rng):
     mult_b, target, suspend = (np.array([ARMS[a][j] for a in ARM_NAMES])[arm] for j in range(3))
     cgm = t1d.bg(b, p)
     since_rescue = np.full(k, 99)
+    n_rescue = np.zeros(k, int)
     out = np.empty((k, STEPS))
     for s in range(STEPS):
         meal = MEALS.get(s, 0.0)
@@ -109,6 +120,7 @@ def simulate(idx, arm, noisy, vmx, rescue, rng):
             rate = rate + np.maximum(bolus, 0.0) / 5.0
         take = rescue & (cgm < 70) & (since_rescue >= 6)
         since_rescue = np.where(take, 0, since_rescue + 1)
+        n_rescue += take
         eta = rng.standard_normal(k) * noisy
         carbs = meal * np.exp(VAR.sigma_carb * rng.standard_normal(k) * noisy) + 15.0 * take
         m_is = np.exp(VAR.sigma_is * eta) * vmx
@@ -117,7 +129,7 @@ def simulate(idx, arm, noisy, vmx, rescue, rng):
         g = t1d.bg(b, p)
         cgm = np.clip(g + noisy * t1d.johnson_noise(rng, k), 39.0, 600.0)
         out[:, s] = cgm
-    return out
+    return out, n_rescue
 
 
 def rows(traces, g, arm, use_arm=True):
@@ -144,9 +156,19 @@ def pilot(seed=10 ** 6, n=300):
     rng = np.random.default_rng(seed)
     idx = rng.integers(0, 10, n)
     arm = rng.integers(0, 3, n)
-    both = simulate(np.r_[idx, idx], np.r_[arm, arm], np.r_[np.ones(n), np.zeros(n)],
+    both, _ = simulate(np.r_[idx, idx], np.r_[arm, arm], np.r_[np.ones(n), np.zeros(n)],
                     np.ones(2 * n), np.zeros(2 * n, bool), rng)
     return rows(both[:n], both[n:], arm)
+
+
+def ebh(e, alpha=ALPHA):
+    """e-BH: reject the k* hypotheses with the largest e-values, where k* is the
+    largest k such that the k-th largest e-value is at least K / (alpha k)."""
+    e = np.asarray(e, float)
+    order = np.argsort(-e)
+    kstar = max([k for k in range(1, len(e) + 1) if e[order[k - 1]] >= len(e) / (alpha * k)],
+                default=0)
+    return sorted(order[:kstar].tolist())
 
 
 class Allocator:
@@ -198,6 +220,10 @@ def run_chunk(seeds, scenario):
     alloc = [Allocator(r) for r in rngs]
     cond = [Monitor(scaler) for _ in range(R)]
     pooled = [Monitor(scaler, use_arm=False) for _ in range(R)]
+    per_arm = [[Monitor(scaler) for _ in range(3)] for _ in range(R)]
+    e_arm = np.ones((R, 3))
+    frozen = np.zeros((R, 3), bool)
+    rescues = np.zeros((R, 3), int)
     z = [[] for _ in range(R)]
     first = [dict(mc_blr=None, plugin=None, pooled=None, ttest=None) for _ in range(R)]
     arms_log = np.zeros((R, N_PART), int)
@@ -218,8 +244,9 @@ def run_chunk(seeds, scenario):
             noisy += [1] * (2 * M + 1) + [0, 0]
             vmx += [vmx_real] + [1.0] * (2 * M + 2)
             resc += [rescue_real] + [False] * (2 * M + 2)
-        tr = simulate(np.array(idx), np.array(arms), np.array(noisy, float),
-                      np.array(vmx), np.array(resc), sim_rng).reshape(R, K, STEPS)
+        tr, n_resc = simulate(np.array(idx), np.array(arms), np.array(noisy, float),
+                              np.array(vmx), np.array(resc), sim_rng)
+        tr, n_resc = tr.reshape(R, K, STEPS), n_resc.reshape(R, K)
         arms = np.array(arms).reshape(R, K)
         for j in range(R):
             x, yc, yp = tr[j, :1], tr[j, 1:M + 1], tr[j, M + 1:2 * M + 1]
@@ -227,6 +254,12 @@ def run_chunk(seeds, scenario):
             a_real, a_cond, a_pool = arms[j, :1], arms[j, 1:M + 1], arms[j, M + 1:2 * M + 1]
             wv, wp = cond[j].step(rows(x, g_arm, a_real), rows(yc, g_arm, a_cond))
             wq, _ = pooled[j].step(rows(x, g_a, a_real, False), rows(yp, g_a, a_pool, False))
+            k = arm[j]
+            rescues[j, k] += n_resc[j, 0]
+            if not frozen[j, k]:
+                w_k, _ = per_arm[j][k].step(rows(x, g_arm, a_real), rows(yc, g_arm, a_cond))
+                e_arm[j, k] = w_k
+                frozen[j, k] = w_k >= 3 / ALPHA
             t_x, t_y = tir(x)[0], tir(yc)
             tir_real[j, i], tir_twin[j, i] = t_x, t_y.mean()
             z[j].append((t_x - t_y.mean()) / (t_y.std() + 0.02))
@@ -237,7 +270,8 @@ def run_chunk(seeds, scenario):
                     first[j][key] = i + 1
             alloc[j].observe(arm[j], t_x)
     return [dict(first=first[j], arms=arms_log[j].tolist(), tir_real=tir_real[j].tolist(),
-                 tir_twin=tir_twin[j].tolist()) for j in range(R)]
+                 tir_twin=tir_twin[j].tolist(), e_arm=e_arm[j].tolist(),
+                 ebh=ebh(e_arm[j]), rescues=rescues[j].tolist()) for j in range(R)]
 
 
 def summarise(runs):
@@ -252,8 +286,20 @@ def summarise(runs):
     tr, tt = np.array([r["tir_real"] for r in runs]), np.array([r["tir_twin"] for r in runs])
     by_arm = {a: {"real": float(tr[arms == j].mean()), "twin": float(tt[arms == j].mean())}
               for j, a in enumerate(ARM_NAMES)}
+    rej = np.zeros((len(runs), 3), bool)
+    for i, r in enumerate(runs):
+        rej[i, r["ebh"]] = True
+    resc = np.array([r["rescues"] for r in runs])
     return dict(reject_rate=rate, median_first=med, allocation_after_burn_in=share,
-                tir_by_arm=by_arm)
+                tir_by_arm=by_arm,
+                ebh_reject_rate={a: float(rej[:, j].mean()) for j, a in enumerate(ARM_NAMES)},
+                ebh_any=float(rej.any(1).mean()),
+                median_e={a: float(np.median([r["e_arm"][j] for r in runs]))
+                          for j, a in enumerate(ARM_NAMES)},
+                rescues_per_trial={a: float(resc[:, j].mean()) for j, a in enumerate(ARM_NAMES)},
+                trials_with_rescue={a: float((resc[:, j] > 0).mean())
+                                    for j, a in enumerate(ARM_NAMES)},
+                _rej=rej.tolist(), _rescues=resc.tolist())
 
 
 def main():
@@ -270,7 +316,8 @@ def main():
         with ProcessPoolExecutor(args.chunks) as ex:
             runs = [r for part in ex.map(partial(run_chunk, scenario=sc), chunks) for r in part]
         res[sc] = summarise(runs)
-        print(f"[{sc}] {time.time() - t0:.0f}s", json.dumps(res[sc]), flush=True)
+        show = {k: v for k, v in res[sc].items() if not k.startswith("_")}
+        print(f"[{sc}] {time.time() - t0:.0f}s", json.dumps(show), flush=True)
     (ROOT / "results" / "exp10.json").write_text(json.dumps(res, indent=1))
 
 

@@ -1331,6 +1331,19 @@ residuals recomputed after every participant, and a \emph{pooled} twin that
 simulates each participant under an arm drawn uniformly. The pooled twin is the
 pre-trial in-silico prediction, which ignores the allocation.
 
+\paragraph{Which arm?} A single alarm says that the twin fails somewhere; a
+trial team needs to know under which arm. We run one e-process per arm, each
+with its own BLR score, which bets only on the participants assigned to that
+arm and has factor one otherwise. Whether a participant goes to arm $k$ is
+decided before the outcome, so by Theorem~\ref{thm:valid} each is a test
+martingale for $H_{0,k}$: ``the twin is correct under arm $k$'', whatever the
+allocation. Each arm's e-value is its wealth at the end of the trial, or when
+it first reaches $K/\alpha$ with $K = 3$ (a bounded stopping time), and e-BH
+\citep{wang2022false} is applied across the arms. This is the bandit
+multiple-testing construction of \citet{xu2021unified}, with the twin as the
+null; e-BH controls the false discovery rate under arbitrary dependence
+between the arms, which the shared allocation creates.
+
 \paragraph{Scenarios.} Under the null, participants are the simulator. Two
 departures are considered:
 \begin{itemize}
@@ -1350,7 +1363,8 @@ departures are considered:
 against its in-silico twin (200 replications per scenario). Rejection rate by
 the end of the trial and, in brackets, the median number of participants
 before the first alarm. Allocation: share of participants assigned to the
-aggressive arm B after the burn-in.}
+aggressive arm B after the burn-in. The last block reports which arms e-BH
+flags at $\alpha = 0.05$ at the end of the trial.}
 \label{tab:trial}
 \begin{tabular}{lrrr}
 \toprule
@@ -1363,6 +1377,12 @@ $t$-test, recomputed & 0.390 & 1.00 (9) & 0.995 (23) \\
 \midrule
 share allocated to arm B & 0.36 & 0.83 & 0.74 \\
 time in range under B: participants / twin & 0.87 / 0.87 & 0.89 / 0.87 & 0.94 / 0.87 \\
+\midrule
+\multicolumn{4}{l}{\emph{per-arm e-processes and e-BH: share of trials in which each arm is flagged}} \\
+arm A (standard) & 0.000 & 1.00 & 0.005 \\
+arm B (aggressive) & 0.015 & 1.00 & 1.00 \\
+arm C (conservative) & 0.000 & 1.00 & 0.005 \\
+rescue events per trial on A / B / C & -- & -- & 3.7 / 155 / 0.2 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1380,7 +1400,7 @@ each scenario.
         of five participants. The allocation adapts to it: resistant
         participants do best on the aggressive arm, which receives 83\% of
         them.
-  \item \textbf{Rescue carbohydrates} change only arm B, and the monitor
+  \item \textbf{Rescue carbohydrates} change mainly arm B, and the monitor
         detects them in every trial after a median of 27 participants. The
         design reacts to the same discrepancy: arm B looks better than the
         twin predicted, so it receives 74\% of the participants instead of
@@ -1390,6 +1410,15 @@ each scenario.
         participants do better than predicted. Detection is slower than for
         resistance because the departure is confined to one arm and to the
         hours around lows.
+  \item \textbf{e-BH names the arm.} Under the null, e-BH flags some arm in
+        1.5\% of trials. Under insulin resistance, which affects every arm, it
+        flags all three arms in every trial, including the conservative arm,
+        which receives only about 14 participants. Under rescue carbohydrates
+        it flags arm B in every trial and arms A and C in 0.5\% each, a false
+        discovery proportion of 0.5\% on average if A and C are counted as
+        nulls. Arm A is in fact affected weakly (3.7 rescue events per trial,
+        against 155 under B), too weakly to be detected: e-BH points to the
+        arm on which the twin materially fails.
 \end{itemize}
 The pooled twin and the $t$-test also reject under both departures, but they
 reject under the null as well, so their alarms carry no evidence. The trial
@@ -1885,7 +1914,12 @@ inference \citep{waudbysmith2024anytime} and adaptive auditing of AI systems
 simulator as the null. Digital-twin validation by re-initialising the twin
 from observed states and simulating conditionally on part of the trace
 \citep{ghasemloo2026subtrace} uses the same conditioning idea with
-fixed-sample tests.
+fixed-sample tests. In bandit multiple testing, one e-process per arm combined
+by e-BH controls the false discovery rate under arbitrary adaptive sampling
+\citep{xu2021unified}; there the hypotheses concern the arms' effects, and the
+sampling can be chosen to make the tests powerful. Our per-arm monitors
+(Section~\ref{sec:trial}) use the same construction for hypotheses about the
+twin, with the allocation fixed by the trial.
 
 \paragraph{Predictive inference and Bayesian updating.} Reading the wealth as
 a prequential likelihood ratio follows \citet{dawid1984present}, and the link
