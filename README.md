@@ -303,6 +303,7 @@ python experiments/exp8b_italy_deaths_2020_2021.py # ~1 min
 python experiments/exp9_italy_regions.py           # ~7 min
 python experiments/alarm_directions.py             # ~1 min
 python experiments/exp10_adaptive_trial.py         # ~9 min (4 cores)
+python experiments/exp11_mams_trial.py             # ~26 min (4 cores)
 python experiments/make_figures.py
 ```
 

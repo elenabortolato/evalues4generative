@@ -34,193 +34,212 @@ generative models and digital twins under adaptive control}
 \maketitle
 
 \begin{abstract}
-Simulators, generative models and digital twins are increasingly used inside
-decision loops, where actions are chosen from the data and the analyst can
-only \emph{sample} from the model. We ask how to monitor, as data arrive,
-whether reality has departed from such a model, with a false-alarm guarantee
-that holds at every time and under any stopping rule. Our starting point is the
-Besag--Clifford e-process of \citet{dombowsky2026besag}. At each step, $M$
-fresh null samples are drawn and the real observation's share of the total
-score, $(M+1)\,T(X_t)/\{T(X_t) + \sum_j T(Y_{t,j})\}$, is used as the bet. We
-extend it in three directions.
-First, adaptive control: when actions depend on the data, the construction is
-valid for every policy if the simulator is run conditionally on the action
-taken, and we show that this condition cannot be dropped.
-Second, learned scores: we analyse the growth rate through the null tilted by
-the score, $\hat Q$, which gives $\KL(Q\|P) - \KL(Q\|\hat Q)$ with an unlimited
-budget and an efficiency of exactly $M/(M+1)$ for local alternatives.
-Third, a predictive view of the score: every score is a one-step predictive
-distribution for the next real outcome, and the wealth is the prequential
-likelihood ratio of these predictives against the simulator. The monitor
-therefore needs a rule that updates a predictive distribution at every step,
-which is the primitive of martingale posteriors. Because the simulator can
-only be sampled, the exact Bayesian update is unavailable, and we use one
-natural-gradient step of the Bayesian learning rule per observation.
-In experiments with a drifting generative model and a Thompson-sampling bandit
-checked against a digital twin, the method keeps false alarms below the
-nominal level. Applied to Italian COVID-19 data from 2020 and 2021, where
-regions were assigned to restriction tiers from the data, it is valid only
-when conditioned on the tiers, and it shows when a calibrated transmission
-twin stops describing the epidemic. By contrast, using a learned ratio directly as the bet gives up
-to 59\% false alarms, and re-running fixed-sample tests 32--39\%, at
-$\alpha = 0.05$. Predictive scores recover the power lost by overfitting
-learners.
+Multi-arm multi-stage trials, multi-armed bandits and digital twins collect
+data adaptively: which arm is observed, and under which intervention, depends on
+what has been seen so far. E-values and e-processes give inference that remains
+valid under such adaptivity and under optional stopping, and the likelihood ratio
+and the Bayes factor are their canonical, log-optimal forms. Two obstacles stand
+in the way. The likelihood is often available only through a simulator, and
+under adaptive allocation it is path-dependent; and a Bayes factor does not
+factorise over time in a way that can be updated cheaply, so the e-process must
+be recomputed as data arrive. We address both. For the first, at each step the
+simulator is run $M$ times \emph{under the action actually taken}, and the real
+observation's share of a score, $(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$, is
+used as the bet. By exchangeability, the resulting Monte Carlo e-process is
+exactly valid for every allocation rule and every score, and we show that
+conditioning on the action is necessary. For the second, we show that every
+score is a one-step predictive distribution and that the log wealth is the
+prequential likelihood ratio of these predictives against the simulator; the
+Bayes factor is the special case of exact Bayesian predictives. The e-process
+therefore needs only a rule that updates a predictive once per observation,
+which is the primitive of martingale posteriors, and never a recomputation. We
+learn the density ratio by classification and update it with one
+natural-gradient step of the Bayesian learning rule. The growth rate decomposes
+into a simulation cost, $M/(M+1)$ for local alternatives, and a learning cost,
+$\KL(Q\|\hat Q)$. In a multi-arm multi-stage trial of insulin-dosing strategies,
+with futility analyses and re-assignment of participants, the monitor controls
+false alarms, detects departures from the in-silico trial, and identifies the
+arms on which the simulator fails with false-discovery-rate control, whereas
+monitors that ignore the allocation or the participants' history do not control
+false alarms. Further applications include an artificial pancreas, a
+Thompson-sampling bandit, and Italian COVID-19 data under data-driven
+restriction zones.
 \end{abstract}
 
 %======================================================================
 \section{Introduction}\label{sec:intro}
 %======================================================================
 
-\paragraph{The problem.} Simulators increasingly sit inside decision loops.
-A digital twin of a patient suggests the next insulin dose; an epidemic model
-calibrated on recent data informs the next restriction; a generative model is
-deployed and its outputs are compared with fresh data; an adaptive experiment
-allocates treatments from the responses seen so far. In each case the same
-question recurs as data arrive: \emph{is the system still behaving as the
-model says it should?} The answer is needed continuously, because a model that
-has stopped describing reality keeps being used to choose actions until
-someone notices.
+\paragraph{Adaptive data collection.} Modern experiments increasingly collect
+data adaptively. Multi-arm multi-stage (MAMS) trials evaluate several treatments
+at once and, at interim analyses, drop arms for futility, stop for efficacy, and
+re-allocate participants to the arms that remain
+\citep{whitehead1997design,magirr2012generalized}. Multi-armed bandits allocate
+each new unit to the arm that looks best so far while still exploring the
+others, through Thompson sampling or upper-confidence rules
+\citep{lattimore2020bandit}, and response-adaptive clinical designs apply the
+same principle to patients \citep{trippa2012bayesian,villar2015multi}. The same
+structure appears in reinforcement learning, in digital twins that suggest the
+next intervention from the observed state, and in AI systems that act in
+environments shaped by their own past decisions. In all these designs the data
+are neither independent nor identically distributed: which arm, patient or
+intervention is observed depends on the outcomes already seen.
 
-\paragraph{Why it is hard.} Three features combine.
+\paragraph{Why classical inference fails.} Fixed-sample tests and their
+$p$-values lose their error guarantees when they are recomputed at interim
+analyses and when the sampling depends on the data. Refinements exist for
+specific designs, such as unbiased estimation in response-adaptive trials
+\citep{bowden2017unbiased} and boundaries for MAMS designs
+\citep{magirr2012generalized}, but each is tied to a pre-specified adaptation
+rule. Bayesian inference accommodates adaptively collected data by coherent
+updating, but it does not by itself control the type-I error under optional
+stopping, which regulators and many scientific fields require.
+
+\paragraph{E-values.} An e-value is a nonnegative statistic $E$ with
+$\E_{H_0}[E] \le 1$; $\min(1, 1/E)$ is then a valid $p$-value
+\citep{vovk2021evalues}. E-values have a betting interpretation
+\citep{shafer2019game,shafer2021testing}: starting from unit wealth, a gambler
+multiplies the wealth by $E_t$ at each step. If each factor is fair given the
+past, the wealth is a nonnegative martingale under the null, and by Ville's
+inequality it exceeds $1/\alpha$ with probability at most $\alpha$, at any
+time and under any stopping rule \citep{ramdas2023game,grunwald2024safe}. This
+is exactly the guarantee adaptive designs need.
+
+\paragraph{The ideal: likelihood ratios and Bayes factors.} For a simple
+alternative, the likelihood ratio is the log-optimal e-value: among all e-values
+it maximises the expected logarithmic growth under the alternative, the
+analogue of the Neyman--Pearson lemma. Its sequential version is the product of
+one-step conditional likelihood ratios, a test martingale under the null. For a
+composite alternative, the Bayes factor averages the likelihood over a prior;
+for every prior it is again a test martingale, and it maximises the
+prior-averaged growth. The prior here need not encode belief; it regularises the
+alternative. Written sequentially, the Bayes factor is a product of ratios of
+one-step \emph{predictive} densities, the prequential view of the marginal
+likelihood \citep{dawid1984present,clarke1990information}.
+
+\paragraph{Two obstacles.} Both canonical e-processes are hard to use in the
+settings above.
 \begin{enumerate}
-  \item \textbf{The model is only a sampler.} Its likelihood is intractable,
-        so likelihood-ratio tests and likelihood-ratio e-processes are
-        unavailable.
-  \item \textbf{The data are monitored continuously.} The analyst looks after
-        every observation and wants to stop at the first convincing evidence.
-        Fixed-sample goodness-of-fit tests lose their error guarantee when they
-        are recomputed in this way.
-  \item \textbf{The actions depend on the data.} Doses, restrictions and
-        allocations are chosen from what has been observed, so the
-        observations are neither independent nor identically distributed, and
-        the null hypothesis itself depends on the policy.
-\end{enumerate}
-A classifier that separates real from simulated data estimates where the two
-differ \citep{thomas2022lfire}, but using its estimate as a bet is not valid.
-Conformal test martingales \citep{vovk2003testing,vovk2021testing} monitor a
-stream without a model, but they test exchangeability of the stream, not
-agreement with a simulator. No existing method meets all three requirements.
-
-\paragraph{The method in one paragraph.} At each step, run the simulator $M$
-times \emph{under the action actually taken}, score the $M+1$ outcomes (the
-real one and the simulated ones), and bet the real outcome's share of the total
-score, rescaled by $M+1$. Multiply the bets over time. Under the null the real
-outcome is exchangeable with the simulated ones, so each bet is fair whatever
-the score, and the running product is a test martingale: by Ville's
-inequality, the probability that it ever exceeds $1/\alpha$ is at most
-$\alpha$, at any stopping time and under any policy. The score is free, so it
-can be \emph{learned} from the stream. For an i.i.d.\ null without actions, the single bet is the
-soft-rank e-value of \citet{wang2022false}, and its sequential product is the
-Besag--Clifford e-process that \citet{dombowsky2026besag} developed for
-unnormalised models, where it is log-optimal as $M$ grows when the score is the
-likelihood ratio.
-
-\paragraph{Betting is predicting.} Choosing the score is the same as choosing a
-predictive distribution for the next real outcome: the score $T$ bets on the
-density $T p / \E_P[T]$, where $p$ is the simulator's. With many simulations
-the log wealth is the sum of the one-step log predictive scores of these
-densities minus those of the simulator, the prequential likelihood ratio of
-\citet{dawid1984present}. The monitor rejects when a forecaster that uses only
-the past has predicted reality $1/\alpha$ times better than the simulator.
-Validity comes for free from exchangeability; power is a matter of prediction.
-This places the method in the predictive approach to Bayesian inference, in
-which the sequence of one-step predictives, rather than a prior and a
-likelihood, is the primitive, and a \emph{martingale posterior}
-\citep{fong2023martingale} is obtained from any rule that updates the
-predictive coherently. The monitor needs exactly this primitive, a rule that
-turns the current predictive and a new observation into the next predictive,
-and never the posterior itself. Such a rule is not optional here, for four
-reasons developed in Section~\ref{sec:predictive}:
-\begin{itemize}
-  \item the bet must be fixed before each outcome is seen, so the score must be
-        a sequential update, not a batch estimate;
-  \item the growth rate is the one-step log score of the rule, so a rule built
-        to predict the next outcome optimises the right objective;
-  \item the real system is modelled as a tilt of the simulator whose
-        normalising constant is unknown, because the simulator can only be
-        sampled, so exact Bayesian updating is unavailable;
-  \item early bets must be cautious, since an overconfident score can lose all
-        its growth (Theorem~\ref{thm:growth}), and a predictive hedges over
-        what has not yet been learned.
-\end{itemize}
-We use the Bayesian learning rule \citep{khan2023bayesian,jones2024bong}, one
-natural-gradient step per observation, to update a Gaussian approximation of
-the generalised posterior of the tilt.
-
-\paragraph{Contributions.} We make three methodological contributions, each
-answering a question that the i.i.d.\ theory leaves open.
-\begin{enumerate}
-  \item \textbf{When is the monitor valid if actions depend on the data?}
-        Whenever the simulator is run conditionally on the history and on the
-        action taken, for every policy (Theorem~\ref{thm:valid}). The
-        condition is necessary: simulating from a mixture over actions makes
-        the expected bet $1 + \chi^2 > 1$ under the null
-        (Proposition~\ref{prop:necessary}). In practice, a monitor that ignores
-        the actions raises false alarms in every run of our bandit
-        experiment, and in 21\% of region-runs in simulations calibrated to
-        the COVID-19 application.
-  \item \textbf{What does a learned score cost?} We describe any score by the
-        tilted null $\hat Q$ on which it implicitly bets. The growth rate with
-        an unlimited budget is $\KL(Q\|P) - \KL(Q\|\hat Q)$, the best possible
-        minus the learning error, and for local alternatives a budget of $M$
-        simulations keeps exactly a fraction $M/(M+1)$ of it
-        (Theorem~\ref{thm:growth}). The two costs, simulation and learning,
-        therefore separate, and $M = 16$ already keeps 94\%.
-  \item \textbf{How should the score be learned?} As a sequence of one-step
-        predictives, updated by a rule. Every score is a predictive and the
-        wealth is their prequential likelihood ratio against the simulator
-        (Section~\ref{sec:predictive}). The posterior predictive is the
-        Bayes-optimal bet (Proposition~\ref{prop:bayesopt}), and with exact
-        Bayesian updating the process becomes a Bayes factor whose total
-        learning cost is $(d/2)\log t$ (Proposition~\ref{prop:bayes}). Exact
-        updating is unavailable for a sampler, so we compute the predictive online
-        with one natural-gradient step of the Bayesian learning rule per
-        observation \citep{khan2023bayesian,jones2024bong}, at a cost of a few
-        matrix operations and without refitting (Section~\ref{sec:blr-practice}
-        gives the recipe). With a flexible learner that overfits, the predictive
-        score has higher power than a refitted classifier (0.97 against 0.84)
-        and detects the change a third earlier; with a well-regularised one
-        the two are equivalent.
+  \item \textbf{Intractable likelihoods.} Many models are available only as
+        simulators, with latent dynamics and no tractable density: an
+        epidemic model, a physiological model of a patient, a generative model.
+        Under adaptive allocation the law of the data is also path-dependent:
+        it depends on which arm was chosen at each step, through a rule that is
+        itself a function of the data. Likelihood ratios, Bayes factors and
+        marginal likelihoods are then out of reach.
+  \item \textbf{Sequential recomputation.} Marginalising over the alternative
+        parameters prevents a simple update of the e-value as data arrive; in
+        general the e-value at time $t$ must be recomputed from the whole
+        history \citep{bon2024safe}. Surrogate and prediction-powered e-values
+        reduce the cost \citep{csillag2025prediction}, at the price of an
+        approximation to the base e-value.
 \end{enumerate}
 
-\paragraph{Evidence.} Simulation experiments check each result: validity when
-the learner overfits, validity under Thompson sampling, the growth theory, and
-a comparison with the Besag--Clifford e-process that measures the price of
-learning the discrepancy (Section~\ref{sec:experiments}). Two applications
-show the method where the actions are explicit:
+\paragraph{This paper.} We show that both obstacles can be removed while keeping
+exact validity.
 \begin{itemize}
-  \item an artificial pancreas, a closed-loop insulin controller monitored
-        against the UVA/Padova type~1 diabetes simulator, and a
-        response-adaptive trial of dosing strategies checked against its
-        in-silico twin (Section~\ref{sec:application});
-  \item real data: COVID-19 transmission twins for Italy in 2020--2021,
-        monitored region by region under the colour-coded restriction zones and
-        nationally on daily deaths (Section~\ref{sec:italy}). Under the zones
-        actually assigned, the monitor flags the faster growth of the Alpha
-        wave in early 2021, and it signals the second wave four weeks before
-        deaths surged in October 2020.
+  \item \textbf{Simulation instead of likelihoods.} At each step, run the
+        simulator $M$ times \emph{under the action actually taken}, score the
+        real outcome and the $M$ simulated ones, and bet the real outcome's
+        share of the total score, rescaled by $M+1$. Under the null the real
+        outcome is exchangeable with the simulated ones, so each bet is fair
+        whatever the score. This is a permutation argument: the bet is the score
+        of the observed labelling divided by its average over the $M+1$ ways
+        of labelling one of the outcomes as real, the same mechanism that stabilises permutation-based e-values and
+        accelerates approximate Bayesian computation
+        \citep{ramdas2023game,luciano2025permutations}. The score can be a
+        density ratio learned by a classifier of real against simulated
+        outcomes \citep{thomas2022lfire}; the Monte Carlo normalisation makes
+        any such estimate an exact e-value. For an i.i.d.\ null the single bet
+        is the soft-rank e-value of \citet{wang2022false}, and its product is
+        the Besag--Clifford e-process of \citet{dombowsky2026besag}. The
+        adaptive allocation enters only through the requirement that the
+        simulator be run under the action taken, and this requirement cannot
+        be dropped.
+  \item \textbf{Predictive updating instead of recomputation.} Choosing a
+        score is the same as choosing a one-step predictive distribution for
+        the next real outcome, and with many simulations the log wealth is the
+        sum of the one-step log predictive scores against the simulator. The
+        Bayes factor is the special case of exact Bayesian predictives. The
+        e-process therefore needs only a rule that turns the current
+        predictive and a new observation into the next predictive, applied
+        once per step. This is the primitive of the predictive approach to
+        Bayesian inference and of martingale posteriors
+        \citep{fong2023martingale}, and it requires no recomputation. Exact
+        Bayesian updating is itself unavailable when the simulator can only
+        be sampled, so we update a Gaussian approximation of a generalised
+        posterior of the density ratio with one natural-gradient step of the
+        Bayesian learning rule per observation
+        \citep{khan2023bayesian,jones2024bong}.
 \end{itemize}
-Throughout, betting directly with the learned ratio gives up to 59\% false
-alarms, and re-running fixed-sample tests 32--39\%, at $\alpha = 0.05$.
+
+\paragraph{Contributions.}
+\begin{enumerate}
+  \item \textbf{Validity under adaptive designs} (Theorem~\ref{thm:valid}).
+        For every allocation rule, including interim analyses, arm dropping and
+        re-assignment, the Monte Carlo e-process is a test martingale provided
+        the simulator is run conditionally on the history and on the action
+        taken. The condition is necessary: simulating from the mixture over
+        actions makes the expected bet $1 + \chi^2 > 1$ under the null
+        (Proposition~\ref{prop:necessary}).
+  \item \textbf{Power of learned scores} (Theorem~\ref{thm:growth}). Every
+        score bets on a tilted null $\hat Q$. With an unlimited simulation
+        budget the growth rate is $\KL(Q\|P) - \KL(Q\|\hat Q)$, the best
+        possible minus the learning error, and for local alternatives a budget
+        of $M$ simulations keeps exactly a fraction $M/(M+1)$ of it. With
+        $M = 16$, 94\% is kept.
+  \item \textbf{Predictive scores and their online update}
+        (Sections~\ref{sec:predictive} and~\ref{sec:scores}). The posterior
+        predictive is the Bayes-optimal bet (Proposition~\ref{prop:bayesopt}),
+        and with exact Bayesian updating the process is the Bayes factor, with
+        total learning cost $(d/2)\log t$ (Proposition~\ref{prop:bayes}). We
+        explain why the monitor needs a predictive update rule and give one
+        that costs a few matrix operations per observation.
+  \item \textbf{Which arm fails.} One e-process per arm, combined by e-BH
+        \citep{wang2022false,xu2021unified}, identifies the arms on which the
+        simulator fails, with false-discovery-rate control under arbitrary
+        dependence and arbitrary allocation.
+\end{enumerate}
+
+\paragraph{Evidence.} Simulation experiments check each result
+(Section~\ref{sec:experiments}). The main application is a MAMS trial
+(Section~\ref{sec:application}): five insulin-dosing strategies compared over
+three stages, with futility analyses, re-assignment of participants on dropped
+arms, and participants who carry their physiological state from one stage to
+the next, checked against its in-silico twin, the UVA/Padova type~1 diabetes
+simulator accepted by the US Food and Drug Administration for preclinical
+testing \citep{kovatchev2009insilico}. Only the monitor that re-initialises the twin at each
+participant's state and runs it under the assigned arm controls false alarms:
+2\% of trials, against 95\% for a twin that ignores the participants' history,
+100\% for the pre-trial prediction that also ignores the allocation, and 46\%
+and 47\% for a recomputed $t$-test and for betting directly with the learned
+ratio. It detects unmodelled behaviour on two arms after a median of 32
+participant-days, and e-BH names the arm that matters in 99\% of trials, with
+a false discovery rate of 0.3\%. Further applications are an
+artificial pancreas monitored against the same simulator, a Thompson-sampling
+bandit checked against a digital twin, and real data: COVID-19 transmission
+twins for Italy in 2020--2021, under restriction zones assigned from the data
+(Section~\ref{sec:italy}). Throughout, betting directly with the learned ratio
+gives up to 59\% false alarms, and re-running fixed-sample tests 32--39\%, at
+$\alpha = 0.05$.
 
 \paragraph{What is not new.} The one-step e-value and its product for an
 i.i.d.\ null \citep{wang2022false,dombowsky2026besag}, the exchangeability
 argument of Monte Carlo tests \citep{besag1989generalized}, the betting
-framework \citep{shafer2021testing,ramdas2023game}, and the finite-$M$ bound of
+framework \citep{shafer2021testing,ramdas2023game}, the finite-$M$ bound of
 Theorem~\ref{thm:growth}(iii), which is Theorem~3 of
-\citet{dombowsky2026besag} rewritten with the tilted null. Sampling from a
-known conditional null at each step also appears in model-X sequential tests
-of conditional independence \citep{shaer2023modelx}.
-Section~\ref{sec:related} compares the contributions with this work in detail.
+\citet{dombowsky2026besag} rewritten with the tilted null, and e-BH for bandit
+multiple testing \citep{xu2021unified}. Section~\ref{sec:related} compares the
+contributions with this work in detail.
 
-\paragraph{Organisation.} Section~\ref{sec:setting} sets up the problem,
+\paragraph{Organisation.} Section~\ref{sec:setting} sets up the problem and
 Section~\ref{sec:method} gives the method and its validity.
 Section~\ref{sec:predictive} shows that a score is a predictive, introduces
 martingale posteriors and explains why the monitor needs a predictive update
 rule. Section~\ref{sec:power} gives the power, and Section~\ref{sec:scores}
-the update rules: exact Bayes, and the Bayesian learning rule used in practice.
-Sections~\ref{sec:experiments}--\ref{sec:italy} contain the experiments and
-applications, and Section~\ref{sec:discussion} discusses limitations.
+the update rules. Sections~\ref{sec:experiments}--\ref{sec:italy} contain the
+experiments and applications, and Section~\ref{sec:discussion} discusses
+limitations.
 
 %======================================================================
 \section{Setting}\label{sec:setting}
@@ -1096,7 +1115,7 @@ conditioning on the action rejects a true null in every run
 (Table~\ref{tab:bandit}).
 
 %======================================================================
-\section{Application: an artificial pancreas and its digital twin}\label{sec:application}
+\section{Application: type 1 diabetes, from one patient to a multi-arm multi-stage trial}\label{sec:application}
 %======================================================================
 
 \paragraph{The problem.} People with type 1 diabetes produce no insulin, and a
@@ -1292,139 +1311,157 @@ approximately exchangeable samples are the natural tool. Real CGM and insulin
 records, such as those collected in closed-loop trials, would be the next
 step.
 
-\subsection{A response-adaptive trial designed in silico}\label{sec:trial}
+\subsection{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
 
-\paragraph{The trial.} The same simulator is used to design clinical trials of
-dosing strategies: arms are compared in silico before the trial, and the
-simulator's predictions justify the design and sample size. We consider a
-three-arm trial of insulin-dosing strategies, each run by the pump in closed
-loop:
+\paragraph{The trial.} The same simulator is used to design trials of dosing
+strategies: arms are compared in silico before the trial, and the simulator's
+predictions justify the design. We consider a MAMS trial of five strategies,
+each run by the pump in closed loop, with control A and four experimental arms:
 \begin{itemize}
-  \item \textbf{A, standard:} carbohydrate bolus, correction to 140~mg/dL above
+  \item \textbf{A, control:} carbohydrate bolus, correction to 140~mg/dL above
         150, basal suspended below 80;
   \item \textbf{B, aggressive:} bolus $\times 1.5$, correction to 100, suspend
         below 60;
   \item \textbf{C, conservative:} bolus $\times 0.8$, correction to 160, suspend
-        below 90.
+        below 90;
+  \item \textbf{D, intensified:} bolus $\times 1.2$, correction to 120, suspend
+        below 70;
+  \item \textbf{E, tight correction:} bolus $\times 1.0$, correction to 110,
+        suspend below 80.
 \end{itemize}
-Participants enter one at a time; each is one of the ten adult virtual
-patients, drawn at random, and spends one in-clinic day (06:00--18:00, with a
-standardised breakfast of 50~g at 07:00 and lunch of 70~g at 12:30) under the
-assigned arm. The primary outcome is time in range (70--180~mg/dL).
-Allocation is response-adaptive, as in Bayesian adaptive trials: after a
-burn-in of 15 participants in permuted blocks, each participant is assigned by
-Thompson sampling on the arms' mean time in range, with allocation
-probabilities floored at 0.1. The trial enrols 120 participants.
+The outcome is the time in range (70--180~mg/dL) over a full day, 06:00 to
+06:00, with meals of 50, 70 and 80~g at 07:00, 12:30 and 19:00. According to the
+simulator, arms B and C are worse than control (time in range 0.79 and 0.84
+against 0.91) and arms D and E are equivalent to it (0.90 and 0.91).
 
-\paragraph{The twin and the question.} The twin is the in-silico trial itself:
-for each participant, the simulator with that participant's virtual-patient
-parameters is run $M = 16$ times under the arm actually assigned and the same
-meal protocol. The monitor asks whether the in-silico trial still predicts
-what happens to the participants \emph{given the allocation the design has
-made}. The score is the BLR predictive of Section~\ref{sec:blr-practice} on six
-summaries of the day relative to the twin's noise-free path (mean and standard
-deviation of the residual, time below 70 and above 180 mg/dL, and the arm),
-with interactions between the arm and the residual and time-below-range
-features, so that the score can learn a discrepancy confined to one arm. We
-compare it with the plug-in bet, a $t$-test of standardised time-in-range
-residuals recomputed after every participant, and a \emph{pooled} twin that
-simulates each participant under an arm drawn uniformly. The pooled twin is the
-pre-trial in-silico prediction, which ignores the allocation.
+The trial has three stages. In each stage 50 new participants, each one of the
+ten adult virtual patients drawn at random, are enrolled and allocated in
+permuted blocks among the arms still active, and every participant already
+enrolled is observed for one more day. Participants carry their physiological
+state from one day to the next, so a participant's day depends on their earlier
+treatment. After stages 1 and 2 an interim analysis compares each active
+experimental arm with control on all participant-days so far and drops it for
+futility when $z < -1$ (first interim) or $z < 0$ (second). Participants on a
+dropped arm are \emph{re-assigned} to the active experimental arm with the
+highest interim time in range, or to control if none is left, and new
+participants are allocated only to active arms. The trial has 150 participants
+and 300 participant-days. Every element of the design (which arm a participant
+receives, on which day, after which history) is chosen from the data.
+
+\paragraph{The twin and the monitors.} The twin is the in-silico trial: for each
+participant-day, the simulator with that participant's parameters is
+re-initialised at the participant's current physiological state and run
+$M = 16$ times under the arm assigned for that day. Participant-days are
+monitored in a fixed order within each stage, and the score is the BLR
+predictive of Section~\ref{sec:blr-practice} on six summaries of the day
+relative to the twin's noise-free path (mean and standard deviation of the
+residual, time below 70 and above 180~mg/dL, and the arm), with interactions
+between the arm and the residual and time-below-range features. The
+alternatives are:
+\begin{itemize}
+  \item the \textbf{plug-in bet} with the same score;
+  \item a \textbf{stateless twin}, run under the assigned arm but started from
+        the resting state, which ignores the participant's history and
+        therefore the consequences of earlier treatment and re-assignment;
+  \item a \textbf{pooled twin}, started from rest under an arm drawn uniformly
+        from the five: the pre-trial in-silico prediction, which ignores both
+        the allocation and the history;
+  \item a $t$-test of standardised time-in-range residuals, recomputed after
+        every participant-day.
+\end{itemize}
 
 \paragraph{Which arm?} A single alarm says that the twin fails somewhere; a
-trial team needs to know under which arm. We run one e-process per arm, each
-with its own BLR score, which bets only on the participants assigned to that
-arm and has factor one otherwise. Whether a participant goes to arm $k$ is
-decided before the outcome, so by Theorem~\ref{thm:valid} each is a test
-martingale for $H_{0,k}$: ``the twin is correct under arm $k$'', whatever the
-allocation. Each arm's e-value is its wealth at the end of the trial, or when
-it first reaches $K/\alpha$ with $K = 3$ (a bounded stopping time), and e-BH
+trial team needs to know under which arm. We run one e-process per arm, with
+its own BLR score, which bets only on that arm's participant-days and has factor
+one otherwise. Whether a participant-day is spent on arm $k$ is decided before
+its outcome, so by Theorem~\ref{thm:valid} each is a test martingale for
+$H_{0,k}$: ``the twin is correct under arm $k$'', whatever the interim
+decisions and re-assignments. Each arm's e-value is its wealth at the end of
+the trial, or when it first reaches $K/\alpha$ with $K = 5$, and e-BH
 \citep{wang2022false} is applied across the arms. This is the bandit
 multiple-testing construction of \citet{xu2021unified}, with the twin as the
-null; e-BH controls the false discovery rate under arbitrary dependence
-between the arms, which the shared allocation creates.
+null; e-BH controls the false discovery rate under arbitrary dependence between
+the arms, which the shared interim decisions create.
 
 \paragraph{Scenarios.} Under the null, participants are the simulator. Two
-departures are considered:
+departures are considered.
 \begin{itemize}
   \item \textbf{Insulin resistance.} Insulin sensitivity is 25\% lower than in
         the virtual cohort, in every arm.
-  \item \textbf{Rescue carbohydrates.} Participants self-treat hypoglycaemia,
-        taking 15~g of carbohydrate when the CGM reads below 70~mg/dL, at most
-        every 30 minutes. The simulator omits this behaviour. Its effect
-        depends on the arm: it matters under the aggressive arm, which causes
-        most lows. In the twin, arm B spends 10\% of the day below 70~mg/dL; in
-        the participants it spends 2\% and has the best time in range.
+  \item \textbf{Defensive snacking.} Participants told that their regimen is
+        intensified (arms B and D) eat an unannounced 20~g snack at bedtime
+        against night-time lows. The simulator does not know this. Arms A, C
+        and E remain exactly as the twin predicts, so the false discovery rate
+        of e-BH is well defined.
 \end{itemize}
 
 \begin{table}[t]
 \centering
-\caption{A response-adaptive three-arm trial of 120 participants checked
-against its in-silico twin (200 replications per scenario). Rejection rate by
-the end of the trial and, in brackets, the median number of participants
-before the first alarm. Allocation: share of participants assigned to the
-aggressive arm B after the burn-in. The last block reports which arms e-BH
-flags at $\alpha = 0.05$ at the end of the trial.}
+\caption{A three-stage MAMS trial with futility analyses and re-assignment,
+checked against its in-silico twin (150 participants, 300 participant-days,
+100 replications per scenario). Top: rejection rate by the end of the trial
+and, in brackets, the median number of participant-days before the first
+alarm. Middle: the design, as the share of trials in which each arm is still
+active at the end, and the mean number of re-assigned participants. Bottom:
+share of trials in which e-BH flags each arm, at $\alpha = 0.05$.}
 \label{tab:trial}
 \begin{tabular}{lrrr}
 \toprule
-monitor & null & insulin resistance & rescue carbohydrates \\
+monitor & null & insulin resistance & defensive snacking \\
 \midrule
-MC e-process, twin under the assigned arm & 0.025 & 1.00 (5) & 1.00 (27) \\
-plug-in bet & 0.095 & 1.00 (6) & 1.00 (33) \\
-pooled twin (ignores the allocation) & 0.415 & 1.00 (11) & 1.00 (38) \\
-$t$-test, recomputed & 0.390 & 1.00 (9) & 0.995 (23) \\
+MC e-process, twin at the participant's state & 0.02 & 1.00 (4) & 0.99 (32) \\
+plug-in bet & 0.47 & 1.00 (5) & 1.00 (28) \\
+stateless twin (ignores the history) & 0.95 & 1.00 (4) & 1.00 (33) \\
+pooled twin (ignores allocation and history) & 1.00 & 1.00 (8) & 1.00 (58) \\
+$t$-test, recomputed & 0.46 & 1.00 (17) & 1.00 (22) \\
 \midrule
-share allocated to arm B & 0.36 & 0.83 & 0.74 \\
-time in range under B: participants / twin & 0.87 / 0.87 & 0.89 / 0.87 & 0.94 / 0.87 \\
+\multicolumn{4}{l}{\emph{design: share of trials with the arm active at the end}} \\
+B / C / D / E & 0.00 / 0.01 / 0.27 / 0.50 & 1.00 / 0.00 / 1.00 / 0.79 & 0.02 / 0.01 / 0.93 / 0.42 \\
+participants re-assigned (mean) & 65 & 14 & 43 \\
 \midrule
 \multicolumn{4}{l}{\emph{per-arm e-processes and e-BH: share of trials in which each arm is flagged}} \\
-arm A (standard) & 0.000 & 1.00 & 0.005 \\
-arm B (aggressive) & 0.015 & 1.00 & 1.00 \\
-arm C (conservative) & 0.000 & 1.00 & 0.005 \\
-rescue events per trial on A / B / C & -- & -- & 3.7 / 155 / 0.2 \\
+A / B / C / D / E & 0 / 0 / 0 / 0 / 0.01 & 1 / 1 / 1 / 1 / 1 & 0 / 0.64 / 0 / 0.99 / 0.01 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Results.} Table~\ref{tab:trial} summarises 200 replications of
-each scenario.
+\paragraph{Results.} Table~\ref{tab:trial} summarises 100 replications of each
+scenario.
 \begin{itemize}
-  \item \textbf{Only the conditioned monitor is valid.} Its false-alarm rate is
-        2.5\%. The pooled twin raises a false alarm in 42\% of trials: once the
-        allocation concentrates on arms A and B, the participants are no longer
-        a sample from the pre-trial mixture over arms, exactly as
-        Proposition~\ref{prop:necessary} predicts. The recomputed $t$-test
-        raises false alarms in 39\% of trials, and the plug-in bet in 9.5\%.
+  \item \textbf{Only the monitor that conditions on both the allocation and the
+        history is valid.} Its false-alarm rate is 2\%. The stateless twin
+        raises a false alarm in 95\% of trials: after the first day,
+        participants no longer start from rest, and after a re-assignment
+        their state reflects a treatment they no longer receive. The pooled
+        twin, the pre-trial prediction, rejects a true null in every trial.
+        The recomputed $t$-test and the plug-in bet raise false alarms in
+        46\% and 47\% of trials.
   \item \textbf{Insulin resistance} is detected in every trial after a median
-        of five participants. The allocation adapts to it: resistant
-        participants do best on the aggressive arm, which receives 83\% of
-        them.
-  \item \textbf{Rescue carbohydrates} change mainly arm B, and the monitor
-        detects them in every trial after a median of 27 participants. The
-        design reacts to the same discrepancy: arm B looks better than the
-        twin predicted, so it receives 74\% of the participants instead of
-        36\% under the null. The twin that justified the design is therefore
-        wrong precisely on the arm the design ends up favouring, and it is
-        wrong in a direction a sponsor would not look for, since the
-        participants do better than predicted. Detection is slower than for
-        resistance because the departure is confined to one arm and to the
-        hours around lows.
-  \item \textbf{e-BH names the arm.} Under the null, e-BH flags some arm in
-        1.5\% of trials. Under insulin resistance, which affects every arm, it
-        flags all three arms in every trial, including the conservative arm,
-        which receives only about 14 participants. Under rescue carbohydrates
-        it flags arm B in every trial and arms A and C in 0.5\% each, a false
-        discovery proportion of 0.5\% on average if A and C are counted as
-        nulls. Arm A is in fact affected weakly (3.7 rescue events per trial,
-        against 155 under B), too weakly to be detected: e-BH points to the
-        arm on which the twin materially fails.
+        of four participant-days. The design itself reacts: arms B and D,
+        which compensate for resistance, survive every interim, and C is
+        dropped.
+  \item \textbf{Defensive snacking} is detected in 99\% of trials, after a
+        median of 32 participant-days. It changes the design: the snack
+        protects the intensified arm D from night-time lows, so D survives to
+        the end in 93\% of trials instead of 27\% under the null, and receives
+        41\% of all participant-days instead of 17\%. The trial therefore
+        favours an arm for a reason that its in-silico justification does not
+        contain.
+  \item \textbf{e-BH names the arm.} Under the null it flags some arm in 1\% of
+        trials. Under resistance it flags all five arms in every trial. Under
+        snacking it flags D in 99\% of trials and B in 64\%, while A, C and E
+        are flagged in at most 1\%: a false discovery rate of 0.3\%. Arm B is
+        found less often because the design usually drops it at the first
+        interim, after about ten participant-days: an arm the trial abandons
+        accumulates little evidence, which is the price of a passive monitor.
 \end{itemize}
-The pooled twin and the $t$-test also reject under both departures, but they
-reject under the null as well, so their alarms carry no evidence. The trial
-illustrates the setting of Theorem~\ref{thm:valid} with clinical actions: the
-allocation is chosen from the outcomes, the null is only available as a
-simulator, and a monitor that ignores the allocation is invalid.
+The trial is the setting of Theorem~\ref{thm:valid} in its full form: the
+actions are allocations, interim decisions and re-assignments chosen from the
+data, the null law of each participant-day depends on the participant's
+history, and the simulator can only be sampled. Both parts of the conditioning
+are necessary, on the action and on the history. A simpler single-stage,
+three-arm version with Thompson-sampling allocation, in the repository
+(Experiment~10), leads to the same conclusions.
 
 %======================================================================
 \section{Real data: COVID-19 in Italy, 2020--2021}\label{sec:italy}
