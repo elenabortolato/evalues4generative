@@ -190,8 +190,9 @@ learning the discrepancy (Section~\ref{sec:experiments}). Two applications
 show the method where the actions are explicit:
 \begin{itemize}
   \item an artificial pancreas, a closed-loop insulin controller monitored
-        against the UVA/Padova type~1 diabetes simulator
-        (Section~\ref{sec:application});
+        against the UVA/Padova type~1 diabetes simulator, and a
+        response-adaptive trial of dosing strategies checked against its
+        in-silico twin (Section~\ref{sec:application});
   \item real data: COVID-19 transmission twins for Italy in 2020--2021,
         monitored region by region under the colour-coded restriction zones and
         nationally on daily deaths (Section~\ref{sec:italy}). Under the zones
@@ -1160,6 +1161,8 @@ identical in the patient under the null:
         each one-minute reading.
 \end{itemize}
 
+\subsection{Monitoring one patient under closed-loop control}\label{sec:t1d-patient}
+
 \paragraph{The data.} The ``real'' patient is \texttt{simglucose}'s
 \texttt{adult\#001}, followed for 48 hours with three meals a day at jittered
 times. It is treated by basal--bolus therapy with feedback, using the
@@ -1288,6 +1291,111 @@ exchangeability, and the guarantees of \citet{barber2026montecarlo} for
 approximately exchangeable samples are the natural tool. Real CGM and insulin
 records, such as those collected in closed-loop trials, would be the next
 step.
+
+\subsection{A response-adaptive trial designed in silico}\label{sec:trial}
+
+\paragraph{The trial.} The same simulator is used to design clinical trials of
+dosing strategies: arms are compared in silico before the trial, and the
+simulator's predictions justify the design and sample size. We consider a
+three-arm trial of insulin-dosing strategies, each run by the pump in closed
+loop:
+\begin{itemize}
+  \item \textbf{A, standard:} carbohydrate bolus, correction to 140~mg/dL above
+        150, basal suspended below 80;
+  \item \textbf{B, aggressive:} bolus $\times 1.5$, correction to 100, suspend
+        below 60;
+  \item \textbf{C, conservative:} bolus $\times 0.8$, correction to 160, suspend
+        below 90.
+\end{itemize}
+Participants enter one at a time; each is one of the ten adult virtual
+patients, drawn at random, and spends one in-clinic day (06:00--18:00, with a
+standardised breakfast of 50~g at 07:00 and lunch of 70~g at 12:30) under the
+assigned arm. The primary outcome is time in range (70--180~mg/dL).
+Allocation is response-adaptive, as in Bayesian adaptive trials: after a
+burn-in of 15 participants in permuted blocks, each participant is assigned by
+Thompson sampling on the arms' mean time in range, with allocation
+probabilities floored at 0.1. The trial enrols 120 participants.
+
+\paragraph{The twin and the question.} The twin is the in-silico trial itself:
+for each participant, the simulator with that participant's virtual-patient
+parameters is run $M = 16$ times under the arm actually assigned and the same
+meal protocol. The monitor asks whether the in-silico trial still predicts
+what happens to the participants \emph{given the allocation the design has
+made}. The score is the BLR predictive of Section~\ref{sec:blr-practice} on six
+summaries of the day relative to the twin's noise-free path (mean and standard
+deviation of the residual, time below 70 and above 180 mg/dL, and the arm),
+with interactions between the arm and the residual and time-below-range
+features, so that the score can learn a discrepancy confined to one arm. We
+compare it with the plug-in bet, a $t$-test of standardised time-in-range
+residuals recomputed after every participant, and a \emph{pooled} twin that
+simulates each participant under an arm drawn uniformly. The pooled twin is the
+pre-trial in-silico prediction, which ignores the allocation.
+
+\paragraph{Scenarios.} Under the null, participants are the simulator. Two
+departures are considered:
+\begin{itemize}
+  \item \textbf{Insulin resistance.} Insulin sensitivity is 25\% lower than in
+        the virtual cohort, in every arm.
+  \item \textbf{Rescue carbohydrates.} Participants self-treat hypoglycaemia,
+        taking 15~g of carbohydrate when the CGM reads below 70~mg/dL, at most
+        every 30 minutes. The simulator omits this behaviour. Its effect
+        depends on the arm: it matters under the aggressive arm, which causes
+        most lows. In the twin, arm B spends 10\% of the day below 70~mg/dL; in
+        the participants it spends 2\% and has the best time in range.
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\caption{A response-adaptive three-arm trial of 120 participants checked
+against its in-silico twin (200 replications per scenario). Rejection rate by
+the end of the trial and, in brackets, the median number of participants
+before the first alarm. Allocation: share of participants assigned to the
+aggressive arm B after the burn-in.}
+\label{tab:trial}
+\begin{tabular}{lrrr}
+\toprule
+monitor & null & insulin resistance & rescue carbohydrates \\
+\midrule
+MC e-process, twin under the assigned arm & 0.025 & 1.00 (5) & 1.00 (27) \\
+plug-in bet & 0.095 & 1.00 (6) & 1.00 (33) \\
+pooled twin (ignores the allocation) & 0.415 & 1.00 (11) & 1.00 (38) \\
+$t$-test, recomputed & 0.390 & 1.00 (9) & 0.995 (23) \\
+\midrule
+share allocated to arm B & 0.36 & 0.83 & 0.74 \\
+time in range under B: participants / twin & 0.87 / 0.87 & 0.89 / 0.87 & 0.94 / 0.87 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Results.} Table~\ref{tab:trial} summarises 200 replications of
+each scenario.
+\begin{itemize}
+  \item \textbf{Only the conditioned monitor is valid.} Its false-alarm rate is
+        2.5\%. The pooled twin raises a false alarm in 42\% of trials: once the
+        allocation concentrates on arms A and B, the participants are no longer
+        a sample from the pre-trial mixture over arms, exactly as
+        Proposition~\ref{prop:necessary} predicts. The recomputed $t$-test
+        raises false alarms in 39\% of trials, and the plug-in bet in 9.5\%.
+  \item \textbf{Insulin resistance} is detected in every trial after a median
+        of five participants. The allocation adapts to it: resistant
+        participants do best on the aggressive arm, which receives 83\% of
+        them.
+  \item \textbf{Rescue carbohydrates} change only arm B, and the monitor
+        detects them in every trial after a median of 27 participants. The
+        design reacts to the same discrepancy: arm B looks better than the
+        twin predicted, so it receives 74\% of the participants instead of
+        36\% under the null. The twin that justified the design is therefore
+        wrong precisely on the arm the design ends up favouring, and it is
+        wrong in a direction a sponsor would not look for, since the
+        participants do better than predicted. Detection is slower than for
+        resistance because the departure is confined to one arm and to the
+        hours around lows.
+\end{itemize}
+The pooled twin and the $t$-test also reject under both departures, but they
+reject under the null as well, so their alarms carry no evidence. The trial
+illustrates the setting of Theorem~\ref{thm:valid} with clinical actions: the
+allocation is chosen from the outcomes, the null is only available as a
+simulator, and a monitor that ignores the allocation is invalid.
 
 %======================================================================
 \section{Real data: COVID-19 in Italy, 2020--2021}\label{sec:italy}
