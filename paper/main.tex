@@ -1017,7 +1017,12 @@ and B in 64\%, while A, C and E are flagged in at most 1\%, a false discovery
 rate of 0.3\%. Arm B is found less often because the design usually drops it at
 the first interim, after about ten participant-days: an arm that the trial
 abandons accumulates little evidence, which is the price of a monitor that does
-not influence the allocation.
+not influence the allocation. With the simulation-likelihood learner of
+Section~\ref{sec:blr} (prior variance 0.03) instead of the logistic one, the
+conclusions are the same but detection is slower: false alarms stay at 2\%
+(98\% and 100\% for the stateless and pooled twins), snacking is detected in
+99\% of trials after a median of 51 participant-days instead of 32, and e-BH
+flags D in 99\% of trials and B in 39\%, with no false discovery.
 
 Two caveats matter in practice. The twin is re-initialised at the participant's
 true physiological state, which is observable in silico but would have to be
@@ -1265,8 +1270,11 @@ the monitor with the best score in a parametric class, not with the true
 density ratio, and its regret bound is not known to be optimal; the
 approximate one-step update used in practice is covered only through
 Proposition~\ref{prop:approx}, and in our experiments the logistic learner,
-which has no such guarantee, is slightly more powerful than the
-simulation-likelihood learner that has one. Finally, the experiments are
+which has no such guarantee, is more powerful than the simulation-likelihood
+learner that has one: by 7\% in stopping time on the drift task and by about
+60\% in the trial, because the latter's bets are too cautious. Closing this gap,
+for instance with a tempered or sharper posterior that keeps the guarantee, is
+the most useful next step. Finally, the experiments are
 low-dimensional; high-dimensional simulators call for learned feature maps and
 structured posterior approximations. High-energy physics is a natural target,
 since searches for new physics already compare collision data with large
