@@ -3,3 +3,4 @@ __pycache__/
 .pytest_cache/
 paper/vendor/
 paper/main.html
+paper/supplement.html
