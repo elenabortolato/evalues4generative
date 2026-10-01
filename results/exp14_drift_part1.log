@@ -1,0 +1,5 @@
+drift  mp-logistic-plugin           false alarms 0.020 power 0.810 median 276.5 (53s)
+drift  mp-logistic-resample         false alarms 0.022 power 0.802 median 265.5 (341s)
+drift  mp-choice-plugin             false alarms 0.018 power 0.895 median 243.0 (48s)
+drift  mp-choice-resample           false alarms 0.010 power 0.920 median 234.0 (331s)
+drift  mp-logistic-plugin-deg6      false alarms 0.033 power 0.650 median 352.5 (76s)

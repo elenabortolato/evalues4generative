@@ -1,0 +1,4 @@
+drift  mp-logistic-resample-deg6    false alarms 0.025 power 0.642 median 362.5 (997s)
+bandit mp-logistic-plugin           false alarms 0.025 (uncond 1.000) power 1.000 median 40.5 (78s)
+bandit mp-choice-plugin             false alarms 0.010 (uncond 1.000) power 1.000 median 53.5 (74s)
+bandit mp-logistic-resample         false alarms 0.025 (uncond 1.000) power 1.000 median 41.5 (335s)

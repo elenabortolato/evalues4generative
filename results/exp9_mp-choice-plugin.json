@@ -1,0 +1,374 @@
+{
+ "config": {
+  "m": 16,
+  "alpha": 0.05,
+  "block_days": 7,
+  "recal_days": 56,
+  "lag": 7
+ },
+ "real": {
+  "coverage_first12w": {
+   "conditioned": 0.623015873015873,
+   "always_yellow": 0.6904761904761905
+  },
+  "alarms": {
+   "Abruzzo": [
+    "2021-05-30",
+    "2021-09-05",
+    "2021-10-03",
+    "2021-12-12"
+   ],
+   "Basilicata": [
+    "2021-05-30",
+    "2021-06-27",
+    "2021-08-15",
+    "2021-09-19",
+    "2021-10-17"
+   ],
+   "Calabria": [
+    "2021-06-20",
+    "2021-08-01"
+   ],
+   "Campania": [
+    "2021-03-07",
+    "2021-06-06",
+    "2021-10-31"
+   ],
+   "Emilia-Romagna": [
+    "2021-07-18",
+    "2021-11-21"
+   ],
+   "Friuli Venezia Giulia": [
+    "2021-04-25",
+    "2021-05-23",
+    "2021-08-01",
+    "2021-10-10",
+    "2021-11-28"
+   ],
+   "Lazio": [
+    "2021-03-07",
+    "2021-06-27",
+    "2021-07-25",
+    "2021-10-10",
+    "2021-11-28"
+   ],
+   "Liguria": [
+    "2021-01-31",
+    "2021-06-06",
+    "2021-07-25",
+    "2021-10-10",
+    "2021-11-28"
+   ],
+   "Lombardia": [
+    "2021-03-28",
+    "2021-05-23",
+    "2021-07-25",
+    "2021-12-19"
+   ],
+   "Marche": [
+    "2021-06-06",
+    "2021-06-27",
+    "2021-07-25",
+    "2021-11-21"
+   ],
+   "Molise": [
+    "2021-04-11",
+    "2021-05-23",
+    "2021-08-01",
+    "2021-09-12",
+    "2021-10-17"
+   ],
+   "P.A. Bolzano": [
+    "2021-02-07",
+    "2021-03-07",
+    "2021-04-18",
+    "2021-06-20",
+    "2021-10-03"
+   ],
+   "P.A. Trento": [
+    "2021-06-20",
+    "2021-08-22",
+    "2021-10-10"
+   ],
+   "Piemonte": [
+    "2021-03-14",
+    "2021-05-30",
+    "2021-07-25",
+    "2021-11-28"
+   ],
+   "Puglia": [
+    "2021-06-06",
+    "2021-08-08"
+   ],
+   "Sardegna": [
+    "2021-06-13",
+    "2021-07-25",
+    "2021-09-05",
+    "2021-09-26",
+    "2021-11-21"
+   ],
+   "Sicilia": [
+    "2021-06-27",
+    "2021-07-25"
+   ],
+   "Toscana": [
+    "2021-01-31",
+    "2021-04-04",
+    "2021-05-23",
+    "2021-06-13",
+    "2021-07-25"
+   ],
+   "Umbria": [
+    "2021-01-31",
+    "2021-05-16",
+    "2021-06-20",
+    "2021-08-01",
+    "2021-09-05",
+    "2021-09-26",
+    "2021-12-05"
+   ],
+   "Valle d'Aosta": [
+    "2021-04-04",
+    "2021-05-16",
+    "2021-06-13",
+    "2021-11-21"
+   ],
+   "Veneto": [
+    "2021-01-31",
+    "2021-06-06",
+    "2021-07-25",
+    "2021-09-26",
+    "2021-11-28"
+   ]
+  },
+  "n_alarms": 86,
+  "national_logw": [
+   0.0,
+   -0.05821716957820737,
+   0.19592457653487497,
+   0.7685612673582772,
+   0.9549952039768466,
+   2.326292162950601,
+   2.440824532421927,
+   2.4280683125924587,
+   2.4622938920477373,
+   2.5482350149920285,
+   2.913786895998153,
+   3.1551743957017857,
+   3.162903037981783,
+   3.2023069943396303,
+   3.242702856642652,
+   3.2557163413036574,
+   3.2751735218936058,
+   3.294892550388857,
+   3.2899957255804013,
+   3.2860394202391747,
+   3.2911826990969293,
+   3.3336560735814627,
+   3.475685519671306,
+   3.6940417874244997,
+   3.7737420431331463,
+   3.8095204328098093,
+   3.829902457607117,
+   3.8286548507944596,
+   3.822875846966085,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687,
+   3.8394523344093687
+  ],
+  "national_first_alarm": "2021-03-14",
+  "ebh_rejected": [
+   "Abruzzo",
+   "Basilicata",
+   "Calabria",
+   "Campania",
+   "Emilia-Romagna",
+   "Friuli Venezia Giulia",
+   "Lazio",
+   "Liguria",
+   "Lombardia",
+   "Marche",
+   "Molise",
+   "P.A. Bolzano",
+   "P.A. Trento",
+   "Piemonte",
+   "Puglia",
+   "Sardegna",
+   "Sicilia",
+   "Toscana",
+   "Umbria",
+   "Valle d'Aosta",
+   "Veneto"
+  ],
+  "twin": {
+   "beta": [
+    0.0,
+    0.0,
+    -0.13190726562926505,
+    -0.24003804552958835
+   ],
+   "k": 12.81165114882204,
+   "sigma_week": 0.1,
+   "R_multiplier": [
+    1.0,
+    1.0,
+    0.8764222657783365,
+    0.78659793396229
+   ]
+  },
+  "monitoring": [
+   "2020-12-21",
+   "2021-12-26"
+  ],
+  "regions": [
+   "Abruzzo",
+   "Basilicata",
+   "Calabria",
+   "Campania",
+   "Emilia-Romagna",
+   "Friuli Venezia Giulia",
+   "Lazio",
+   "Liguria",
+   "Lombardia",
+   "Marche",
+   "Molise",
+   "P.A. Bolzano",
+   "P.A. Trento",
+   "Piemonte",
+   "Puglia",
+   "Sardegna",
+   "Sicilia",
+   "Toscana",
+   "Umbria",
+   "Valle d'Aosta",
+   "Veneto"
+  ]
+ },
+ "synthetic": {
+  "estimated/null": {
+   "mc_blr": {
+    "regional_false_alarm": 0.0033333333333333335
+   },
+   "plugin": {
+    "regional_false_alarm": 0.0
+   },
+   "always_yellow": {
+    "regional_false_alarm": 0.18476190476190477
+   },
+   "ttest": {
+    "regional_false_alarm": 0.31857142857142856
+   },
+   "national_mc_blr": {
+    "false_alarm": 0.01
+   },
+   "national_always_yellow": {
+    "false_alarm": 1.0
+   }
+  },
+  "estimated/variant": {
+   "mc_blr": {
+    "regional_alarm_before_change": 0.0007936507936507937,
+    "regional_detected": 0.9992063492063492,
+    "median_delay_weeks": 9.0
+   },
+   "plugin": {
+    "regional_alarm_before_change": 0.0,
+    "regional_detected": 0.0,
+    "median_delay_weeks": null
+   },
+   "always_yellow": {
+    "regional_alarm_before_change": 0.010317460317460317,
+    "regional_detected": 0.3968253968253968,
+    "median_delay_weeks": 15.0
+   },
+   "ttest": {
+    "regional_alarm_before_change": 0.14365079365079364,
+    "regional_detected": 0.8563492063492063,
+    "median_delay_weeks": 6.0
+   },
+   "national_mc_blr": {
+    "alarm_before_change": 0.0,
+    "detected": 1.0,
+    "median_delay_weeks": 6.0
+   },
+   "national_always_yellow": {
+    "alarm_before_change": 0.0,
+    "detected": 1.0,
+    "median_delay_weeks": 10.0
+   }
+  },
+  "strong/null": {
+   "mc_blr": {
+    "regional_false_alarm": 0.007619047619047619
+   },
+   "plugin": {
+    "regional_false_alarm": 0.0
+   },
+   "always_yellow": {
+    "regional_false_alarm": 0.20142857142857143
+   },
+   "ttest": {
+    "regional_false_alarm": 0.29714285714285715
+   },
+   "national_mc_blr": {
+    "false_alarm": 0.0
+   },
+   "national_always_yellow": {
+    "false_alarm": 1.0
+   }
+  },
+  "strong/variant": {
+   "mc_blr": {
+    "regional_alarm_before_change": 0.0,
+    "regional_detected": 1.0,
+    "median_delay_weeks": 9.0
+   },
+   "plugin": {
+    "regional_alarm_before_change": 0.0,
+    "regional_detected": 0.0,
+    "median_delay_weeks": null
+   },
+   "always_yellow": {
+    "regional_alarm_before_change": 0.031746031746031744,
+    "regional_detected": 0.5642857142857143,
+    "median_delay_weeks": 21.0
+   },
+   "ttest": {
+    "regional_alarm_before_change": 0.14126984126984127,
+    "regional_detected": 0.8587301587301587,
+    "median_delay_weeks": 7.0
+   },
+   "national_mc_blr": {
+    "alarm_before_change": 0.0,
+    "detected": 1.0,
+    "median_delay_weeks": 6.0
+   },
+   "national_always_yellow": {
+    "alarm_before_change": 0.0,
+    "detected": 1.0,
+    "median_delay_weeks": 9.0
+   }
+  }
+ }
+}

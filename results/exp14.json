@@ -1,0 +1,154 @@
+{
+ "drift": {
+  "mp-logistic-plugin": {
+   "null": {
+    "reject": 0.02,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.81,
+    "median_stop": 276.5
+   }
+  },
+  "mp-logistic-resample": {
+   "null": {
+    "reject": 0.022,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.802,
+    "median_stop": 265.5
+   }
+  },
+  "mp-choice-plugin": {
+   "null": {
+    "reject": 0.018,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.895,
+    "median_stop": 243.0
+   }
+  },
+  "mp-choice-resample": {
+   "null": {
+    "reject": 0.01,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.92,
+    "median_stop": 234.0
+   }
+  },
+  "mp-logistic-plugin-deg6": {
+   "null": {
+    "reject": 0.033,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.65,
+    "median_stop": 352.5
+   }
+  },
+  "mp-logistic-resample-deg6": {
+   "null": {
+    "reject": 0.025,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.6425,
+    "median_stop": 362.5
+   }
+  }
+ },
+ "bandit": {
+  "mp-logistic-plugin": {
+   "null": {
+    "mc": {
+     "reject": 0.025,
+     "median_stop": null
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 71.0
+    }
+   },
+   "alt": {
+    "mc": {
+     "reject": 1.0,
+     "median_stop": 40.5
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 34.0
+    }
+   }
+  },
+  "mp-choice-plugin": {
+   "null": {
+    "mc": {
+     "reject": 0.01,
+     "median_stop": null
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 64.5
+    }
+   },
+   "alt": {
+    "mc": {
+     "reject": 1.0,
+     "median_stop": 53.5
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 40.5
+    }
+   }
+  },
+  "mp-logistic-resample": {
+   "null": {
+    "mc": {
+     "reject": 0.025,
+     "median_stop": null
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 79.0
+    }
+   },
+   "alt": {
+    "mc": {
+     "reject": 1.0,
+     "median_stop": 41.5
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 41.0
+    }
+   }
+  },
+  "mp-choice-resample": {
+   "null": {
+    "mc": {
+     "reject": 0.0125,
+     "median_stop": null
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 68.0
+    }
+   },
+   "alt": {
+    "mc": {
+     "reject": 1.0,
+     "median_stop": 57.0
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 45.0
+    }
+   }
+  }
+ }
+}

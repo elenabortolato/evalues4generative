@@ -357,6 +357,8 @@ def main():
         show = {k: v for k, v in res[sc].items() if not k.startswith("_")}
         print(f"[{sc}] {time.time() - t0:.0f}s", json.dumps(show), flush=True)
     name = "exp11.json" if LEARNER == "logistic" else f"exp11_{LEARNER}.json"
+    if LEARNER in MP_LEARNERS:
+        name = f"exp11_{LEARNER}_{'-'.join(wanted)}.json"
     (ROOT / "results" / name).write_text(json.dumps(res, indent=1))
 
 

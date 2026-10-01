@@ -42,8 +42,14 @@ def stat(times):
 
 
 def main():
-    res = {"drift": {}, "bandit": {}}
-    for name in DRIFT:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--drift", default=",".join(DRIFT))
+    ap.add_argument("--bandit", default=",".join(BANDIT))
+    args = ap.parse_args()
+    out = ROOT / "results" / "exp14.json"
+    res = json.loads(out.read_text()) if out.exists() else {"drift": {}, "bandit": {}}
+    for name in [n for n in args.drift.split(",") if n]:
         t0, row = time.time(), {}
         for label, b, off in (("null", drift.B0, 0), ("alt", drift.B1, 10 ** 6)):
             job = partial(drift.run_one, b_real=b, horizon=500, m=16, alpha=0.05, learner=name,
@@ -52,10 +58,11 @@ def main():
                 runs = list(ex.map(job, [off + i for i in range(REPS)], chunksize=8))
             row[label] = stat([r["mc"] for r in runs])
         res["drift"][name] = row
+        out.write_text(json.dumps(res, indent=1))
         print(f"drift  {name:28s} false alarms {row['null']['reject']:.3f} power "
               f"{row['alt']['reject']:.3f} median {row['alt']['median_stop']} ({time.time()-t0:.0f}s)",
               flush=True)
-    for kind in BANDIT:
+    for kind in [n for n in args.bandit.split(",") if n]:
         t0, row = time.time(), {}
         for label, alt, off in (("null", False, 0), ("alt", True, 10 ** 6)):
             job = partial(bandit.run_one, alt=alt, horizon=400, m=16, alpha=0.05, kind=kind)
@@ -63,10 +70,11 @@ def main():
                 runs = list(ex.map(job, [off + i for i in range(REPS)], chunksize=8))
             row[label] = {k: stat([r[k] for r in runs]) for k in ("mc", "mc_uncond")}
         res["bandit"][kind] = row
+        out.write_text(json.dumps(res, indent=1))
         print(f"bandit {kind:28s} false alarms {row['null']['mc']['reject']:.3f} (uncond "
               f"{row['null']['mc_uncond']['reject']:.3f}) power {row['alt']['mc']['reject']:.3f} "
               f"median {row['alt']['mc']['median_stop']} ({time.time()-t0:.0f}s)", flush=True)
-    (ROOT / "results" / "exp14.json").write_text(json.dumps(res, indent=1))
+    out.write_text(json.dumps(res, indent=1))
 
 
 if __name__ == "__main__":

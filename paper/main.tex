@@ -906,8 +906,20 @@ factors have mean 1.18 and standard deviation 1.15, and the best betting
 fraction is 0.5), and the mixture over $\lambda$ tempers them, whereas the
 simulation-likelihood bets are cautious (mean 1.08, standard deviation 0.62,
 best fraction 0.75), and a fraction below one cannot amplify a cautious bet.
-False alarms stay between 1.3\% and 3.3\% for every score; using the logistic
+False alarms stay between 1.0\% and 3.3\% for every score; using the logistic
 posterior odds directly as the bet gives between 14\% and 74\% false alarms.
+
+The predictive-first updates \eqref{eq:mp} are valid in every setting and
+slower than their Gaussian counterparts on the drift task: 234--277 steps with
+degree-4 features, against 209--223, and with the flexible degree-6 features the
+plug-in and resampled predictives lose much of their power (0.65 and 0.64,
+against 0.97). On the bandit they are on par (41--57 steps, against 38--51).
+Predictive resampling helps slightly on the drift task (234 against 243 steps
+on the simulation likelihood), and the simulation likelihood is the better
+loss for predictive-first updates, as it is for the posterior mixture. The
+Gaussian route's advantage comes from its shrinkage: the posterior covariance
+damps early bets for as long as the posterior is wide, whereas truncated
+predictive resampling quickly concentrates around the current predictive.
 
 \begin{table}[t]
 \centering
@@ -915,7 +927,9 @@ posterior odds directly as the bet gives between 14\% and 74\% false alarms.
 Bayesian learning rule on the logistic loss (probability-scale predictive
 $\kappa\mu$, ratio-scale $\mu+v/2$, or posterior mean $\mu$) or on the
 simulation likelihood (posterior-predictive mixture bet, or plug-in at the
-posterior mean; prior variance in brackets).}
+posterior mean; prior variance in brackets); predictive update: the
+classifier's predictive updated directly by \eqref{eq:mp}, betting with the
+current predictive (plug-in) or averaging over predictive-resampling paths.}
 \label{tab:blr}
 \begin{tabular}{llrrr}
 \toprule
@@ -928,15 +942,25 @@ drift, degree 4 & refitted point estimate & 0.030 & 0.990 & 198 \\
  & BLR simulation likelihood, mixture (1) & 0.025 & 0.820 & 291 \\
  & BLR simulation likelihood, mixture (0.03) & 0.013 & 0.968 & 223 \\
  & BLR simulation likelihood, mean (0.03) & 0.025 & 0.938 & 265 \\
+ & predictive update, logistic, plug-in & 0.020 & 0.810 & 277 \\
+ & predictive update, logistic, resampling & 0.022 & 0.802 & 266 \\
+ & predictive update, simulation likelihood, plug-in & 0.018 & 0.895 & 243 \\
+ & predictive update, simulation likelihood, resampling & 0.010 & 0.920 & 234 \\
 drift, degree 6 & refitted point estimate & 0.028 & 0.838 & 320 \\
  & BLR logistic, posterior mean & 0.033 & 0.940 & 242 \\
  & BLR logistic, probability scale & 0.015 & 0.965 & 214 \\
  & BLR logistic, ratio scale & 0.013 & 0.738 & 364 \\
  & BLR simulation likelihood, mixture (0.03) & 0.018 & 0.915 & 222 \\
+ & predictive update, logistic, plug-in & 0.033 & 0.650 & 353 \\
+ & predictive update, logistic, resampling & 0.025 & 0.643 & 363 \\
 bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
  & BLR logistic, posterior mean & 0.025 & 1.000 & 51 \\
  & BLR logistic, probability scale & 0.030 & 1.000 & 38 \\
  & BLR logistic, ratio scale & 0.025 & 0.995 & 106 \\
+ & predictive update, logistic, plug-in & 0.025 & 1.000 & 41 \\
+ & predictive update, logistic, resampling & 0.025 & 1.000 & 42 \\
+ & predictive update, simulation likelihood, plug-in & 0.010 & 1.000 & 54 \\
+ & predictive update, simulation likelihood, resampling & 0.013 & 1.000 & 57 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1107,6 +1131,34 @@ conclusions are the same but detection is slower: false alarms stay at 2\%
 (98\% and 100\% for the stateless and pooled twins), snacking is detected in
 99\% of trials after a median of 51 participant-days instead of 32, and e-BH
 flags D in 99\% of trials and B in 39\%, with no false discovery.
+Table~\ref{tab:trial-learners} compares all learners. The four predictive-first
+learners of Section~\ref{sec:blr} are valid as well, with false alarms in 1--5\%
+of trials while the stateless twin raises them in 81--98\%; they detect snacking
+in 99\% of trials after a median of 42--51 participant-days, and e-BH flags D in
+99\% of trials and B in 37--62\%, with A, C and E flagged in at most 2\%.
+
+\begin{table}[t]
+\centering
+\caption{The MAMS trial with each learner (100 replications per scenario).
+Null: false-alarm rate of the monitor and of the stateless twin with the same
+learner. Snacking: detection rate, median participant-days to the first alarm,
+and the share of trials in which e-BH flags arms D and B.}
+\label{tab:trial-learners}
+\begin{tabular}{lrrrrr}
+\toprule
+ & \multicolumn{2}{c}{null} & \multicolumn{3}{c}{defensive snacking} \\
+learner & monitor & stateless & detected (days) & e-BH D & e-BH B \\
+\midrule
+Gaussian BLR, logistic & 0.02 & 0.95 & 0.99 (32) & 0.99 & 0.64 \\
+Gaussian BLR, simulation likelihood & 0.02 & 0.98 & 0.99 (51) & 0.99 & 0.39 \\
+predictive, logistic, plug-in & 0.05 & 0.87 & 0.99 (42) & 0.99 & 0.62 \\
+predictive, logistic, resampling & 0.04 & 0.81 & 0.99 (47) & 0.99 & 0.47 \\
+predictive, simulation likelihood, plug-in & 0.04 & 0.98 & 0.99 (49) & 0.99 & 0.38 \\
+predictive, simulation likelihood, resampling & 0.01 & 0.97 & 0.99 (51) & 0.99 & 0.37 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 
 Two caveats matter in practice. The twin is re-initialised at the participant's
 true physiological state, which is observable in silico but would have to be
@@ -1250,8 +1302,17 @@ dominate once restrictions stop varying, since 63 of the 96 alarms fire in
 white zones, which the twin had to treat as yellow. A monitor that bets only on
 counts above the twin, through a score that gives no credit to
 overprediction, is equally valid and would keep the alarms of the Alpha, Delta
-and autumn waves as early warnings. An analysis of national daily deaths from
-spring 2020 under the national stringency index, in the Supplement, gives an
+and autumn waves as early warnings. The real-data results above use the Gaussian logistic learner.
+Table~\ref{tab:regions-learners} repeats the analysis with the four
+predictive-first learners. All are valid on the synthetic series and detect
+the variant nationally after 6--7 weeks, against 8 for the Gaussian learner. On
+the real data the plug-in predictives agree with it on the national alarm (14
+March 2021, or two weeks earlier) and on e-BH, which rejects the twin in all 21
+regions; the resampled predictives are more cautious, with about half as many
+regional alarms and a national alarm in April or June, and with the logistic
+loss e-BH rejects no region at the end of 2021. An analysis of national daily
+deaths from spring 2020 under the national stringency index, in the
+Supplement, gives an
 early warning of the second wave on 22~September 2020, four weeks before deaths
 surged.
 
@@ -1270,6 +1331,28 @@ mid-April -- early July & 27 & 0 & 19 & 8 & vaccination, season \\
 mid-July -- mid-August & 19 & 19 & 47 & 19 & Delta, reopening \\
 late August -- October & 20 & 1 & 43 & 19 & end of the summer wave \\
 November -- December & 17 & 16 & 103 & 17 & autumn Delta wave, Omicron \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{The regional analysis with each learner. Synthetic (estimated
+effects): regional and national false-alarm rates under the null, and median
+national delay in weeks under the variant. Real data: number of regional
+alarms, date of the national alarm, and number of regions rejected by e-BH at
+the end of 2021.}
+\label{tab:regions-learners}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{synthetic} & \multicolumn{3}{c}{real data} \\
+learner & regional & national & delay & alarms & national alarm & e-BH \\
+\midrule
+Gaussian BLR, logistic & 0.019 & 0.01 & 8 & 96 & 14 Mar 2021 & 21 \\
+predictive, logistic, plug-in & 0.014 & 0.00 & 6 & 118 & 28 Feb 2021 & 21 \\
+predictive, logistic, resampling & 0.013 & 0.02 & 6 & 52 & 4 Apr 2021 & 0 \\
+predictive, simulation likelihood, plug-in & 0.003 & 0.01 & 6 & 86 & 14 Mar 2021 & 21 \\
+predictive, simulation likelihood, resampling & 0.005 & 0.01 & 7 & 45 & 6 Jun 2021 & 20 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1348,7 +1431,11 @@ between the tilted null and the truth, scaled by $M/(M+1)$, and
 Theorem~\ref{thm:simlik} shows that exact Bayesian updating on the simulation
 likelihood achieves the growth of the best score in a class, with no
 recomputation. Approximations made when computing the score can therefore cost
-power but never validity.
+power but never validity, and the score can be updated either through a
+Gaussian approximation of a posterior or directly through its predictive, as
+martingale posteriors do: in our experiments both routes are valid everywhere,
+and the Gaussian route is usually faster because its covariance damps early
+bets.
 
 Several limitations remain. The null is a simple conditional null; simulators
 with unknown calibration parameters need composite-null constructions, such as
