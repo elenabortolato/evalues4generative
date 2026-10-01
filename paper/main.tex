@@ -509,7 +509,51 @@ Appendix~\ref{app:proofs}.
 
 With posterior predictive scores the learning penalty is paid once,
 $(d/2)\log t$ in total, whereas a plug-in estimate bets everything on one tilt
-and can lose all its growth. Proposition~\ref{prop:bayes} is, however, only a
+and can lose all its growth.
+
+Computing a Bayes factor as a product of one-step posterior predictives, as in
+\eqref{eq:prequential}, is classical, and it appears in several equivalent
+forms. In Dawid's prequential form \citep{dawid1984present}, the log marginal
+likelihood is the cumulative log score of the forecasts $q_i$, each issued
+before $x_i$ is seen,
+\[
+\log m(x_{1:t}) = \sum_{i=1}^{t} \log q_i(x_i),
+\qquad
+q_i(x) = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta).
+\]
+In minimum description length, $-\log m(x_{1:t}) = \sum_i \{-\log q_i(x_i)\}$
+is the length of the Bayes universal code, the sum of the lengths of the
+predictive codes \citep{rissanen1984universal,grunwald2007minimum}, and its
+regret against the best code in the model is
+\[
+-\log m(x_{1:t}) - \inf_\theta \Big\{-\sum_{i \le t}\log q_\theta(x_i \mid x_{1:i-1})\Big\}
+= \frac d2 \log t + O_P(1)
+\]
+for i.i.d.\ data under regularity conditions \citep{clarke1990information}.
+In sequential Monte Carlo, the evidence is estimated by the same product: with
+particles $\theta^{(k)}$ and normalised weights $W_{i-1}^{(k)}$ approximating
+$\pi_{i-1}$,
+\[
+\hat q_i(x_i) = \sum_{k} W_{i-1}^{(k)}\, q_{\theta^{(k)}}(x_i \mid x_{1:i-1}),
+\qquad
+\hat m(x_{1:t}) = \prod_{i=1}^{t} \hat q_i(x_i),
+\]
+and the particles are reweighted by $q_{\theta^{(k)}}(x_i \mid x_{1:i-1})$ and
+resampled as each observation arrives \citep{kong1994sequential,chopin2002sequential}.
+Finally, for exchangeable models, averaging the chain rule over all orderings of
+the observations gives
+\[
+\log m(x_{1:t}) = \sum_{k=0}^{t-1} \binom{t}{k}^{-1} \sum_{|S| = k}
+\frac{1}{t-k} \sum_{j \notin S} \log q(x_j \mid x_S),
+\]
+where $q(\cdot \mid x_S)$ is the posterior predictive given the observations in
+$S$: the log marginal likelihood is the sum, over training-set sizes, of
+exhaustive leave-$(t-k)$-out cross-validation scores \citep{fong2020marginal}.
+All these forms need the predictive density $q_i$, and hence the normalising
+constant of the model. Section~\ref{sec:simlik} gives the analogue of the
+product for a model that can only be sampled, and the averages over posterior
+nodes used to compute it in Section~\ref{sec:blr} are of the same form as the
+sequential Monte Carlo estimate $\hat q_i$. Proposition~\ref{prop:bayes} is, however, only a
 benchmark: Bayes' rule for the tilt needs $A(\theta)$ at every step, and
 $A(\theta)$ is an integral against a law that can only be sampled.
 
@@ -1253,7 +1297,13 @@ arbitrary adaptive sampling \citep{xu2021unified}; there the hypotheses concern
 the arms' effects and the sampling can be chosen to make the tests powerful,
 whereas our per-arm monitors test the twin, with the allocation fixed by the
 trial. Finally, reading the wealth as a prequential likelihood ratio follows
-\citet{dawid1984present}; the link between predictive scores and Bayes factors
+\citet{dawid1984present}; computing the marginal likelihood as a product of
+one-step posterior predictives is Dawid's prequential form, the Bayes universal
+code of minimum description length
+\citep{rissanen1984universal,grunwald2007minimum}, and the basis of sequential
+Monte Carlo estimates of the evidence \citep{kong1994sequential,chopin2002sequential},
+and it is related to cross-validation by \citet{fong2020marginal}
+(Section~\ref{sec:predictive}); the link between predictive scores and Bayes factors
 is the prequential view of the marginal likelihood
 \citep{clarke1990information}; taking the predictive sequence as the primitive
 is the approach of martingale posteriors \citep{fong2023martingale}; and the
