@@ -689,6 +689,30 @@ shrink where the posterior is uncertain. Features are standardised with
 simulator draws only, before any real data are seen, so that the score stays
 predictable.
 
+The same two classifiers can also be updated without a posterior over their
+weights, by updating their predictive directly, as martingale posteriors do
+\citep{fong2023martingale}. The learner then carries the predictive itself,
+$\sigma(z^\top\theta_t)$ for the logistic loss or the softmax
+$e^{\theta_t^\top z_k}/\sum_{k'} e^{\theta_t^\top z_{k'}}$ over the $M+1$
+outcomes for the simulation likelihood, and updates it by Fisher scoring on the
+predictive's own score,
+\begin{equation}\label{eq:mp}
+I_t = I_{t-1} + J_t(\theta_{t-1}), \qquad
+\theta_t = \theta_{t-1} + I_t^{-1}\, s_t(\theta_{t-1}),
+\end{equation}
+where $s_t$ is the score of the new batch and $J_t$ its Fisher information,
+which for both losses does not depend on the labels, and $I_0$ is a prior
+precision. Under the predictive the score has mean zero, so $\theta_t$, and with
+it the predictive, is a martingale: the update is coherent by construction. The
+bet uses either the current predictive (the \emph{plug-in predictive}) or an
+average of the factor over $B$ \emph{predictive-resampling} paths, obtained by
+running \eqref{eq:mp} forward from $(\theta_{t-1}, I_{t-1})$ on past batches
+whose labels are drawn from the predictive; this is the martingale posterior's
+uncertainty, truncated at $H$ steps ($B = 16$, $H = \min(t, 200)$, refreshed every
+ten steps). The two routes differ in where uncertainty comes from: a Gaussian
+approximation of a posterior, or simulation from the predictive. Both give valid
+bets.
+
 Under a Gaussian posterior the logit could also be scored on the
 ratio scale, $\log\E_q[e^{z^\top\theta}] = \mu + v/2$, which is the predictive
 of Propositions~\ref{prop:bayesopt} and~\ref{prop:bayes} when the posterior is

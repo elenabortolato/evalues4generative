@@ -48,7 +48,7 @@ from scipy.stats import ttest_1samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, LambdaMixture, mc_factor, plugin_factor  # noqa: E402
+from e4g import BLRRatio, LambdaMixture, MartingalePredictive, mc_factor, plugin_factor  # noqa: E402
 from e4g import epi_regional as ER  # noqa: E402
 from e4g.epi import LAG  # noqa: E402
 
@@ -101,13 +101,26 @@ def feature_map(z):
     return np.column_stack([rbar, rbar ** 2, slope, rbar * u, rbar * lev])
 
 
+MP_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin"),
+               "mp-logistic-resample": dict(loss="logistic", mode="resample"),
+               "mp-choice-plugin": dict(loss="choice", mode="plugin", prior_var=0.03),
+               "mp-choice-resample": dict(loss="choice", mode="resample", prior_var=0.03)}
+LEARNER = "blr"   # or a key of MP_LEARNERS (predictive-first updates)
+
+
+def make_learner(scaler_rows):
+    if LEARNER in MP_LEARNERS:
+        return MartingalePredictive(feature_map=feature_map,
+                                    **MP_LEARNERS[LEARNER]).fit_scaler(scaler_rows)
+    return BLRRatio(feature_map=feature_map).fit_scaler(scaler_rows)
+
+
 class RegionMonitor:
     def __init__(self, twin, r, y, c, wd, t0, rng, colour=None):
         self.twin, self.r, self.colour = twin, r, colour
         sims = ER.simulate_block(twin, r, y[r], c[r], wd, t0, BLOCK, 200, rng, colour=colour)
         g = ER.simulate_block(twin, r, y[r], c[r], wd, t0, BLOCK, 1, rng, True, colour)[0]
-        self.blr = BLRRatio(feature_map=feature_map).fit_scaler(
-            rows(sims, g, self._beta(c, t0)))
+        self.blr = make_learner(rows(sims, g, self._beta(c, t0)))
         self.w, self.wp = LambdaMixture(), LambdaMixture()
         self.z = []
 
@@ -121,9 +134,12 @@ class RegionMonitor:
         g = ER.simulate_block(tw, r, y[r], c[r], wd, t0, BLOCK, 1, rng, True, col)[0]
         b = self._beta(c, t0)
         rx, ry = rows(y[r, None, t0:t0 + BLOCK], g, b), rows(sims, g, b)
-        sc = self.blr.score(np.vstack([rx, ry]))
-        wv = self.w.update(mc_factor(sc[0], sc[1:]))
-        wp = self.wp.update(plugin_factor(sc[0]))
+        if hasattr(self.blr, "factor"):
+            wv, wp = self.w.update(self.blr.factor(rx, ry)), 0.0
+        else:
+            sc = self.blr.score(np.vstack([rx, ry]))
+            wv = self.w.update(mc_factor(sc[0], sc[1:]))
+            wp = self.wp.update(plugin_factor(sc[0]))
         self.blr.update(rx, ry)
         tot = sims.sum(1)
         self.z.append((y[r, t0:t0 + BLOCK].sum() - tot.mean()) / (tot.std() + 1e-9))
@@ -271,6 +287,11 @@ def summarise(runs, scenario):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--learner", default="blr", choices=["blr", *MP_LEARNERS])
+    global LEARNER
+    LEARNER = ap.parse_args().learner
     t_start = time.time()
     res = {"config": dict(m=M, alpha=ALPHA, block_days=BLOCK, recal_days=RECAL, lag=LAG)}
     res["real"] = real_data()
@@ -287,7 +308,8 @@ def main():
             res["synthetic"][f"{effects}/{sc}"] = summarise(runs, sc)
             print(f"{effects}/{sc}:", res["synthetic"][f"{effects}/{sc}"], flush=True)
     print(f"{time.time() - t_start:.0f}s")
-    (ROOT / "results" / "exp9.json").write_text(json.dumps(res, indent=1))
+    name = "exp9.json" if LEARNER == "blr" else f"exp9_{LEARNER}.json"
+    (ROOT / "results" / name).write_text(json.dumps(res, indent=1))
 
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ from scipy.stats import ks_2samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, ChoiceBLR, Monitor, OnlineRatio  # noqa: E402
+from e4g import BLRRatio, ChoiceBLR, MartingalePredictive, Monitor, OnlineRatio  # noqa: E402
 
 B0, B1 = 0.5, 0.8
 LEARNERS = {"regularised": dict(degree=4, ridge=1.0),
@@ -85,7 +85,19 @@ CHOICE_LEARNERS = {"choice-deg4-mixture": dict(degree=4, mode="mixture"),
                    "choice-deg4-mean-p003": dict(degree=4, mode="mean", prior_var=0.03)}
 
 
+PRED_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin", degree=4),
+                 "mp-logistic-resample": dict(loss="logistic", mode="resample", degree=4),
+                 "mp-choice-plugin": dict(loss="choice", mode="plugin", prior_var=0.03, degree=4),
+                 "mp-choice-resample": dict(loss="choice", mode="resample", prior_var=0.03,
+                                            degree=4),
+                 "mp-logistic-plugin-deg6": dict(loss="logistic", mode="plugin", degree=6),
+                 "mp-logistic-resample-deg6": dict(loss="logistic", mode="resample", degree=6)}
+
+
 def make_learner(name, seed):
+    if name in PRED_LEARNERS:
+        sims = banana(np.random.default_rng(10**7 + seed), 2000, B0)
+        return MartingalePredictive(seed=seed, **PRED_LEARNERS[name]).fit_scaler(sims)
     if name in LEARNERS:
         return OnlineRatio(**LEARNERS[name])
     if name in CHOICE_LEARNERS:

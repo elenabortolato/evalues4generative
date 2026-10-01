@@ -71,7 +71,8 @@ from scipy.stats import ttest_1samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, ChoiceBLR, LambdaMixture, mc_factor, plugin_factor, t1d  # noqa: E402
+from e4g import (BLRRatio, ChoiceBLR, LambdaMixture, MartingalePredictive, mc_factor,  # noqa: E402
+                 plugin_factor, t1d)
 
 ADULTS = [f"adult#{i:03d}" for i in range(1, 11)]
 ARMS = {"A": (1.0, 140.0, 80.0), "B": (1.5, 100.0, 60.0), "C": (0.8, 160.0, 90.0),
@@ -169,19 +170,26 @@ def pilot(seed=10 ** 6, n=200):
     return rows(tr[:n], tr[n:], arm)
 
 
-LEARNER = "logistic"   # or "choice": BLR on the simulation likelihood (Theorem 3)
+MP_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin"),
+               "mp-logistic-resample": dict(loss="logistic", mode="resample"),
+               "mp-choice-plugin": dict(loss="choice", mode="plugin", prior_var=0.03),
+               "mp-choice-resample": dict(loss="choice", mode="resample", prior_var=0.03)}
+LEARNER = "logistic"   # or "choice" (BLR on the simulation likelihood), or a key of MP_LEARNERS
 
 
 class Monitor:
     def __init__(self, scaler):
         if LEARNER == "choice":
             self.blr = ChoiceBLR(feature_map=feature_map, prior_var=0.03).fit_scaler(scaler)
+        elif LEARNER in MP_LEARNERS:
+            self.blr = MartingalePredictive(feature_map=feature_map,
+                                            **MP_LEARNERS[LEARNER]).fit_scaler(scaler)
         else:
             self.blr = BLRRatio(feature_map=feature_map).fit_scaler(scaler)
         self.w, self.wp = LambdaMixture(), LambdaMixture()
 
     def step(self, rx, ry):
-        if LEARNER == "choice":
+        if LEARNER == "choice" or LEARNER in MP_LEARNERS:
             wv = self.w.update(self.blr.factor(rx, ry))
             wp = 0.0               # no plug-in bet for the conditional logit
         else:
@@ -329,7 +337,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--reps", type=int, default=100)
     ap.add_argument("--workers", type=int, default=4)
-    ap.add_argument("--learner", default="logistic", choices=["logistic", "choice"])
+    ap.add_argument("--learner", default="logistic", choices=["logistic", "choice", *MP_LEARNERS])
     ap.add_argument("--scenarios", default="null,resistance,snacking")
     args = ap.parse_args()
     global LEARNER
@@ -348,7 +356,7 @@ def main():
         res[sc] = summarise(runs)
         show = {k: v for k, v in res[sc].items() if not k.startswith("_")}
         print(f"[{sc}] {time.time() - t0:.0f}s", json.dumps(show), flush=True)
-    name = "exp11.json" if LEARNER == "logistic" else "exp11_choice.json"
+    name = "exp11.json" if LEARNER == "logistic" else f"exp11_{LEARNER}.json"
     (ROOT / "results" / name).write_text(json.dumps(res, indent=1))
 
 

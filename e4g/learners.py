@@ -264,3 +264,132 @@ class ChoiceBLR:
         self.prec = self.prec + self.eta * hess
         self.m = self.m - np.linalg.solve(self.prec, self.eta * grad)
         return self
+
+
+
+class MartingalePredictive:
+    """Predictive-first update of a classifier (parametric martingale posterior).
+
+    Instead of a posterior over the weights, the learner carries the classifier's
+    predictive itself, pi_t(z) = sigma(z' theta_t) for the logistic loss (real
+    vs simulated rows) or softmax(z' theta_t) over the M+1 outcomes for the
+    conditional-logit simulation likelihood, and updates it after every step
+    by Fisher scoring on the predictive's own score (Fong, Holmes and Walker,
+    2023, parametric martingale posteriors):
+
+        I_t = I_{t-1} + J_t(theta_{t-1}),    theta_t = theta_{t-1} + I_t^{-1} s_t(theta_{t-1}),
+
+    where s_t is the score of the new batch and J_t its Fisher information,
+    which for both losses does not depend on the labels. Under the predictive,
+    E[s_t] = 0, so theta_t, and hence the predictive, is a martingale: the
+    update is coherent by construction. I_0 is the prior precision.
+
+    Bets (mode):
+      "plugin"    the Monte Carlo factor of the current predictive's score
+      "resample"  the factor averaged over B predictive-resampling paths:
+                  starting from (theta_{t-1}, I_{t-1}), future batches are drawn
+                  by resampling past rows and drawing their labels from the
+                  predictive, and the same update is run forward for H steps
+                  (H = min(t, h_max)); the paths are refreshed every `refresh`
+                  steps. This is the martingale posterior's uncertainty,
+                  truncated at H steps, obtained from the predictive alone.
+    """
+
+    def __init__(self, loss: str = "logistic", mode: str = "plugin", prior_var: float = 1.0,
+                 intercept_var: float = 10.0, n_paths: int = 16, h_max: int = 200,
+                 refresh: int = 10, feature_map=None, degree: int = 4, seed: int = 0):
+        self.loss, self.mode = loss, mode
+        self.prior_var, self.intercept_var = prior_var, intercept_var
+        self.n_paths, self.h_max, self.refresh = n_paths, h_max, refresh
+        self.feature_map = feature_map or (lambda x: poly_features(x, degree))
+        self.rng = np.random.default_rng(seed)
+        self.mu = self.sd = self.theta = self.info = None
+        self.past = []            # past batches of standardised designs, row 0 real
+        self.paths = None
+        self.t = 0
+
+    def fit_scaler(self, x_sim: np.ndarray) -> "MartingalePredictive":
+        f = self.feature_map(x_sim)
+        self.mu, self.sd = f.mean(0), f.std(0) + 1e-8
+        d = f.shape[1] + (1 if self.loss == "logistic" else 0)
+        self.theta = np.zeros(d)
+        diag = np.full(d, 1.0 / self.prior_var)
+        if self.loss == "logistic":
+            diag[0] = 1.0 / self.intercept_var
+        self.info = np.diag(diag)
+        return self
+
+    def _design(self, x):
+        z = (self.feature_map(np.atleast_2d(x)) - self.mu) / self.sd
+        return np.column_stack([np.ones(len(z)), z]) if self.loss == "logistic" else z
+
+    # score s and information J of one batch z (row 0 real), for thetas (B, d)
+    def _score_info(self, theta, z, y=None):
+        eta = theta @ z.T                                     # (B, n)
+        n = z.shape[0]
+        if self.loss == "logistic":
+            w = np.r_[1.0, np.full(n - 1, 1.0 / (n - 1))]
+            p = 1.0 / (1.0 + np.exp(-np.clip(eta, -30, 30)))
+            yy = np.broadcast_to(np.r_[1.0, np.zeros(n - 1)], p.shape) if y is None else y
+            s = ((w * (yy - p)) @ z)                          # (B, d)
+            J = np.einsum("bk,ki,kj->bij", w * p * (1 - p), z, z)
+            return s, J
+        e = np.exp(eta - eta.max(1, keepdims=True))
+        w = e / e.sum(1, keepdims=True)                       # (B, n)
+        mz = w @ z
+        real = np.zeros_like(w)
+        if y is None:
+            real[:, 0] = 1.0
+        else:
+            real[np.arange(len(w)), y] = 1.0
+        s = real @ z - mz
+        J = np.einsum("bk,ki,kj->bij", w, z, z) - np.einsum("bi,bj->bij", mz, mz)
+        return s, J
+
+    def _resample(self):
+        """B predictive-resampling paths of length H from the current state."""
+        b, h = self.n_paths, min(self.t, self.h_max)
+        theta = np.repeat(self.theta[None, :], b, 0)
+        info = np.repeat(self.info[None, :, :], b, 0)
+        for _ in range(h):
+            z = self.past[self.rng.integers(len(self.past))]
+            eta = theta @ z.T
+            if self.loss == "logistic":
+                p = 1.0 / (1.0 + np.exp(-np.clip(eta, -30, 30)))
+                y = (self.rng.random(p.shape) < p).astype(float)
+            else:
+                e = np.exp(eta - eta.max(1, keepdims=True))
+                c = np.cumsum(e / e.sum(1, keepdims=True), 1)
+                y = (self.rng.random((b, 1)) > c).sum(1)
+            s, J = self._score_info(theta, z, y)
+            info = info + J
+            theta = theta + np.linalg.solve(info, s[:, :, None])[:, :, 0]
+        self.paths = theta
+
+    def _factor(self, theta, z):
+        sc = theta @ z.T                                      # (B, n)
+        sc = sc - sc.max(1, keepdims=True)
+        e = np.exp(sc)
+        return z.shape[0] * e[:, 0] / e.sum(1)
+
+    def factor(self, x_real: np.ndarray, x_sim: np.ndarray) -> float:
+        z = self._design(np.vstack([x_real, x_sim]))
+        if self.mode == "resample" and self.t > 0:
+            if self.paths is None or self.t % self.refresh == 0:
+                self._resample()
+            return float(self._factor(self.paths, z).mean())
+        return float(self._factor(self.theta[None, :], z)[0])
+
+    def score(self, x: np.ndarray) -> np.ndarray:
+        return np.clip(self._design(x) @ self.theta, -30, 30)
+
+    def update(self, x_real: np.ndarray, x_sim: np.ndarray) -> "MartingalePredictive":
+        z = self._design(np.vstack([x_real, x_sim]))
+        s, J = self._score_info(self.theta[None, :], z)
+        self.info = self.info + J[0]
+        self.theta = self.theta + np.linalg.solve(self.info, s[0])
+        self.past.append(z)
+        self.t += 1
+        if self.mode == "resample" and self.t % self.refresh == 0:
+            self.paths = None
+        return self

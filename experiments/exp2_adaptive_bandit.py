@@ -39,7 +39,7 @@ from scipy.stats import norm, ttest_ind
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, Monitor, OnlineRatio  # noqa: E402
+from e4g import BLRRatio, MartingalePredictive, Monitor, OnlineRatio  # noqa: E402
 
 K = 3
 MU = np.array([0.0, 0.2, 0.4])
@@ -66,6 +66,12 @@ def arm_features(rows):
     return np.column_stack([onehot[:, 1:], onehot * y[:, None], onehot * (y ** 2)[:, None]])
 
 
+MP_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin"),
+               "mp-logistic-resample": dict(loss="logistic", mode="resample"),
+               "mp-choice-plugin": dict(loss="choice", mode="plugin", prior_var=0.03),
+               "mp-choice-resample": dict(loss="choice", mode="resample", prior_var=0.03)}
+
+
 def learner(kind="refit", seed=0):
     if kind == "refit":
         return OnlineRatio(ridge=1.0, feature_map=arm_features)
@@ -73,6 +79,9 @@ def learner(kind="refit", seed=0):
     r = np.random.default_rng(10**7 + seed)
     arms = r.integers(0, K, 3000)
     rows = np.column_stack([twin(r, arms), arms])
+    if kind in MP_LEARNERS:
+        return MartingalePredictive(feature_map=arm_features, seed=seed,
+                                    **MP_LEARNERS[kind]).fit_scaler(rows)
     return BLRRatio(feature_map=arm_features, mode=kind.split("-")[1]).fit_scaler(rows)
 
 
