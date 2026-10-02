@@ -201,7 +201,8 @@ in our notation, and e-BH for bandit multiple testing \citep{xu2021unified} are
 not new; Section~\ref{sec:related} discusses the relation to this work.
 Section~\ref{sec:method} sets up the problem and gives the method and its
 validity, Section~\ref{sec:power} its power, and Section~\ref{sec:predictive}
-the predictive view and the update rules. Section~\ref{sec:experiments} checks
+the predictive view and the update rules, summarised in Algorithm~1
+(Section~\ref{sec:algorithm}). Section~\ref{sec:experiments} checks
 the theory in simulation, Sections~\ref{sec:trial} and~\ref{sec:italy-regions}
 contain the applications, and Section~\ref{sec:discussion} discusses
 limitations. Proofs are in the Appendix; further applications and experiments
@@ -817,6 +818,90 @@ reliable, and it is the worst score in every experiment below. If the system
 may drift, replacing $S_{t-1}$ by $\gamma S_{t-1}$, $\gamma < 1$, before each
 update keeps the monitor responsive, and like every choice of score leaves
 validity untouched.
+
+\subsection{The method in full}\label{sec:algorithm}
+
+The pieces of this section fit together as follows, for the default score, the
+logistic Bayesian learning rule with the probability-scale predictive. Each
+step is followed by the role it plays.
+
+\paragraph{Algorithm 1 (Monte Carlo e-process with a predictive score).}
+\textbf{Input:} a simulator that can be run under any action from any state; a
+feature map $z(x)$; the number of simulations $M$; the level $\alpha$; the grid
+$\Lambda$ of betting fractions. \textbf{Initialise:} standardise $z$ with
+simulator draws only; set $m_0 = 0$, $S_0 = I$ (vaguer on the intercept), and
+$W_0 = 1$.
+\begin{enumerate}
+  \item \textbf{Action.} Observe the action $A_t$ chosen by the design from the
+        past (arm, zone, dose). --- It defines the null law $P_t$.
+  \item \textbf{Simulate.} Draw $Y_{t,1}, \ldots, Y_{t,M}$ from the simulator
+        under $A_t$ from the current state, and observe $X_t$.
+        --- Exchangeable with $X_t$ under $H_0$.
+  \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
+        \[
+        \mu = z(x)^\top m_{t-1}, \qquad v = z(x)^\top S_{t-1}^{-1} z(x), \qquad
+        \kappa = (1 + \pi v/8)^{-1/2}, \qquad s_{t-1}(x) = \kappa\,\mu .
+        \]
+        --- $s_{t-1}$ is the predictive log-odds of ``real'' against
+        ``simulated'', an estimate of $\log(q/p)$ shrunk where the posterior is
+        uncertain; it forecasts $\hat q_t \propto p_t\, e^{s_{t-1}}$
+        \eqref{eq:tilt}.
+  \item \textbf{Bet.}
+        \[
+        E_t = \frac{(M+1)\, e^{s_{t-1}(X_t)}}{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}} .
+        \]
+        --- Exactly fair under $H_0$ (Theorem~\ref{thm:valid}); close to
+        $\hat q_t(X_t)/p_t(X_t)$ for large $M$.
+  \item \textbf{Wealth.} $W_t = |\Lambda|^{-1}\sum_{\lambda\in\Lambda}
+        \prod_{i\le t}(1-\lambda+\lambda E_i)$; reject $H_0$ when
+        $W_t \ge 1/\alpha$. --- A test martingale; its log is the
+        prequential likelihood ratio \eqref{eq:prequential-wealth} of the
+        forecasts against the simulator, and it grows at about
+        $\frac{M}{M+1}\{\KL(Q\|P) - \KL(Q\|\hat Q)\}$ per step
+        (Theorem~\ref{thm:growth}).
+  \item \textbf{Learn.} Only now, with labels $y_0 = 1$ for $X_t$ and $y_j = 0$
+        for $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
+        $p_k = \sigma(s_{t-1}(Z_{t,k}))$, update
+        \[
+        g = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
+        H = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \qquad
+        S_t = S_{t-1} + H, \quad m_t = m_{t-1} - S_t^{-1} g .
+        \]
+        --- One step of the Bayesian learning rule \eqref{eq:blr}; the score
+        stays predictable.
+\end{enumerate}
+\textbf{Variants.} With the simulation likelihood (Section~\ref{sec:simlik}),
+steps 3--4 are replaced by the posterior-predictive mixture
+$\bar E_t = B^{-1}\sum_b E_t(\theta_b)$ over posterior nodes $\theta_b$, and step 6
+by \eqref{eq:blr} with $\ell_t = -\log E_t(\theta)$; Theorem~\ref{thm:simlik} and
+Proposition~\ref{prop:approx} then apply.
+
+\textbf{Predictive-first version.} The score can also be updated without any
+posterior over $\theta$, by carrying and updating the classifier's predictive
+itself, $\pi_t(x) = \sigma(z(x)^\top\theta_t)$, as martingale posteriors do.
+Steps 3 and 6 then become
+\[
+\text{3'.}\quad s_{t-1}(x) = z(x)^\top\theta_{t-1} = \log\frac{\pi_{t-1}(x)}{1 - \pi_{t-1}(x)},
+\]
+\[
+\text{6'.}\quad
+I_t = I_{t-1} + \sum_{k=0}^{M} w_k\, p_k(1-p_k)\, z_k z_k^\top, \qquad
+\theta_t = \theta_{t-1} + I_t^{-1}\sum_{k=0}^{M} w_k\,(y_k - p_k)\, z_k,
+\]
+with $p_k = \pi_{t-1}(Z_{t,k})$ and $I_0 = S_0$: Fisher scoring on the
+predictive's own score \eqref{eq:mp}, under which $\theta_t$ is a martingale.
+The forecast is then $\hat q_t \propto p_t\, \pi_{t-1}/(1-\pi_{t-1})$, the
+current predictive odds with no shrinkage. To carry uncertainty without a
+posterior, step 4 averages the factor over $B$ predictive-resampling paths
+$\theta^{(b)}$, obtained by running 6' forward from $(\theta_{t-1}, I_{t-1})$ on
+past batches whose labels are drawn from the predictive,
+$\bar E_t = B^{-1}\sum_b E_t(\theta^{(b)})$. For the logistic loss, 6' is the
+Newton step of 6 taken at the point $\theta_{t-1}$ rather than averaged over a
+Gaussian posterior: the two versions differ only in where uncertainty comes
+from, a Gaussian approximation ($\kappa$ in step 3) or simulation from the
+predictive (the paths in step 4). In a multi-arm design, one copy of the
+algorithm per arm, betting only on that arm's observations, is combined by e-BH
+at the end (Section~\ref{sec:trial}).
 
 %======================================================================
 \section{Simulation studies}\label{sec:experiments}
