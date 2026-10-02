@@ -302,20 +302,29 @@ actually taken, and this requirement is essential.
 Suppose the simulator draws at time $t$ come from a law $\bar P$ that does not
 depend on $A_t$, for instance the twin run under uniformly random actions,
 while the policy takes an action $a$ with $P_a = P_t(\cdot \mid \F_{t-1}, a) \ne \bar P$.
-Take the bounded score $T = dP_a / d\bar P$ (truncated if necessary). Then under
-$H_0$, as $M \to \infty$,
+For a bounded score $T > 0$, under $H_0$ and as $M \to \infty$,
 \[
-\E[E_t \mid \G_t] \;\to\; \frac{\E_{P_a}[T]}{\E_{\bar P}[T]}
-= 1 + \chi^2(P_a \,\|\, \bar P) > 1 ,
+\E[E_t \mid \G_t] \;\to\; \frac{\E_{P_a}[T]}{\E_{\bar P}[T]},
 \]
-so a policy that keeps choosing such actions, as Thompson sampling does once
-it has found the best arm, makes the wealth grow exponentially under $H_0$.
+which equals $1 + \chi^2(P_a \,\|\, \bar P) > 1$ for $T = dP_a/d\bar P$ when this
+ratio is bounded, and exceeds one for its truncation at a large enough level.
+A policy that keeps choosing such actions, as Thompson sampling does once it
+has found the best arm, then gives the factors a conditional mean bounded away
+from one, so that $\E[\log(1-\lambda+\lambda E_t) \mid \G_t] > 0$ for small
+$\lambda$ and the wealth \eqref{eq:wealth}, which contains such $\lambda$,
+grows exponentially under $H_0$.
 \end{proposition}
 
 \begin{proof}
 By the law of large numbers and bounded convergence,
 $E_t \to T(X_t)/\E_{\bar P}[T]$ in $L^1$, and $X_t \sim P_a$ under $H_0$.
-With the untruncated score, $\E_{\bar P}[T] = 1$ and
+Write $\mu = \E[E_t \mid \G_t] - 1 > 0$ and
+$\sigma^2 = \E[(E_t - 1)^2 \mid \G_t] < \infty$. Since $E_t \ge 0$,
+$x = \lambda(E_t - 1) \ge -\lambda$, and Taylor's theorem gives
+$\log(1+x) \ge x - x^2/\{2(1-\lambda)^2\}$, so
+$\E[\log(1-\lambda+\lambda E_t) \mid \G_t] \ge \lambda\mu -
+\lambda^2\sigma^2/\{2(1-\lambda)^2\}$, which is positive for small $\lambda$.
+For $T = dP_a/d\bar P$, $\E_{\bar P}[T] = 1$ and
 $\E_{P_a}[T] = \int (dP_a/d\bar P)^2\, d\bar P = 1 + \chi^2(P_a\|\bar P)$.
 \end{proof}
 
@@ -349,8 +358,8 @@ Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
 \begin{enumerate}
   \item[(i)] (Ceiling.) $g_M \le \KL(Q\|P)$ for every $M$ and every score.
   \item[(ii)] (Unlimited budget.) As $M \to \infty$,
-        $E^{(M)} \to (d\hat Q/dP)(X)$ almost surely, and
-        $g_\infty = \E_Q[\log (d\hat Q/dP)(X)] = \KL(Q\|P) - \KL(Q\|\hat Q)$.
+        $E^{(M)} \to (d\hat Q/dP)(X)$ almost surely, and if $s$ is bounded,
+        $g_M \to g_\infty = \E_Q[\log (d\hat Q/dP)(X)] = \KL(Q\|P) - \KL(Q\|\hat Q)$.
   \item[(iii)] (Finite budget.) $g_M \ge g_\infty - \log\{1 + (\rho - 1)/(M+1)\}
         \ge g_\infty - (\rho - 1)/(M+1)$.
   \item[(iv)] (Local alternatives.) If $dQ/dP = 1 + \varepsilon g$ and
@@ -655,9 +664,11 @@ $m_{t-1}$ and the expectation under $q_{t-1}$ give the second inequality.
 
 A predictive bet built from an approximate posterior is therefore never worse
 than the plug-in bet at its mean by more than
-$\frac{G^2}{2}\sum_i \mathrm{tr}\,\Sigma_{i-1}$, which is $O(d\log t)$ when the
-posterior precision grows linearly, the order of the regret in
-Theorem~\ref{thm:simlik}. The Bayesian learning rule \citep{khan2023bayesian}
+$\frac{G^2}{2}\sum_i \mathrm{tr}\,\Sigma_{i-1}$. If the posterior precision grows
+at least linearly, $\Sigma_i^{-1} \succeq \Sigma_0^{-1} + i\,\gamma I$ for some
+$\gamma > 0$, this is at most $\frac{G^2 d}{2\gamma}\log t + O(1)$, the order of
+the regret in Theorem~\ref{thm:simlik}; the constant degrades when the
+features are nearly collinear under the simulator, so that $\gamma$ is small. The Bayesian learning rule \citep{khan2023bayesian}
 provides such a posterior. It approximates a posterior within an exponential
 family by natural-gradient descent on the expected loss plus the Kullback--Leibler
 divergence from the prior; in a stream, one step per observation with the
@@ -702,8 +713,11 @@ I_t = I_{t-1} + J_t(\theta_{t-1}), \qquad
 \end{equation}
 where $s_t$ is the score of the new batch and $J_t$ its Fisher information,
 which for both losses does not depend on the labels, and $I_0$ is a prior
-precision. Under the predictive the score has mean zero, so $\theta_t$, and with
-it the predictive, is a martingale: the update is coherent by construction. The
+precision. Under the predictive the score has mean zero, so $\theta_t$ is a
+martingale, which is the condition for the convergence of predictive resampling
+in parametric martingale posteriors \citep{fong2023martingale}; the predictive
+$\sigma(z^\top\theta_t)$, a nonlinear function of $\theta_t$, is a martingale
+only to first order in the step $I_t^{-1}s_t$. The
 bet uses either the current predictive (the \emph{plug-in predictive}) or an
 average of the factor over $B$ \emph{predictive-resampling} paths, obtained by
 running \eqref{eq:mp} forward from $(\theta_{t-1}, I_{t-1})$ on past batches
@@ -1479,7 +1493,10 @@ $\E_{Q \otimes P^M}[\log E^{(M)} - \log(dQ/dP)(X)] \le
 \log \E_{P \otimes P^M}[E^{(M)}] = 0$.
 
 (ii) By the strong law of large numbers, $M^{-1}\sum_j T(Y_j) \to Z$ almost
-surely, so $E^{(M)} \to T(X)/Z = (d\hat Q/dP)(X)$. Moreover
+surely, so $E^{(M)} \to T(X)/Z = (d\hat Q/dP)(X)$. If $|s| \le B$, the average
+$\{T(X) + S\}/(M+1)$, with $S = \sum_j T(Y_j)$, lies in $[e^{-B}, e^{B}]$, so
+$|\log E^{(M)}| \le 2B$ for every $M$ and dominated convergence gives
+$g_M \to g_\infty$. Moreover
 $\log(d\hat Q/dP) = \log(dQ/dP) - \log(dQ/d\hat Q)$; take expectations under $Q$.
 
 (iii) Let $S = \sum_j T(Y_j)$. Then
