@@ -421,50 +421,132 @@ recomputation.
 
 \subsection{The score as a one-step predictive}\label{sec:scores}
 
-Let $p_t$ be the density of the simulator's next outcome under the action
-taken. Every score $T_t$ defines a predictive density
-$\hat q_t = T_t p_t/\E_{P_t}[T_t]$ for the next real outcome, its tilted null,
-and every predictive density $q_t$ computed from $\G_t$ defines the score
-$T_t = q_t/p_t$. The factor \eqref{eq:mc} does not change when $T_t$ is
-multiplied by a constant, so scores and predictives correspond one to one, and
-the score needs only the ratio $q_t/p_t$, never $p_t$ itself. A classifier
-trained to separate real outcomes from simulator draws with balanced class
-weights estimates this ratio by its logit \citep{thomas2022lfire}. Using the
-estimated odds directly as the bet (the \emph{plug-in}) is not valid, because
-nothing ensures that their expectation under the simulator is one; inserted in
-\eqref{eq:mc}, the same score is exactly valid.
+Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
+$p_t$ for the density of the simulator's next outcome under that action, and
+$q_t$ for the unknown density of the real next outcome. A score is a positive
+function $T_t$ chosen from the past.
 
-By Theorem~\ref{thm:growth}(ii), as $M \to \infty$ the factor tends to
-$\hat q_t(X_t)/p_t(X_t)$, so that for $\lambda = 1$
+\paragraph{From scores to predictives.} Every score defines a probability
+density for the next real outcome, its \emph{tilted null},
+\begin{equation}\label{eq:tilt}
+\hat q_t(x) = \frac{T_t(x)\,p_t(x)}{Z_t},
+\qquad
+Z_t = \E_{P_t}[T_t] = \int T_t(x)\,p_t(x)\,dx,
+\end{equation}
+which integrates to one by construction. It is the simulator's density
+reweighted by the score: the score raises the predicted density where
+$T_t > Z_t$ and lowers it where $T_t < Z_t$. Conversely, any predictive density
+$q$ for the next real outcome, computed from the past, defines the score
+$T_t = q/p_t$, for which $Z_t = \int q = 1$ and $\hat q_t = q$. The factor
+\eqref{eq:mc} is unchanged when $T_t$ is multiplied by a positive constant,
+$c\,T_t(X_t)/\sum_k c\,T_t(Z_{t,k}) = T_t(X_t)/\sum_k T_t(Z_{t,k})$, and so is
+$\hat q_t$. Scores up to a constant and predictive densities are therefore the
+same object, and choosing a score means choosing a forecast of the next real
+outcome. For example, with $p_t = \mathcal N(0,1)$, the linear score
+$T_t(x) = e^{\theta x}$ gives $Z_t = e^{\theta^2/2}$ and
+$\hat q_t = \mathcal N(\theta, 1)$, a forecast that the real outcome is shifted
+by $\theta$, and the quadratic score $T_t(x) = e^{-\gamma x^2/2}$ gives
+$\hat q_t = \mathcal N(0, 1/(1+\gamma))$, a forecast that it is less dispersed.
+
+\paragraph{Only the ratio is needed.} The score is $q/p_t$, a ratio of two
+densities, neither of which needs to be evaluated. A classifier separating
+real outcomes (label 1) from simulator draws (label 0) estimates it: if the two
+classes have prior weights $\omega$ and $1-\omega$, Bayes' theorem gives
 \[
-\log W_t \;\to\; \sum_{i \le t} \log \hat q_i(X_i) - \sum_{i \le t} \log p_i(X_i),
+\Pr(\text{real} \mid x) = \frac{\omega\, q(x)}{\omega\, q(x) + (1-\omega)\, p_t(x)},
+\qquad
+\log\frac{\Pr(\text{real} \mid x)}{\Pr(\text{simulated} \mid x)}
+= \log\frac{q(x)}{p_t(x)} + \log\frac{\omega}{1-\omega},
 \]
-the prequential likelihood ratio \citep{dawid1984present} of the forecaster
-$(\hat q_i)$ against the simulator. The monitor rejects when a forecaster that
-uses only the past has predicted the real outcomes $1/\alpha$ times better than
-the simulator did. Validity comes from exchangeability; power is a matter of
-prediction.
+so the classifier's logit is the log ratio up to an additive constant, which is
+zero with balanced class weights \citep{thomas2022lfire} and in any case
+cancels in \eqref{eq:mc}.
 
-This is the point of view of the predictive approach to Bayesian inference. In
-a Bayesian model the one-step predictives
-$q_t(x) = \int q_\theta(x)\,\pi_{t-1}(d\theta)$ are derived from a prior and a
-likelihood, but they also determine the joint law of the observations, and for
-exchangeable sequences de Finetti's theorem recovers the prior and the
-likelihood from them. \citet{fong2023martingale} take the predictive sequence as
-the primitive: one specifies a rule $q_{t+1} = \mathcal U_t(q_t, X_t)$, and
-recovers posterior uncertainty by imputing future outcomes from the
-predictives; the imputation converges when the predictives form a martingale,
-$\E_{X \sim q_t}[\mathcal U_t(q_t, X)(x)] = q_t(x)$, the conditionally
-identically distributed sequences of \citet{berti2004limit}. The monitor needs
-only the first half of this construction, a rule that produces the next
-predictive once $X_t$ has been observed, and it never imputes. The rule is not
-optional. The bet must be fixed before the outcome is seen, which excludes
-refitting on data that include $X_t$. The growth rate is the one-step log score
-of the rule, so a rule built to predict the next outcome optimises the
-objective that determines power. Early bets must be cautious, because an
-overconfident score can lose all its growth (Theorem~\ref{thm:growth}), and a
-predictive hedges over what has not yet been learned. And the rule must be
-computable from simulations alone.
+\paragraph{Why the Monte Carlo normalisation is needed.} Using the estimated
+odds directly as the bet, $E^{\mathrm{plug}}_t = T_t(X_t)$ (the \emph{plug-in}),
+has conditional mean $\E_{P_t}[T_t] = Z_t$ under the null, which is one only if
+the estimated ratio integrates exactly to one against the simulator. A learned
+ratio does not. If the estimated log ratio is the true one plus noise,
+$\log T_t = \log(q/p_t) + \varepsilon$ with $\E[\varepsilon] = 0$, then
+$\E[Z_t] = \E[e^{\varepsilon}] > 1$ by Jensen's inequality even when $q = p_t$:
+noise in the learner alone makes the plug-in bets favourable on average under
+the null, and their product grows. This is why an overfitted learner gives so
+many false alarms (Section~\ref{sec:exp-drift}). The factor \eqref{eq:mc}
+replaces the unknown $Z_t$ by its average over the real outcome and the $M$
+simulations,
+\[
+E_t = \frac{T_t(X_t)}{\widehat Z_t},
+\qquad
+\widehat Z_t = \frac{1}{M+1}\Big\{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})\Big\},
+\]
+and Proposition~\ref{prop:exact} shows that this self-normalisation makes the
+conditional mean exactly one under the null, whatever $Z_t$ is.
+
+\paragraph{The wealth is a prequential likelihood ratio.} As $M \to \infty$,
+$\widehat Z_t \to Z_t$ by the law of large numbers, so
+$E_t \to T_t(X_t)/Z_t = \hat q_t(X_t)/p_t(X_t)$ by \eqref{eq:tilt}. With the
+betting fraction $\lambda = 1$, the log wealth therefore tends to
+\begin{equation}\label{eq:prequential-wealth}
+\log W_t \;=\; \sum_{i \le t} \log E_i \;\to\; \sum_{i \le t} \log \hat q_i(X_i)
+- \sum_{i \le t} \log p_i(X_i),
+\end{equation}
+the difference between the cumulative log scores of two forecasters, the
+learned one $(\hat q_i)$ and the simulator $(p_i)$, each forecast issued before
+the outcome it is scored on. This is the prequential likelihood ratio of
+\citet{dawid1984present}, and the monitor rejects at level $\alpha$ when the
+learned forecaster has predicted the real outcomes $1/\alpha$ times better than
+the simulator did. Under the truth $Q$ the expected increment is
+\[
+\E_Q\Big[\log\frac{\hat q_i}{p_i}(X_i)\Big]
+= \KL(Q\|P_i) - \KL(Q\|\hat Q_i),
+\]
+the information against the simulator minus the forecaster's own error, which
+is Theorem~\ref{thm:growth}(ii); a finite $M$ multiplies it by about
+$M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). Validity comes from exchangeability;
+power is a matter of prediction.
+
+\paragraph{Predictive updating.} This is the point of view of the predictive
+approach to Bayesian inference. In a Bayesian model with likelihood $q_\theta$
+and prior $\pi_0$, the forecasts are the one-step posterior predictives
+\[
+q_t(x) = \int q_\theta(x \mid x_{1:t-1})\,\pi_{t-1}(d\theta),
+\qquad
+\pi_{t-1}(d\theta) \propto \prod_{i<t} q_\theta(x_i \mid x_{1:i-1})\,\pi_0(d\theta),
+\]
+and by the chain rule \eqref{eq:prequential} they determine the joint law of
+the observations; for exchangeable sequences de Finetti's theorem recovers the
+prior and the likelihood from them. \citet{fong2023martingale} take the
+predictives as the primitive. One specifies an update rule
+\[
+q_{t+1} = \mathcal U_t(q_t, X_t),
+\]
+and recovers posterior uncertainty by \emph{predictive resampling}: draw
+$X_{t+1} \sim q_{t+1}$, update, draw $X_{t+2} \sim q_{t+2}$, and so on; any
+quantity computed from the limiting predictive is then a draw from the
+\emph{martingale posterior}. The imputation converges when the predictives form
+a martingale,
+\[
+\E_{X \sim q_t}\big[\mathcal U_t(q_t, X)(x)\big] = q_t(x) \quad \text{for all } x,
+\]
+that is, when imputing one more outcome does not move the forecast on average;
+such sequences are the conditionally identically distributed sequences of
+\citet{berti2004limit}, and Bayesian predictives satisfy the condition. The
+monitor uses only the first half of this construction, the rule
+$\mathcal U_t$ that turns the current forecast and a new outcome into the next
+forecast, and never imputes. The rule must satisfy four requirements.
+\begin{enumerate}
+  \item It must be sequential: the bet on $X_t$ is fixed before $X_t$ is seen,
+        so the forecast cannot be refitted on data that include $X_t$.
+  \item It should forecast well one step ahead, since by
+        \eqref{eq:prequential-wealth} the growth of the wealth is the one-step
+        log score of the forecasts.
+  \item It should hedge early on: an overconfident forecast can lose all the
+        growth (Theorem~\ref{thm:growth}), and averaging over what has not yet
+        been learned protects against it.
+  \item It must be computable from simulations alone, since $p_t$ is
+        available only as a sampler.
+\end{enumerate}
+Sections~\ref{sec:simlik} and~\ref{sec:blr} give rules that meet all four.
 
 \subsection{Exact Bayesian predictives}
 
