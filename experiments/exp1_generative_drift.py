@@ -39,7 +39,7 @@ from scipy.stats import ks_2samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, ChoiceBLR, MartingalePredictive, Monitor, OnlineRatio  # noqa: E402
+from e4g import BLRRatio, ChoiceBLR, ForestMP, MartingalePredictive, Monitor, OnlineRatio  # noqa: E402
 
 B0, B1 = 0.5, 0.8
 LEARNERS = {"regularised": dict(degree=4, ridge=1.0),
@@ -94,7 +94,13 @@ PRED_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin", degr
                  "mp-logistic-resample-deg6": dict(loss="logistic", mode="resample", degree=6)}
 
 
+FOREST_LEARNERS = {"forest-mixture": dict(mode="mixture"),
+                   "forest-plugin": dict(mode="forest")}
+
+
 def make_learner(name, seed):
+    if name in FOREST_LEARNERS:
+        return ForestMP(seed=seed, **FOREST_LEARNERS[name])
     if name in PRED_LEARNERS:
         sims = banana(np.random.default_rng(10**7 + seed), 2000, B0)
         return MartingalePredictive(seed=seed, **PRED_LEARNERS[name]).fit_scaler(sims)

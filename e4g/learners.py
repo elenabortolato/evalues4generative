@@ -393,3 +393,100 @@ class MartingalePredictive:
         if self.mode == "resample" and self.t % self.refresh == 0:
             self.paths = None
         return self
+
+
+class ForestMP:
+    """Random forest as a martingale posterior under Fong's empirical predictive.
+
+    The exchangeable units are the monitoring steps: step i contributes its
+    real row (label 1, weight 1) and its M simulated rows (label 0, weight 1/M
+    each), so the classes are balanced and a tree's log-odds estimates
+    log q/p. Predictive resampling with the empirical (Polya urn) predictive,
+    P_{n+1} = (n P_n + delta_{x_{n+1}}) / (n + 1), gives the Bayesian bootstrap
+    (Fong, Holmes and Walker, 2023): a draw from the martingale posterior is the
+    data reweighted by Dirichlet(1, ..., 1) weights. Each tree is fitted on the
+    past steps with its own Dirichlet weights, so the forest is a sample from
+    that martingale posterior, and the bet is the posterior-predictive mixture
+
+        E_t = (1/B) sum_b E_t(tree_b),
+
+    where E_t(tree_b) is the Monte Carlo factor of the tree's log-odds score
+    (mode "mixture"), as in Theorem 3. A leaf's log-odds uses a Beta(a, a)
+    prior on its weighted class counts, log((w1 + a) / (w0 + a)), so that
+    leaves supported by little data bet little. Mode "forest" uses the Monte Carlo
+    factor of the forest's average log-odds instead. Trees are refitted every
+    `refit` steps on the past only (the score stays predictable); until the
+    first fit the bet is one.
+    """
+
+    def __init__(self, n_trees: int = 16, max_depth: int = 6, min_leaf: float = 0.02,
+                 refit: int = 25, burn_in: int = 20, max_steps: int = 400,
+                 mode: str = "mixture", feature_map=None, seed: int = 0, leaf_prior: float = 3.0):
+        self.n_trees, self.max_depth, self.min_leaf = n_trees, max_depth, min_leaf
+        self.refit, self.burn_in, self.max_steps = refit, burn_in, max_steps
+        self.mode, self.leaf_prior = mode, leaf_prior
+        self.feature_map = feature_map or (lambda x: np.atleast_2d(x))
+        self.rng = np.random.default_rng(seed)
+        self.steps = []          # (real row (1, d), simulated rows (M, d))
+        self.trees = None
+        self.t = 0
+
+    def fit_scaler(self, x_sim: np.ndarray) -> "ForestMP":
+        return self              # trees are invariant to monotone rescaling
+
+    def _fit(self):
+        from sklearn.tree import DecisionTreeClassifier
+        steps = self.steps[-self.max_steps:]
+        xr = np.vstack([r for r, _ in steps])
+        xs = np.vstack([s for _, s in steps])
+        m = len(steps[0][1])
+        x = np.vstack([xr, xs])
+        y = np.r_[np.ones(len(xr)), np.zeros(len(xs))]
+        step_of = np.r_[np.arange(len(steps)), np.repeat(np.arange(len(steps)), m)]
+        base = np.r_[np.ones(len(xr)), np.full(len(xs), 1.0 / m)]
+        self.trees = []
+        for _ in range(self.n_trees):
+            g = self.rng.dirichlet(np.ones(len(steps))) * len(steps)   # Bayesian bootstrap
+            tree = DecisionTreeClassifier(max_depth=self.max_depth,
+                                          min_weight_fraction_leaf=self.min_leaf,
+                                          max_features="sqrt" if x.shape[1] > 3 else None,
+                                          random_state=int(self.rng.integers(2 ** 31)))
+            w = base * g[step_of]
+            tree.fit(x, y, sample_weight=w)
+            # leaf log-odds with a Beta(a, a) prior on the weighted class counts:
+            # leaves supported by little weight bet little
+            leaf = tree.apply(x)
+            n = tree.tree_.node_count
+            w1 = np.bincount(leaf, weights=w * y, minlength=n)
+            w0 = np.bincount(leaf, weights=w * (1 - y), minlength=n)
+            a = self.leaf_prior
+            self.trees.append((tree, np.log((w1 + a) / (w0 + a))))
+
+    def _scores(self, x):
+        """Log-odds of every tree at rows x: array (B, n)."""
+        x = np.asarray(x, dtype=np.float32)
+        return np.array([table[tree.apply(x)] for tree, table in self.trees])
+
+    def factor(self, x_real: np.ndarray, x_sim: np.ndarray) -> float:
+        if self.trees is None:
+            return 1.0
+        z = self.feature_map(np.vstack([x_real, x_sim]))
+        s = self._scores(z)                                       # (B, M+1)
+        if self.mode == "forest":
+            s = s.mean(0, keepdims=True)
+        s = s - s.max(1, keepdims=True)
+        e = np.exp(s)
+        return float((z.shape[0] * e[:, 0] / e.sum(1)).mean())
+
+    def score(self, x: np.ndarray) -> np.ndarray:
+        if self.trees is None:
+            return np.zeros(len(np.atleast_2d(x)))
+        return self._scores(self.feature_map(np.atleast_2d(x))).mean(0)
+
+    def update(self, x_real: np.ndarray, x_sim: np.ndarray) -> "ForestMP":
+        self.steps.append((self.feature_map(np.atleast_2d(x_real)),
+                           self.feature_map(np.atleast_2d(x_sim))))
+        self.t += 1
+        if self.t >= self.burn_in and self.t % self.refit == 0:
+            self._fit()
+        return self

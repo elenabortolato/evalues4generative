@@ -4,3 +4,4 @@ matplotlib
 pytest
 pandas
 simglucose  # install with --no-deps; only its model parameters are used
+scikit-learn  # random-forest learner (ForestMP)

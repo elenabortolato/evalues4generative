@@ -48,7 +48,7 @@ from scipy.stats import ttest_1samp
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, LambdaMixture, MartingalePredictive, mc_factor, plugin_factor  # noqa: E402
+from e4g import BLRRatio, ForestMP, LambdaMixture, MartingalePredictive, mc_factor, plugin_factor  # noqa: E402
 from e4g import epi_regional as ER  # noqa: E402
 from e4g.epi import LAG  # noqa: E402
 
@@ -108,7 +108,12 @@ MP_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin"),
 LEARNER = "blr"   # or a key of MP_LEARNERS (predictive-first updates)
 
 
+FOREST_LEARNERS = {"forest-mixture": dict(mode="mixture"), "forest-plugin": dict(mode="forest")}
+
+
 def make_learner(scaler_rows):
+    if LEARNER in FOREST_LEARNERS:
+        return ForestMP(**FOREST_LEARNERS[LEARNER])
     if LEARNER in MP_LEARNERS:
         return MartingalePredictive(feature_map=feature_map,
                                     **MP_LEARNERS[LEARNER]).fit_scaler(scaler_rows)
@@ -289,7 +294,7 @@ def summarise(runs, scenario):
 def main():
     import argparse
     ap = argparse.ArgumentParser()
-    ap.add_argument("--learner", default="blr", choices=["blr", *MP_LEARNERS])
+    ap.add_argument("--learner", default="blr", choices=["blr", *MP_LEARNERS, *FOREST_LEARNERS])
     global LEARNER
     LEARNER = ap.parse_args().learner
     t_start = time.time()

@@ -39,7 +39,7 @@ from scipy.stats import norm, ttest_ind
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from e4g import BLRRatio, MartingalePredictive, Monitor, OnlineRatio  # noqa: E402
+from e4g import BLRRatio, ForestMP, MartingalePredictive, Monitor, OnlineRatio  # noqa: E402
 
 K = 3
 MU = np.array([0.0, 0.2, 0.4])
@@ -72,7 +72,12 @@ MP_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin"),
                "mp-choice-resample": dict(loss="choice", mode="resample", prior_var=0.03)}
 
 
+FOREST_LEARNERS = {"forest-mixture": dict(mode="mixture"), "forest-plugin": dict(mode="forest")}
+
+
 def learner(kind="refit", seed=0):
+    if kind in FOREST_LEARNERS:
+        return ForestMP(seed=seed, **FOREST_LEARNERS[kind])
     if kind == "refit":
         return OnlineRatio(ridge=1.0, feature_map=arm_features)
     # BLR: scaler from twin draws on random arms, independent of the data
