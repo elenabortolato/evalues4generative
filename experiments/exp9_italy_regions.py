@@ -108,7 +108,9 @@ MP_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin"),
 LEARNER = "blr"   # or a key of MP_LEARNERS (predictive-first updates)
 
 
-FOREST_LEARNERS = {"forest-mixture": dict(mode="mixture"), "forest-plugin": dict(mode="forest")}
+FOREST_LEARNERS = {"forest-mixture": dict(mode="mixture"), "forest-plugin": dict(mode="forest"),
+                   # weekly data: fit early and often (53 steps in all)
+                   "forest-mixture-early": dict(mode="mixture", burn_in=5, refit=5)}
 
 
 def make_learner(scaler_rows):

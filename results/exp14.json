@@ -59,6 +59,26 @@
     "reject": 0.6425,
     "median_stop": 362.5
    }
+  },
+  "forest-mixture": {
+   "null": {
+    "reject": 0.045,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.605,
+    "median_stop": 419.5
+   }
+  },
+  "forest-plugin": {
+   "null": {
+    "reject": 0.045,
+    "median_stop": null
+   },
+   "alt": {
+    "reject": 0.62,
+    "median_stop": 410.5
+   }
   }
  },
  "bandit": {
@@ -147,6 +167,28 @@
     "mc_uncond": {
      "reject": 1.0,
      "median_stop": 45.0
+    }
+   }
+  },
+  "forest-mixture": {
+   "null": {
+    "mc": {
+     "reject": 0.02,
+     "median_stop": null
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 86.0
+    }
+   },
+   "alt": {
+    "mc": {
+     "reject": 0.9975,
+     "median_stop": 63.0
+    },
+    "mc_uncond": {
+     "reject": 1.0,
+     "median_stop": 57.0
     }
    }
   }

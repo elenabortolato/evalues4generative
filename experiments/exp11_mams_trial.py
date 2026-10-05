@@ -174,7 +174,9 @@ MP_LEARNERS = {"mp-logistic-plugin": dict(loss="logistic", mode="plugin"),
                "mp-logistic-resample": dict(loss="logistic", mode="resample"),
                "mp-choice-plugin": dict(loss="choice", mode="plugin", prior_var=0.03),
                "mp-choice-resample": dict(loss="choice", mode="resample", prior_var=0.03)}
-FOREST_LEARNERS = {"forest-mixture": dict(mode="mixture"), "forest-plugin": dict(mode="forest")}
+FOREST_LEARNERS = {"forest-mixture": dict(mode="mixture"), "forest-plugin": dict(mode="forest"),
+                   # per-arm monitors of arms dropped early see ~10 days: fit early and often
+                   "forest-mixture-early": dict(mode="mixture", burn_in=5, refit=10)}
 LEARNER = "logistic"   # or "choice" (BLR on the simulation likelihood), or a key of MP_LEARNERS
 
 

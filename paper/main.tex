@@ -810,6 +810,25 @@ ten steps). The two routes differ in where uncertainty comes from: a Gaussian
 approximation of a posterior, or simulation from the predictive. Both give valid
 bets.
 
+The predictive rule need not be parametric. The simplest rule of
+\citet{fong2023martingale} is the empirical predictive, under which the next
+observation is a copy of a past one, $P_{n+1} = (nP_n + \delta_{x_{n+1}})/(n+1)$;
+predictive resampling with it is a P\'olya urn, and its martingale posterior is
+the Bayesian bootstrap, which reweights the data by
+$\mathrm{Dirichlet}(1, \ldots, 1)$ weights. Any learner can therefore be made a
+martingale-posterior learner. We do this for a random forest: the exchangeable
+units are the monitoring steps, each contributing its real outcome (label one,
+weight one) and its $M$ simulations (label zero, weight $1/M$), and each of $B$
+trees is fitted to the past steps with its own Dirichlet weights, so that the
+forest is a sample from the martingale posterior. A leaf's score is its
+log-odds under a $\mathrm{Beta}(a, a)$ prior on its weighted class counts,
+$\log\{(w_1 + a)/(w_0 + a)\}$, so that leaves supported by little data bet
+little, and the bet is the posterior-predictive mixture
+$\bar E_t = B^{-1}\sum_b E_t(\mathrm{tree}_b)$, as in Theorem~\ref{thm:simlik};
+each tree is fitted on the past only, so the mixture is exactly fair, and the
+first inequality of Proposition~\ref{prop:approx} applies. The trees are
+refitted every few steps ($B = 16$, depth at most 6, $a = 3$).
+
 Under a Gaussian posterior the logit could also be scored on the
 ratio scale, $\log\E_q[e^{z^\top\theta}] = \mu + v/2$, which is the predictive
 of Propositions~\ref{prop:bayesopt} and~\ref{prop:bayes} when the posterior is
@@ -899,7 +918,10 @@ $\bar E_t = B^{-1}\sum_b E_t(\theta^{(b)})$. For the logistic loss, 6' is the
 Newton step of 6 taken at the point $\theta_{t-1}$ rather than averaged over a
 Gaussian posterior: the two versions differ only in where uncertainty comes
 from, a Gaussian approximation ($\kappa$ in step 3) or simulation from the
-predictive (the paths in step 4). In a multi-arm design, one copy of the
+predictive (the paths in step 4). With a random forest under the empirical
+predictive, step 3 uses the trees' leaf log-odds, step 4 averages the factor
+over the trees, and step 6 adds the step to the data and refits the
+Bayesian-bootstrap trees every few steps. In a multi-arm design, one copy of the
 algorithm per arm, betting only on that arm's observations, is combined by e-BH
 at the end (Section~\ref{sec:trial}).
 
@@ -1101,6 +1123,13 @@ loss for predictive-first updates, as it is for the posterior mixture. The
 Gaussian route's advantage comes from its shrinkage: the posterior covariance
 damps early bets for as long as the posterior is wide, whereas truncated
 predictive resampling quickly concentrates around the current predictive.
+The Bayesian-bootstrap forest is valid as well (4.5\% false alarms on the drift
+task over 400 null runs, 2.0\% on the bandit), and it is the slowest learner on
+these problems: a power of 0.61 within 500 steps on the drift, where the
+discrepancy is a smooth change of curvature that a polynomial score represents
+directly and trees approximate by axis-aligned steps, and a median of 63 steps
+on the bandit. The mixture over trees and the forest's mean log-odds perform
+alike.
 
 \begin{table}[t]
 \centering
@@ -1110,7 +1139,10 @@ $\kappa\mu$, ratio-scale $\mu+v/2$, or posterior mean $\mu$) or on the
 simulation likelihood (posterior-predictive mixture bet, or plug-in at the
 posterior mean; prior variance in brackets); predictive update: the
 classifier's predictive updated directly by \eqref{eq:mp}, betting with the
-current predictive (plug-in) or averaging over predictive-resampling paths.}
+current predictive (plug-in) or averaging over predictive-resampling paths;
+Bayesian-bootstrap forest: trees fitted with Dirichlet weights (the martingale
+posterior of the empirical predictive) on the raw outcomes, refitted every 25
+steps from step 20.}
 \label{tab:blr}
 \begin{tabular}{llrrr}
 \toprule
@@ -1127,6 +1159,8 @@ drift, degree 4 & refitted point estimate & 0.030 & 0.990 & 198 \\
  & predictive update, logistic, resampling & 0.022 & 0.802 & 266 \\
  & predictive update, simulation likelihood, plug-in & 0.018 & 0.895 & 243 \\
  & predictive update, simulation likelihood, resampling & 0.010 & 0.920 & 234 \\
+ & Bayesian-bootstrap forest, mixture over trees & 0.045 & 0.605 & 420 \\
+ & Bayesian-bootstrap forest, mean log-odds & 0.045 & 0.620 & 411 \\
 drift, degree 6 & refitted point estimate & 0.028 & 0.838 & 320 \\
  & BLR logistic, posterior mean & 0.033 & 0.940 & 242 \\
  & BLR logistic, probability scale & 0.015 & 0.965 & 214 \\
@@ -1142,6 +1176,7 @@ bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
  & predictive update, logistic, resampling & 0.025 & 1.000 & 42 \\
  & predictive update, simulation likelihood, plug-in & 0.010 & 1.000 & 54 \\
  & predictive update, simulation likelihood, resampling & 0.013 & 1.000 & 57 \\
+ & Bayesian-bootstrap forest, mixture over trees & 0.020 & 0.998 & 63 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1317,6 +1352,12 @@ learners of Section~\ref{sec:blr} are valid as well, with false alarms in 1--5\%
 of trials while the stateless twin raises them in 81--98\%; they detect snacking
 in 99\% of trials after a median of 42--51 participant-days, and e-BH flags D in
 99\% of trials and B in 37--62\%, with A, C and E flagged in at most 2\%.
+The Bayesian-bootstrap forest, refitted every ten participant-days from the
+fifth, is valid (2\% false alarms) and the slowest to detect (a median of 59
+participant-days), and e-BH flags B in 31\% of trials; refitted every 25 days
+from the twentieth, as in the simulation studies, it flags B in only 3\%,
+because an arm dropped at the first interim analysis leaves its own forest
+too few days to be fitted before the arm stops accruing data.
 
 \begin{table}[t]
 \centering
@@ -1336,6 +1377,7 @@ predictive, logistic, plug-in & 0.05 & 0.87 & 0.99 (42) & 0.99 & 0.62 \\
 predictive, logistic, resampling & 0.04 & 0.81 & 0.99 (47) & 0.99 & 0.47 \\
 predictive, simulation likelihood, plug-in & 0.04 & 0.98 & 0.99 (49) & 0.99 & 0.38 \\
 predictive, simulation likelihood, resampling & 0.01 & 0.97 & 0.99 (51) & 0.99 & 0.37 \\
+Bayesian-bootstrap forest & 0.02 & 0.98 & 0.99 (59) & 0.98 & 0.31 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1491,7 +1533,9 @@ the real data the plug-in predictives agree with it on the national alarm (14
 March 2021, or two weeks earlier) and on e-BH, which rejects the twin in all 21
 regions; the resampled predictives are more cautious, with about half as many
 regional alarms and a national alarm in April or June, and with the logistic
-loss e-BH rejects no region at the end of 2021. An analysis of national daily
+loss e-BH rejects no region at the end of 2021. The Bayesian-bootstrap forest,
+refitted every five weeks from the fifth, is valid but slow, with a national
+delay of 15 weeks: each region's forest learns from at most 53 weekly points. An analysis of national daily
 deaths from spring 2020 under the national stringency index, in the
 Supplement, gives an
 early warning of the second wave on 22~September 2020, four weeks before deaths
@@ -1534,6 +1578,7 @@ predictive, logistic, plug-in & 0.014 & 0.00 & 6 & 118 & 28 Feb 2021 & 21 \\
 predictive, logistic, resampling & 0.013 & 0.02 & 6 & 52 & 4 Apr 2021 & 0 \\
 predictive, simulation likelihood, plug-in & 0.003 & 0.01 & 6 & 86 & 14 Mar 2021 & 21 \\
 predictive, simulation likelihood, resampling & 0.005 & 0.01 & 7 & 45 & 6 Jun 2021 & 20 \\
+Bayesian-bootstrap forest & 0.002 & 0.00 & 15 & 32 & 1 Aug 2021 & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
