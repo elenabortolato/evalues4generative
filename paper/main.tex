@@ -359,8 +359,23 @@ false alarms in almost every trial. In practice the method is a loop: observe
 the action $A_t$; draw $M$ simulator outputs under $A_t$ from the current
 state and observe $X_t$; compute $E_t$ from \eqref{eq:mc} with the current
 score and update \eqref{eq:wealth}, rejecting when $W_t \ge 1/\alpha$; and only
-then update the score with $(A_t, X_t, Y_{t,1:M})$. The order of the last two
-steps is what makes the score predictable.
+then update the score with $(A_t, X_t, Y_{t,1:M})$ (Figure~\ref{fig:workflow}).
+The order of the last two steps is what makes the score predictable.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{workflow.png}
+\caption{One step of the procedure. The design chooses the action from the
+past (1); the real system and the simulator are run under that action and
+from the current state (2a, 2b); the current score, fixed before $X_t$ is
+seen, turns the $M+1$ outcomes into the bet $E_t$ (3--4), which updates the
+wealth (5); the null is rejected when the wealth reaches $1/\alpha$, and
+otherwise the learner updates the score with the new outcomes (6) and the
+next step begins. Validity rests on the shaded block alone; the learner
+affects only power. Algorithm~1 (Section~\ref{sec:algorithm}) gives the
+formulas of each step.}
+\label{fig:workflow}
+\end{figure}
 
 %======================================================================
 \section{Power: the growth rate}\label{sec:power}
@@ -546,7 +561,7 @@ recomputation.
 
 Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
 $p_t$ for the density of the simulator's next outcome under that action, and
-$q_t$ for the unknown density of the real next outcome. A score is a positive
+$Q_t$ for the unknown law of the real next outcome. A score is a positive
 function $T_t$ chosen from the past.
 
 \paragraph{From scores to predictives.} Every score defines a probability
@@ -866,16 +881,17 @@ after about $\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps.
 \subsection{Approximate posteriors and the Bayesian learning rule}\label{sec:blr}
 
 The integral in $\bar E_t$ is over $\theta$ only, and any $\G_t$-measurable
-distribution $q_{t-1}$ in place of $\pi_{t-1}$ still gives a valid bet
-$\hat E_t = \int E_t(\theta)\,q_{t-1}(d\theta)$, because $E_t(\theta)$ is fair
+distribution $\tilde\pi_{t-1}$ on $\theta$, an approximate posterior, in
+place of $\pi_{t-1}$ still gives a valid bet
+$\hat E_t = \int E_t(\theta)\,\tilde\pi_{t-1}(d\theta)$, because $E_t(\theta)$ is fair
 for each $\theta$. The price of the approximation is bounded as follows.
 
 \begin{proposition}[Approximate predictive bets]\label{prop:approx}
-Let $q_{t-1}$ be any $\G_t$-measurable distribution on $\mathbb{R}^d$ with mean
+Let $\tilde\pi_{t-1}$ be any $\G_t$-measurable distribution on $\mathbb{R}^d$ with mean
 $m_{t-1}$ and covariance $\Sigma_{t-1}$, and $\|\phi_t\| \le G$. Then
 $\hat E_t$ is an e-value given $\G_t$, and
 \[
-\log \hat E_t \;\ge\; \E_{q_{t-1}}\big[\log E_t(\theta)\big]
+\log \hat E_t \;\ge\; \E_{\tilde\pi_{t-1}}\big[\log E_t(\theta)\big]
 \;\ge\; \log E_t(m_{t-1}) - \frac{G^2}{2}\,\mathrm{tr}\,\Sigma_{t-1}.
 \]
 \end{proposition}
@@ -886,7 +902,7 @@ The function $\theta \mapsto \log E_t(\theta)$ is concave, with gradient
 $\phi_t(Z_{t,0}) - \sum_k w_k \phi_t(Z_{t,k})$ and Hessian
 $-\mathrm{Cov}_w(\phi_t)$, where $w_k \propto e^{\theta^\top\phi_t(Z_{t,k})}$;
 since $\mathrm{Cov}_w(\phi_t) \preceq G^2 I$, a second-order expansion around
-$m_{t-1}$ and the expectation under $q_{t-1}$ give the second inequality.
+$m_{t-1}$ and the expectation under $\tilde\pi_{t-1}$ give the second inequality.
 \end{proof}
 
 A predictive bet built from an approximate posterior is therefore never worse
@@ -900,10 +916,10 @@ provides such a posterior. It approximates a posterior within an exponential
 family by natural-gradient descent on the expected loss plus the Kullback--Leibler
 divergence from the prior; in a stream, one step per observation with the
 previous approximation as the prior \citep{jones2024bong} gives, for a Gaussian
-$q_t = \mathcal N(m_t, S_t^{-1})$ and a per-step loss $\ell_t$,
+$\tilde\pi_t = \mathcal N(m_t, S_t^{-1})$ and a per-step loss $\ell_t$,
 \begin{equation}\label{eq:blr}
-S_t = S_{t-1} + \E_{q_{t-1}}[\nabla^2 \ell_t], \qquad
-m_t = m_{t-1} - S_t^{-1}\, \E_{q_{t-1}}[\nabla \ell_t],
+S_t = S_{t-1} + \E_{\tilde\pi_{t-1}}[\nabla^2 \ell_t], \qquad
+m_t = m_{t-1} - S_t^{-1}\, \E_{\tilde\pi_{t-1}}[\nabla \ell_t],
 \end{equation}
 which is exact Bayesian updating (the Kalman filter) for a Gaussian likelihood
 and one step of online Newton in general. Its cost is $O((M+1)d^2)$ per step,
@@ -912,7 +928,7 @@ with no refitting and no burn-in.
 Two losses are natural. On the simulation
 likelihood, $\ell_t(\theta) = -\log E_t(\theta)$, with gradient
 $\sum_k w_k \phi_t(Z_{t,k}) - \phi_t(Z_{t,0})$ and Hessian
-$\mathrm{Cov}_w(\phi_t)$; expectations under $q_{t-1}$ are computed with fixed
+$\mathrm{Cov}_w(\phi_t)$; expectations under $\tilde\pi_{t-1}$ are computed with fixed
 antithetic nodes, and the bet is the average of $E_t(\theta)$ over the nodes,
 so Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} apply directly.
 Alternatively, $\ell_t$ is the balanced logistic loss of classifying the real
@@ -985,8 +1001,9 @@ validity untouched.
 \subsection{The method in full}\label{sec:algorithm}
 
 The pieces of this section fit together as follows, for the default score, the
-logistic Bayesian learning rule with the probability-scale predictive. Each
-step is followed by the role it plays.
+logistic Bayesian learning rule with the probability-scale predictive; the
+steps are numbered as in Figure~\ref{fig:workflow}. Each step is followed by
+the role it plays.
 
 \paragraph{Algorithm 1 (Monte Carlo e-process with a predictive score).}
 \textbf{Input:} a simulator that can be run under any action from any state; a
