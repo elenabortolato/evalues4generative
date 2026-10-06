@@ -372,9 +372,30 @@ time, condition on $\G_t$ and drop the index. Let $P$ be the simulator law and
 $Q$ the true law of the next outcome, with $Q \ll P$; let $T = e^{s}$ and
 $Z = \E_P[T] < \infty$, and define the \emph{tilted null} $\hat Q$ by
 $d\hat Q/dP = T/Z$. It is the alternative on which the score implicitly bets,
-and a perfect score has $\hat Q = Q$. Write $\rho = \E_Q[T]/Z$, and let
-$g_M = \E_{Q \otimes P^M}[\log E^{(M)}]$ be the growth rate with $M$ simulator
-draws.
+and a perfect score has $\hat Q = Q$. Write $\rho = \E_Q[T]/Z$. Let $X \sim Q$
+and, independently, $Y_1, \ldots, Y_M$ i.i.d.\ $P$, and let
+$E^{(M)} = (M+1)T(X)/\{T(X) + \sum_{j} T(Y_j)\}$ be the factor \eqref{eq:mc}
+computed from them. The \emph{growth rate} with $M$ simulator draws is
+\begin{equation}\label{eq:growthrate}
+g_M = g_M(Q, P, T) = \E_{Q \otimes P^M}\big[\log E^{(M)}\big]
+= \int \log\frac{(M+1)\,T(x)}{T(x) + \sum_{j=1}^M T(y_j)}\;
+Q(dx) \prod_{j=1}^M P(dy_j),
+\end{equation}
+the expected logarithm of one factor when the whole wealth is bet. Since
+$\log E^{(M)} \le \log(M+1)$ it is well defined in $[-\infty, \log(M+1)]$, and
+finite when $s$ is bounded. It is at most zero when $Q = P$, by Jensen's
+inequality and Proposition~\ref{prop:exact}. When a fraction $\lambda$ of the
+wealth is bet, as in each term of \eqref{eq:wealth}, the rate is
+\[
+g_M(\lambda) = g_M(\lambda; Q, P, T)
+= \E_{Q \otimes P^M}\big[\log(1 - \lambda + \lambda E^{(M)})\big],
+\qquad g_M = g_M(1).
+\]
+In the sequential procedure $Q$, $P$ and $T$ are the conditional laws and the
+score at time $t$, and the \emph{conditional growth rate}
+$g_{M,t} = \E[\log E_t \mid \G_t]$ is $g_M$ evaluated at them; it is a
+random variable that depends on the history. We write $g_M$ without arguments
+when $Q$, $P$ and $T$ are clear from the context.
 
 \begin{theorem}[Growth rate]\label{thm:growth}
 Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
@@ -421,7 +442,9 @@ If $1 \in \Lambda$ and the scores are bounded, $|s_t| \le B$, then
 $\log W_t \ge \sum_{i \le t} \log E_i - \log |\Lambda|$, each $\log E_i$ lies
 in $[-2B, \log(M+1)]$, and almost surely
 $\liminf_t t^{-1}\big(\log W_t - \sum_{i \le t} g_{M,i}\big) \ge 0$, where
-$g_{M,i}$ is the conditional growth rate at time $i$. If the average
+$g_{M,i} = \E[\log E_i \mid \G_i]$ is the conditional growth rate at time $i$,
+that is, \eqref{eq:growthrate} evaluated at the conditional laws and the score
+at time $i$. If the average
 conditional growth rate stays above $\bar g > 0$, the test rejects with
 probability one, after about $(\log(1/\alpha) + \log|\Lambda|)/\bar g$ steps.
 \end{corollary}
@@ -444,8 +467,10 @@ In the setting of Proposition~\ref{prop:necessary}, suppose that the laws
 $P_a$ and $\bar P$ and the score $T = e^{s}$, with $|s| \le B$, do not change
 over time, that $\KL(P_a\|\bar P) < \infty$ for every action $a$, and that the
 fraction of the first $t$ steps at which the policy plays $a$ converges to
-$\pi_a$. Let $g_M(a)$ and $g_\infty(a)$ be the growth rates of
-Theorem~\ref{thm:growth} with $Q = P_a$ and $P = \bar P$, and
+$\pi_a$. Let $g_M(a) = g_M(P_a, \bar P, T)$ be the growth rate
+\eqref{eq:growthrate} with the real law $P_a$ in the role of $Q$ and the
+simulator law $\bar P$ in the role of $P$, $g_\infty(a)$ its limit as
+$M \to \infty$, and
 $\hat Q_a = T\bar P/\E_{\bar P}[T]$. Then, under $H_0$:
 \begin{enumerate}
 \item[(i)] $g_\infty(a) = \KL(P_a\|\bar P) - \KL(P_a\|\hat Q_a)$ and
@@ -454,7 +479,7 @@ $\rho_a = \E_{P_a}[T]/\E_{\bar P}[T]$ is the limit of
 Proposition~\ref{prop:necessary}(i). If $1 \in \Lambda$, almost surely
 $\liminf_t t^{-1}\log W_t \ge \sum_a \pi_a\, g_M(a)$.
 \item[(ii)] For every $\lambda$, every $M$ and every score,
-$\E[\log(1 - \lambda + \lambda E_t) \mid \G_t] \le \KL(P_a\|\bar P)
+$g_M(\lambda; P_a, \bar P, T) \le \KL(P_a\|\bar P)
 \le \log\{1 + \chi^2(P_a\|\bar P)\}$, and almost surely
 $\limsup_t t^{-1}\log W_t \le \sum_a \pi_a \KL(P_a\|\bar P)$. The
 likelihood-ratio score attains the bound as $M \to \infty$.
@@ -757,7 +782,9 @@ at most $2D$.
         least $r_t = \sqrt{d/(tG^2)}$ from its boundary, the bound improves to
         $\log \bar W_t \ge \log L_t(\theta_t^*) - \frac d2 \log t
         - \frac d2 \log\frac{e G^2 (2D)^2}{d}$.
-  \item[(iii)] (Growth.) Let $g_{M,i}(\theta) = \E[\log E_i(\theta) \mid \G_i]$.
+  \item[(iii)] (Growth.) Let $g_{M,i}(\theta) = \E[\log E_i(\theta) \mid \G_i]$,
+        the conditional growth rate \eqref{eq:growthrate} of the fixed score
+        $T = e^{\theta^\top\phi}$, and $g_M(\theta) = g_M(Q, P, e^{\theta^\top\phi})$.
         For every $\theta \in \Theta$, almost surely,
         \[
         \liminf_{t \to \infty} \frac1t \Big(\log \bar W_t - \sum_{i \le t} g_{M,i}(\theta)\Big) \ge 0 .
