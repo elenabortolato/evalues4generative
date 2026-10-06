@@ -835,7 +835,14 @@ learning \citep{oord2018representation} and the partial likelihood of
 ranking-based noise-contrastive estimation \citep{ma2018noise}. With a prior
 $\pi_0$ on $\theta$ and posterior $\pi_t \propto \pi_0 L_t$, the
 \emph{posterior-predictive bet} is
-$\bar E_t = \int E_t(\theta)\, \pi_{t-1}(d\theta)$.
+$\bar E_t = \int E_t(\theta)\, \pi_{t-1}(d\theta)$. This posterior,
+$\pi_t(\theta) \propto \pi_0(\theta)\exp\{-\sum_{i \le t}\ell_i(\theta)\}$ with
+$\ell_i = -\log E_i$, is a prequential posterior in the sense of
+\citet{sinharoy2026prequential}, who update generalised posteriors of
+simulator-based forecasting models with a one-step-ahead loss estimated from
+simulations; the particular loss $-\log E_t(\theta)$, with learning rate one,
+is what makes the posterior mixture of the bets an e-process
+(Theorem~\ref{thm:simlik}(i)).
 
 \begin{theorem}[Predictive updating on the simulation likelihood]\label{thm:simlik}
 Suppose the conditions of Theorem~\ref{thm:valid} hold for each fixed $\theta$
@@ -942,7 +949,7 @@ antithetic nodes, and the bet is the average of $E_t(\theta)$ over the nodes,
 so Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} apply directly.
 Alternatively, $\ell_t$ is the balanced logistic loss of classifying the real
 outcome (weight one) against the $M$ simulations (weight $1/M$ each), a
-generalised posterior \citep{bissiri2016general} that identifies the same tilt
+generalised posterior \citep{bissiri2016general,sinharoy2026prequential} that identifies the same tilt
 through noise-contrastive estimation \citep{gutmann2012noise}; with the probit
 approximation $\E_\nu[\sigma(z^\top\theta)] \approx \sigma(\kappa\bar\eta)$,
 $\bar\eta = z^\top\bar\theta$, $v = z^\top S^{-1}z$ and $\kappa = (1+\pi v/8)^{-1/2}$, the
@@ -1797,7 +1804,14 @@ anytime-valid off-policy inference \citep{waudbysmith2024anytime} and adaptive
 auditing of AI systems \citep{zhou2026adaptive} handle adaptivity, but none of
 them uses a simulator as the null; digital-twin validation by re-initialising
 the twin from observed states \citep{ghasemloo2026subtrace} uses the same
-conditioning idea with fixed-sample tests. In bandit multiple testing, one
+conditioning idea with fixed-sample tests. Prequential posteriors
+\citep{sinharoy2026prequential} assimilate data into generative forecasting
+models with intractable likelihoods through a scoring-rule loss estimated from
+simulations, and target the parameter with the best one-step-ahead predictive
+loss under misspecification; their aim is to calibrate the simulator, whereas
+ours is to test it, and the simulation likelihood is the instance of their
+construction, with the logarithmic loss of an exactly fair bet and learning
+rate one, whose posterior mixture is a test martingale. In bandit multiple testing, one
 e-process per arm combined by e-BH controls the false discovery rate under
 arbitrary adaptive sampling \citep{xu2021unified}; there the hypotheses concern
 the arms' effects and the sampling can be chosen to make the tests powerful,
