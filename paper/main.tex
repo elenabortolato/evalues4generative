@@ -669,12 +669,24 @@ forecast, and never imputes. The rule must satisfy four requirements.
   \item It must be computable from simulations alone, since $p_t$ is
         available only as a sampler.
 \end{enumerate}
-Sections~\ref{sec:simlik} and~\ref{sec:blr} give rules that meet all four.
+The rest of the section looks for such a rule. Bayes' theorem is the natural
+first candidate: it is optimal for the log score and gives the Bayes factor
+(Section~\ref{sec:exactbayes}), but it violates the fourth requirement,
+because its normalising constant is an integral against $p_t$. The
+simulation likelihood (Section~\ref{sec:simlik}) restores it by putting the
+Monte Carlo normalisation of \eqref{eq:mc} inside the likelihood, and
+Section~\ref{sec:blr} gives one-step approximations that meet the first
+requirement at a fixed cost per observation.
 
-\subsection{Exact Bayesian predictives}
+\subsection{The Bayesian update rule}\label{sec:exactbayes}
 
-The logarithmic score is strictly proper, so under a Bayesian model the
-posterior predictive is the optimal bet.
+By \eqref{eq:prequential-wealth}, the monitor is paid the log score of its
+forecasts $\hat q_t$. Which forecast should it issue? If the real outcomes
+are described by a model $\{Q_\theta\}$ with prior $\pi_0$, the answer is the
+Bayesian rule: $\mathcal U_t$ is Bayes' theorem, the forecast is the posterior
+predictive $q_t$, and the score is $T_t = q_t/p_t$, whose tilted null
+\eqref{eq:tilt} is $q_t$ itself, with $Z_t = 1$. Because the logarithmic score
+is strictly proper, this is the best bet on average under the model.
 
 \begin{proposition}[The posterior predictive is the Bayes-optimal bet]\label{prop:bayesopt}
 Let $\{Q_\theta\}$ be a model with prior $\pi_0$, under which, given $\theta$,
@@ -697,11 +709,15 @@ the difference between the two sides is
 $\E_{q_t}[\log (\tilde q/q_t)] = -\KL(q_t\|\tilde q) \le 0$.
 \end{proof}
 
-A natural model for the real outcomes is an exponential tilt of the simulator,
-$dQ_\theta/dP = \exp\{\theta^\top \phi(x) - A(\theta)\}$ with
-$A(\theta) = \log \E_P[e^{\theta^\top\phi}]$, and its posterior predictive
-ratio $T_t = \int (dQ_\theta/dP)\, \pi_{t-1}(d\theta)$ turns the process into a
-Bayes factor.
+Which model? Section~\ref{sec:scores} already supplies one. A log-linear
+score $s = \theta^\top\phi$ has the tilted null \eqref{eq:tilt}
+$dQ_\theta/dP = \exp\{\theta^\top \phi(x) - A(\theta)\}$, with
+$A(\theta) = \log \E_P[e^{\theta^\top\phi}] = \log Z(\theta)$, and as $\theta$
+varies these tilted nulls form an exponential family built on the simulator.
+Taking this family as the model for the real outcomes means that the forecast
+is an average of tilted nulls, $q_t = \int Q_\theta\, \pi_{t-1}(d\theta)$, and
+its score $T_t = \int (dQ_\theta/dP)\, \pi_{t-1}(d\theta)$ turns the process into
+a Bayes factor.
 
 \begin{proposition}[Predictive scores give the Bayes factor]\label{prop:bayes}
 With this score $\E_P[T_t] = 1$, the unlimited-budget factor is
@@ -768,8 +784,12 @@ constant of the model. Section~\ref{sec:simlik} gives the analogue of the
 product for a model that can only be sampled, and the averages over posterior
 nodes used to compute it in Section~\ref{sec:blr} are of the same form as the
 sequential Monte Carlo estimate $\hat q_i$. Proposition~\ref{prop:bayes} is, however, only a
-benchmark: Bayes' rule for the tilt needs $A(\theta)$ at every step, and
-$A(\theta)$ is an integral against a law that can only be sampled.
+benchmark: Bayes' rule for the tilt needs $A(\theta) = \log Z(\theta)$ at every
+step and for every $\theta$. This is the normalising constant of
+\eqref{eq:tilt} that the plug-in bet cannot know (Section~\ref{sec:scores}),
+an integral against a law that can only be sampled, and it is exactly what the
+Monte Carlo factor estimates from the $M+1$ outcomes. The next section uses
+that estimate inside the likelihood.
 
 \subsection{The simulation likelihood}\label{sec:simlik}
 
