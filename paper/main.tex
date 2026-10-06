@@ -53,7 +53,7 @@ normalising constant the simulations provide; exact Bayesian updating on this
 simulation likelihood factorises over time and stays, on every sample path,
 within $d\log t$ of the best score chosen in hindsight. The growth rate
 separates a simulation cost, $M/(M+1)$ for local alternatives, from a learning
-cost, $\KL(Q\|\hat Q)$. In a multi-arm multi-stage trial of insulin-dosing
+cost, $\KL(Q\|\tilde Q)$. In a multi-arm multi-stage trial of insulin-dosing
 strategies with futility analyses and re-assignment of participants, the
 monitor controls false alarms, detects departures from the in-silico trial and
 identifies the arms on which the simulator fails, while monitors that ignore
@@ -169,8 +169,8 @@ and on the action taken (Theorem~\ref{thm:valid}); simulating from a mixture
 over actions instead makes the expected bet larger than one under the null,
 with limit $1+\chi^2$ for the likelihood-ratio score, and the wealth grows
 exponentially (Proposition~\ref{prop:necessary}). Second, every score bets on a tilted null
-$\hat Q$, and its growth rate with an unlimited simulation budget is
-$\KL(Q\|P)-\KL(Q\|\hat Q)$; for local alternatives a budget of $M$ simulations
+$\tilde Q$, and its growth rate with an unlimited simulation budget is
+$\KL(Q\|P)-\KL(Q\|\tilde Q)$; for local alternatives a budget of $M$ simulations
 keeps exactly a fraction $M/(M+1)$ of it (Theorem~\ref{thm:growth}). Third,
 exact Bayesian updating on the simulation likelihood gives posterior-predictive
 bets that factorise over time and, on every sample path and with no assumption
@@ -385,9 +385,13 @@ Validity is free; power is not. The time needed to reach $1/\alpha$ is governed
 by the growth rate $\E[\log E_t \mid \G_t]$ \citep{grunwald2024safe}. Fix a
 time, condition on $\G_t$ and drop the index. Let $P$ be the simulator law and
 $Q$ the true law of the next outcome, with $Q \ll P$; let $T = e^{s}$ and
-$Z = \E_P[T] < \infty$, and define the \emph{tilted null} $\hat Q$ by
-$d\hat Q/dP = T/Z$. It is the alternative on which the score implicitly bets,
-and a perfect score has $\hat Q = Q$. Write $\rho = \E_Q[T]/Z$. Let $X \sim Q$
+$Z = \E_P[T] < \infty$, and define the \emph{tilted null} $\tilde Q$ by
+$d\tilde Q/dP = T/Z$, the exponential tilt of the simulator law by the score.
+It is the alternative on which the score implicitly bets, and a perfect score
+has $\tilde Q = Q$. It is not an estimate of $Q$ but a deterministic function of
+the score; throughout, a tilde marks a tilt (or, for $\tilde\pi$, an
+approximation of the posterior), and a hat marks a Monte Carlo or statistical
+estimate, such as $\widehat Z_t$ in Section~\ref{sec:scores}. Write $\rho = \E_Q[T]/Z$. Let $X \sim Q$
 and, independently, $Y_1, \ldots, Y_M$ i.i.d.\ $P$, and let
 $E^{(M)} = (M+1)T(X)/\{T(X) + \sum_{j} T(Y_j)\}$ be the factor \eqref{eq:mc}
 computed from them. The \emph{growth rate} with $M$ simulator draws is
@@ -417,8 +421,8 @@ Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
 \begin{enumerate}
   \item[(i)] (Ceiling.) $g_M \le \KL(Q\|P)$ for every $M$ and every score.
   \item[(ii)] (Unlimited budget.) As $M \to \infty$,
-        $E^{(M)} \to (d\hat Q/dP)(X)$ almost surely, and if $s$ is bounded,
-        $g_M \to g_\infty = \E_Q[\log (d\hat Q/dP)(X)] = \KL(Q\|P) - \KL(Q\|\hat Q)$.
+        $E^{(M)} \to (d\tilde Q/dP)(X)$ almost surely, and if $s$ is bounded,
+        $g_M \to g_\infty = \E_Q[\log (d\tilde Q/dP)(X)] = \KL(Q\|P) - \KL(Q\|\tilde Q)$.
   \item[(iii)] (Finite budget.) $g_M \ge g_\infty - \log\{1 + (\rho - 1)/(M+1)\}
         \ge g_\infty - (\rho - 1)/(M+1)$.
   \item[(iv)] (Local alternatives.) If $dQ/dP = 1 + \varepsilon g$ and
@@ -431,16 +435,16 @@ Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
 \end{theorem}
 
 Part (i) is the log-optimality of the likelihood ratio. When the score is the
-likelihood ratio, $\hat Q = Q$ and (ii) is the limit in Theorem~1 of
+likelihood ratio, $\tilde Q = Q$ and (ii) is the limit in Theorem~1 of
 \citet{dombowsky2026besag}; part (iii) is their Theorem~3, rewritten with the
 tilted null. What is new is the reading of an arbitrary score through
-$\hat Q$ in (ii), and the local constant in (iv), which factorises the
+$\tilde Q$ in (ii), and the local constant in (iv), which factorises the
 efficiency relative to the oracle likelihood ratio into a simulation term and
 a learning term,
 \[
 \frac{g_M}{\KL(Q\|P)} \approx
 \underbrace{\frac{M}{M+1}}_{\text{simulation}} \times
-\underbrace{\Big(1 - \frac{\KL(Q\|\hat Q)}{\KL(Q\|P)}\Big)}_{\text{learning}}.
+\underbrace{\Big(1 - \frac{\KL(Q\|\tilde Q)}{\KL(Q\|P)}\Big)}_{\text{learning}}.
 \]
 One draw per observation halves the growth rate and so roughly doubles the time
 to detection; nine draws keep 90\% and sixteen 94\%. Away from the local regime,
@@ -519,9 +523,9 @@ $\pi_a$. Let $g_M(a) = g_M(P_a, \bar P, T)$ be the growth rate
 \eqref{eq:growthrate} with the real law $P_a$ in the role of $Q$ and the
 simulator law $\bar P$ in the role of $P$, $g_\infty(a)$ its limit as
 $M \to \infty$, and
-$\hat Q_a = T\bar P/\E_{\bar P}[T]$. Then, under $H_0$:
+$\tilde Q_a = T\bar P/\E_{\bar P}[T]$. Then, under $H_0$:
 \begin{enumerate}
-\item[(i)] $g_\infty(a) = \KL(P_a\|\bar P) - \KL(P_a\|\hat Q_a)$ and
+\item[(i)] $g_\infty(a) = \KL(P_a\|\bar P) - \KL(P_a\|\tilde Q_a)$ and
 $g_M(a) \ge g_\infty(a) - (\rho_a - 1)/(M+1)$, where
 $\rho_a = \E_{P_a}[T]/\E_{\bar P}[T]$ is the limit of
 Proposition~\ref{prop:necessary}(i). If $1 \in \Lambda$, almost surely
@@ -567,7 +571,7 @@ function $T_t$ chosen from the past.
 \paragraph{From scores to predictives.} Every score defines a probability
 density for the next real outcome, its \emph{tilted null},
 \begin{equation}\label{eq:tilt}
-\hat q_t(x) = \frac{T_t(x)\,p_t(x)}{Z_t},
+\tilde q_t(x) = \frac{T_t(x)\,p_t(x)}{Z_t},
 \qquad
 Z_t = \E_{P_t}[T_t] = \int T_t(x)\,p_t(x)\,dx,
 \end{equation}
@@ -575,16 +579,16 @@ which integrates to one by construction. It is the simulator's density
 reweighted by the score: the score raises the predicted density where
 $T_t > Z_t$ and lowers it where $T_t < Z_t$. Conversely, any predictive density
 $q$ for the next real outcome, computed from the past, defines the score
-$T_t = q/p_t$, for which $Z_t = \int q = 1$ and $\hat q_t = q$. The factor
+$T_t = q/p_t$, for which $Z_t = \int q = 1$ and $\tilde q_t = q$. The factor
 \eqref{eq:mc} is unchanged when $T_t$ is multiplied by a positive constant,
 $c\,T_t(X_t)/\sum_k c\,T_t(Z_{t,k}) = T_t(X_t)/\sum_k T_t(Z_{t,k})$, and so is
-$\hat q_t$. Scores up to a constant and predictive densities are therefore the
+$\tilde q_t$. Scores up to a constant and predictive densities are therefore the
 same object, and choosing a score means choosing a forecast of the next real
 outcome. For example, with $p_t = \mathcal N(0,1)$, the linear score
 $T_t(x) = e^{\theta x}$ gives $Z_t = e^{\theta^2/2}$ and
-$\hat q_t = \mathcal N(\theta, 1)$, a forecast that the real outcome is shifted
+$\tilde q_t = \mathcal N(\theta, 1)$, a forecast that the real outcome is shifted
 by $\theta$, and the quadratic score $T_t(x) = e^{-\gamma x^2/2}$ gives
-$\hat q_t = \mathcal N(0, 1/(1+\gamma))$, a forecast that it is less dispersed.
+$\tilde q_t = \mathcal N(0, 1/(1+\gamma))$, a forecast that it is less dispersed.
 
 \paragraph{Only the ratio is needed.} The score is $q/p_t$, a ratio of two
 densities, neither of which needs to be evaluated. A classifier separating
@@ -622,21 +626,21 @@ conditional mean exactly one under the null, whatever $Z_t$ is.
 
 \paragraph{The wealth is a prequential likelihood ratio.} As $M \to \infty$,
 $\widehat Z_t \to Z_t$ by the law of large numbers, so
-$E_t \to T_t(X_t)/Z_t = \hat q_t(X_t)/p_t(X_t)$ by \eqref{eq:tilt}. With the
+$E_t \to T_t(X_t)/Z_t = \tilde q_t(X_t)/p_t(X_t)$ by \eqref{eq:tilt}. With the
 betting fraction $\lambda = 1$, the log wealth therefore tends to
 \begin{equation}\label{eq:prequential-wealth}
-\log W_t \;=\; \sum_{i \le t} \log E_i \;\to\; \sum_{i \le t} \log \hat q_i(X_i)
+\log W_t \;=\; \sum_{i \le t} \log E_i \;\to\; \sum_{i \le t} \log \tilde q_i(X_i)
 - \sum_{i \le t} \log p_i(X_i),
 \end{equation}
 the difference between the cumulative log scores of two forecasters, the
-learned one $(\hat q_i)$ and the simulator $(p_i)$, each forecast issued before
+learned one $(\tilde q_i)$ and the simulator $(p_i)$, each forecast issued before
 the outcome it is scored on. This is the prequential likelihood ratio of
 \citet{dawid1984present}, and the monitor rejects at level $\alpha$ when the
 learned forecaster has predicted the real outcomes $1/\alpha$ times better than
 the simulator did. Under the truth $Q$ the expected increment is
 \[
-\E_Q\Big[\log\frac{\hat q_i}{p_i}(X_i)\Big]
-= \KL(Q\|P_i) - \KL(Q\|\hat Q_i),
+\E_Q\Big[\log\frac{\tilde q_i}{p_i}(X_i)\Big]
+= \KL(Q\|P_i) - \KL(Q\|\tilde Q_i),
 \]
 the information against the simulator minus the forecaster's own error, which
 is Theorem~\ref{thm:growth}(ii); a finite $M$ multiplies it by about
@@ -696,7 +700,7 @@ requirement at a fixed cost per observation.
 \subsection{The Bayesian update rule}\label{sec:exactbayes}
 
 By \eqref{eq:prequential-wealth}, the monitor is paid the log score of its
-forecasts $\hat q_t$. Which forecast should it issue? If the real outcomes
+forecasts $\tilde q_t$. Which forecast should it issue? If the real outcomes
 are described by a model $\{Q_\theta\}$ with prior $\pi_0$, the answer is the
 Bayesian rule: $\mathcal U_t$ is Bayes' theorem, the forecast is the posterior
 predictive $q_t$, and the score is $T_t = q_t/p_t$, whose tilted null
@@ -1025,7 +1029,7 @@ $W_0 = 1$.
         \]
         --- $s_{t-1}$ is the predictive log-odds of ``real'' against
         ``simulated'', an estimate of $\log(q/p)$ shrunk where the posterior is
-        uncertain; it forecasts $\hat q_t \propto p_t\, e^{s_{t-1}}$
+        uncertain; it forecasts $\tilde q_t \propto p_t\, e^{s_{t-1}}$
         \eqref{eq:tilt}. Clipping at $B$ (we use $B = 30$) keeps the score
         predictable, so validity is unaffected, and makes
         Corollary~\ref{cor:cumulative}(ii) apply.
@@ -1034,13 +1038,13 @@ $W_0 = 1$.
         E_t = \frac{(M+1)\, e^{s_{t-1}(X_t)}}{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}} .
         \]
         --- Exactly fair under $H_0$ (Theorem~\ref{thm:valid}); close to
-        $\hat q_t(X_t)/p_t(X_t)$ for large $M$.
+        $\tilde q_t(X_t)/p_t(X_t)$ for large $M$.
   \item \textbf{Wealth.} $W_t = |\Lambda|^{-1}\sum_{\lambda\in\Lambda}
         \prod_{i\le t}(1-\lambda+\lambda E_i)$; reject $H_0$ when
         $W_t \ge 1/\alpha$. --- A test martingale; its log is the
         prequential likelihood ratio \eqref{eq:prequential-wealth} of the
         forecasts against the simulator, and it grows at about
-        $\frac{M}{M+1}\{\KL(Q\|P) - \KL(Q\|\hat Q)\}$ per step
+        $\frac{M}{M+1}\{\KL(Q\|P) - \KL(Q\|\tilde Q)\}$ per step
         (Theorem~\ref{thm:growth}).
   \item \textbf{Learn.} Only now, with labels $y_0 = 1$ for $X_t$ and $y_j = 0$
         for $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
@@ -1073,7 +1077,7 @@ I_t = I_{t-1} + \sum_{k=0}^{M} w_k\, p_k(1-p_k)\, z_k z_k^\top, \qquad
 \]
 with $p_k = \pi_{t-1}(Z_{t,k})$ and $I_0 = S_0$: Fisher scoring on the
 predictive's own score \eqref{eq:mp}, under which $\theta_t$ is a martingale.
-The forecast is then $\hat q_t \propto p_t\, \pi_{t-1}/(1-\pi_{t-1})$, the
+The forecast is then $\tilde q_t \propto p_t\, \pi_{t-1}/(1-\pi_{t-1})$, the
 current predictive odds with no shrinkage. To carry uncertainty without a
 posterior, step 4 averages the factor over $B$ predictive-resampling paths
 $\theta^{(b)}$, obtained by running 6' forward from $(\theta_{t-1}, I_{t-1})$ on
@@ -1194,7 +1198,7 @@ stopping time at $M = 1$ is 1.8 times that at $M = 64$ (371 against 207 steps),
 close to the factor 2 predicted by Theorem~\ref{thm:growth}(iv); for larger $M$
 the ratios are smaller, as part of the stopping time is spent learning the
 score. Second, with $P = \mathcal N(0,1)$, $Q = \mathcal N(\delta, 1)$ and
-$T(x) = e^{\theta x}$, for which $\hat Q = \mathcal N(\theta, 1)$,
+$T(x) = e^{\theta x}$, for which $\tilde Q = \mathcal N(\theta, 1)$,
 $g_\infty = \theta\delta - \theta^2/2$ and $\rho = e^{\theta\delta}$ are
 explicit, the ceiling (i) and the lower bound (iii) of
 Theorem~\ref{thm:growth} hold in all 56 configurations, and for $\delta = 0.25$
@@ -1869,11 +1873,11 @@ $\E_{Q \otimes P^M}[\log E^{(M)} - \log(dQ/dP)(X)] \le
 \log \E_{P \otimes P^M}[E^{(M)}] = 0$.
 
 (ii) By the strong law of large numbers, $M^{-1}\sum_j T(Y_j) \to Z$ almost
-surely, so $E^{(M)} \to T(X)/Z = (d\hat Q/dP)(X)$. If $|s| \le B$, the average
+surely, so $E^{(M)} \to T(X)/Z = (d\tilde Q/dP)(X)$. If $|s| \le B$, the average
 $\{T(X) + S\}/(M+1)$, with $S = \sum_j T(Y_j)$, lies in $[e^{-B}, e^{B}]$, so
 $|\log E^{(M)}| \le 2B$ for every $M$ and dominated convergence gives
 $g_M \to g_\infty$. Moreover
-$\log(d\hat Q/dP) = \log(dQ/dP) - \log(dQ/d\hat Q)$; take expectations under $Q$.
+$\log(d\tilde Q/dP) = \log(dQ/dP) - \log(dQ/d\tilde Q)$; take expectations under $Q$.
 
 (iii) Let $S = \sum_j T(Y_j)$. Then
 $\log E^\infty - \log E^{(M)} = \log\{(T(X) + S)/((M+1)Z)\}$. Conditioning on $X$
@@ -2013,7 +2017,7 @@ increments $\log e_\lambda$ are bounded, because $|s| \le B$ keeps $E_t$ in
 $[e^{-2B}, M+1]$, so the martingale strong law gives
 $\limsup_t t^{-1}\sum_{i \le t}\log e_{\lambda,i} \le \sum_a \pi_a \KL(P_a\|\bar P)$
 almost surely; $W_t$ is at most the largest of the $|\Lambda|$ products, which
-gives the bound on $W_t$. For the likelihood-ratio score, $\hat Q_a = P_a$ and
+gives the bound on $W_t$. For the likelihood-ratio score, $\tilde Q_a = P_a$ and
 $g_\infty(a) = \KL(P_a\|\bar P)$ by Theorem~\ref{thm:growth}(ii).
 
 (iii) For every measurable set $A$, $\bar P(A) \ge u_a P_a(A)$, so
