@@ -53,7 +53,7 @@ normalising constant the simulations provide; exact Bayesian updating on this
 simulation likelihood factorises over time and stays, on every sample path,
 within $d\log t$ of the best score chosen in hindsight. The growth rate
 separates a simulation cost, $M/(M+1)$ for local alternatives, from a learning
-cost, $\KL(Q\|\tilde Q)$. In a multi-arm multi-stage trial of insulin-dosing
+cost, $\KL(Q\|F)$. In a multi-arm multi-stage trial of insulin-dosing
 strategies with futility analyses and re-assignment of participants, the
 monitor controls false alarms, detects departures from the in-silico trial and
 identifies the arms on which the simulator fails, while monitors that ignore
@@ -103,14 +103,14 @@ likelihood $m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,\pi_
 gives
 \begin{equation}\label{eq:prequential}
 \mathrm{BF}_t = \frac{m(x_{1:t})}{p_0(x_{1:t})}
-= \prod_{i=1}^{t} \frac{q_i(x_i)}{p_0(x_i \mid x_{1:i-1})},
+= \prod_{i=1}^{t} \frac{m_i(x_i)}{p_0(x_i \mid x_{1:i-1})},
 \qquad
-q_i(x) = \frac{m(x_{1:i-1}, x)}{m(x_{1:i-1})} = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta),
+m_i(x) = \frac{m(x_{1:i-1}, x)}{m(x_{1:i-1})} = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta),
 \end{equation}
-where $\pi_{i-1}$ is the posterior after $i-1$ observations, so that $q_i$ is
+where $\pi_{i-1}$ is the posterior after $i-1$ observations, so that $m_i$ is
 the posterior predictive of the $i$-th observation, computed before it is seen.
-Each factor has expectation $\int q_i = 1$ under the null, and
-$\log \mathrm{BF}_t = \sum_i \log q_i(x_i) - \sum_i \log p_0(x_i \mid x_{1:i-1})$
+Each factor has expectation $\int m_i = 1$ under the null, and
+$\log \mathrm{BF}_t = \sum_i \log m_i(x_i) - \sum_i \log p_0(x_i \mid x_{1:i-1})$
 compares the cumulative log scores of two forecasters, the prequential form of
 the marginal likelihood \citep{dawid1984present}; for i.i.d.\ data it equals the
 best log likelihood ratio in the model minus $(d/2)\log t + O_P(1)$
@@ -169,8 +169,8 @@ and on the action taken (Theorem~\ref{thm:valid}); simulating from a mixture
 over actions instead makes the expected bet larger than one under the null,
 with limit $1+\chi^2$ for the likelihood-ratio score, and the wealth grows
 exponentially (Proposition~\ref{prop:necessary}). Second, every score bets on a tilted null
-$\tilde Q$, and its growth rate with an unlimited simulation budget is
-$\KL(Q\|P)-\KL(Q\|\tilde Q)$; for local alternatives a budget of $M$ simulations
+$F$, and its growth rate with an unlimited simulation budget is
+$\KL(Q\|P)-\KL(Q\|F)$; for local alternatives a budget of $M$ simulations
 keeps exactly a fraction $M/(M+1)$ of it (Theorem~\ref{thm:growth}). Third,
 exact Bayesian updating on the simulation likelihood gives posterior-predictive
 bets that factorise over time and, on every sample path and with no assumption
@@ -215,6 +215,9 @@ are in the Supplement.
 
 \subsection{Setting}\label{sec:setting}
 
+The symbols used throughout are collected in Table~\ref{tab:notation} in the
+Appendix.
+
 At each time $t = 1, 2, \ldots$ an action (or context) $A_t$ is chosen,
 possibly at random, by a policy that may depend on everything observed
 before, including the monitor's own wealth. The real system then produces an
@@ -253,12 +256,12 @@ E_t = \frac{(M+1)\, T_t(X_t)}{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})}.
 \end{equation}
 
 \begin{proposition}[One-step exactness; \citealp{wang2022false}; \citealp{dombowsky2026besag}, Proposition~1]\label{prop:exact}
-Let $Z_0, \ldots, Z_M$ be exchangeable and $T > 0$. Then
-$\E\big[(M+1)\,T(Z_0)/\sum_{k} T(Z_k)\big] = 1$.
+Let $U_0, \ldots, U_M$ be exchangeable and $T > 0$. Then
+$\E\big[(M+1)\,T(U_0)/\sum_{k} T(U_k)\big] = 1$.
 \end{proposition}
 
 \begin{proof}
-The ratios $T(Z_k)/\sum_{k'} T(Z_{k'})$ sum to one and, by exchangeability,
+The ratios $T(U_k)/\sum_{k'} T(U_{k'})$ sum to one and, by exchangeability,
 have equal expectations, each equal to $1/(M+1)$.
 \end{proof}
 
@@ -315,15 +318,15 @@ $\G_t$-measurable score.
 \E[E_t^2 \mid \G_t] \to \frac{\E_{P_a}[T^2]}{(\E_{\bar P}[T])^2}.
 \]
 \item[(ii)] The limit in (i) equals one for every bounded score if and only if
-$P_a = \bar P$. If $P_a \ll \bar P$ and $w = dP_a/d\bar P$, then
+$P_a = \bar P$. If $P_a \ll \bar P$ and $R_a = dP_a/d\bar P$, then
 \[
-\E_{P_a}\Big[\frac{dP_a}{d\bar P}\Big] = \int w^2\, d\bar P
+\E_{P_a}\Big[\frac{dP_a}{d\bar P}\Big] = \int R_a^2\, d\bar P
 = 1 + \chi^2(P_a \,\|\, \bar P),
 \]
-the truncated scores $T_c = \min(w, c) + 1/c$ have limits that tend to
+the truncated scores $T_c = \min(R_a, c) + 1/c$ have limits that tend to
 $1 + \chi^2(P_a\|\bar P) \in (1, \infty]$ as $c \to \infty$ when
-$P_a \ne \bar P$, and if $w$ is bounded and bounded away from zero the score
-$T = w$ has limit exactly $1 + \chi^2(P_a\|\bar P)$.
+$P_a \ne \bar P$, and if $R_a$ is bounded and bounded away from zero the score
+$T = R_a$ has limit exactly $1 + \chi^2(P_a\|\bar P)$.
 \item[(iii)] Suppose that on an event $\Omega_0$ there is a finite time $t_0$
 such that, for all $t \ge t_0$, $\E[E_t \mid \G_t] \ge 1 + \mu$ and
 $\E[(E_t - 1)^2 \mid \G_t] \le \sigma^2$ for constants $\mu, \sigma > 0$. If
@@ -385,13 +388,14 @@ Validity is free; power is not. The time needed to reach $1/\alpha$ is governed
 by the growth rate $\E[\log E_t \mid \G_t]$ \citep{grunwald2024safe}. Fix a
 time, condition on $\G_t$ and drop the index. Let $P$ be the simulator law and
 $Q$ the true law of the next outcome, with $Q \ll P$; let $T = e^{s}$ and
-$Z = \E_P[T] < \infty$, and define the \emph{tilted null} $\tilde Q$ by
-$d\tilde Q/dP = T/Z$, the exponential tilt of the simulator law by the score.
+$Z = \E_P[T] < \infty$, and define the \emph{tilted null} $F$ by
+$dF/dP = T/Z$, the exponential tilt of the simulator law by the score.
 It is the alternative on which the score implicitly bets, and a perfect score
-has $\tilde Q = Q$. It is not an estimate of $Q$ but a deterministic function of
-the score; throughout, a tilde marks a tilt (or, for $\tilde\pi$, an
-approximation of the posterior), and a hat marks a Monte Carlo or statistical
-estimate, such as $\widehat Z_t$ in Section~\ref{sec:scores}. Write $\rho = \E_Q[T]/Z$. Let $X \sim Q$
+has $F = Q$. We call $F$ the \emph{forecast} of the score: it is
+not an estimate of $Q$ but a deterministic function of the score. The letters
+for laws are fixed throughout (Table~\ref{tab:notation}): $P$ for the
+simulator, $Q$ for the truth, $F$ for the forecast of a score and $m$ for a
+Bayesian posterior predictive; a hat marks a Monte Carlo estimate. Write $\rho = \E_Q[T]/Z$. Let $X \sim Q$
 and, independently, $Y_1, \ldots, Y_M$ i.i.d.\ $P$, and let
 $E^{(M)} = (M+1)T(X)/\{T(X) + \sum_{j} T(Y_j)\}$ be the factor \eqref{eq:mc}
 computed from them. The \emph{growth rate} with $M$ simulator draws is
@@ -421,30 +425,30 @@ Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
 \begin{enumerate}
   \item[(i)] (Ceiling.) $g_M \le \KL(Q\|P)$ for every $M$ and every score.
   \item[(ii)] (Unlimited budget.) As $M \to \infty$,
-        $E^{(M)} \to (d\tilde Q/dP)(X)$ almost surely, and if $s$ is bounded,
-        $g_M \to g_\infty = \E_Q[\log (d\tilde Q/dP)(X)] = \KL(Q\|P) - \KL(Q\|\tilde Q)$.
+        $E^{(M)} \to (dF/dP)(X)$ almost surely, and if $s$ is bounded,
+        $g_M \to g_\infty = \E_Q[\log (dF/dP)(X)] = \KL(Q\|P) - \KL(Q\|F)$.
   \item[(iii)] (Finite budget.) $g_M \ge g_\infty - \log\{1 + (\rho - 1)/(M+1)\}
         \ge g_\infty - (\rho - 1)/(M+1)$.
-  \item[(iv)] (Local alternatives.) If $dQ/dP = 1 + \varepsilon g$ and
-        $T = e^{\varepsilon h}$ with $g, h$ bounded and $\E_P[g] = 0$, and
+  \item[(iv)] (Local alternatives.) If $dQ/dP = 1 + \varepsilon \psi$ and
+        $T = e^{\varepsilon h}$ with $\psi, h$ bounded and $\E_P[\psi] = 0$, and
         $\tilde h = h - \E_P[h]$, then
         $g_M = \frac{M}{M+1} \cdot \frac{\varepsilon^2}{2}
-        \big(\E_P[g^2] - \E_P[(g - \tilde h)^2]\big) + O(\varepsilon^3)$,
-        while $\KL(Q\|P) = \frac{\varepsilon^2}{2}\E_P[g^2] + O(\varepsilon^3)$.
+        \big(\E_P[\psi^2] - \E_P[(\psi - \tilde h)^2]\big) + O(\varepsilon^3)$,
+        while $\KL(Q\|P) = \frac{\varepsilon^2}{2}\E_P[\psi^2] + O(\varepsilon^3)$.
 \end{enumerate}
 \end{theorem}
 
 Part (i) is the log-optimality of the likelihood ratio. When the score is the
-likelihood ratio, $\tilde Q = Q$ and (ii) is the limit in Theorem~1 of
+likelihood ratio, $F = Q$ and (ii) is the limit in Theorem~1 of
 \citet{dombowsky2026besag}; part (iii) is their Theorem~3, rewritten with the
 tilted null. What is new is the reading of an arbitrary score through
-$\tilde Q$ in (ii), and the local constant in (iv), which factorises the
+$F$ in (ii), and the local constant in (iv), which factorises the
 efficiency relative to the oracle likelihood ratio into a simulation term and
 a learning term,
 \[
 \frac{g_M}{\KL(Q\|P)} \approx
 \underbrace{\frac{M}{M+1}}_{\text{simulation}} \times
-\underbrace{\Big(1 - \frac{\KL(Q\|\tilde Q)}{\KL(Q\|P)}\Big)}_{\text{learning}}.
+\underbrace{\Big(1 - \frac{\KL(Q\|F)}{\KL(Q\|P)}\Big)}_{\text{learning}}.
 \]
 One draw per observation halves the growth rate and so roughly doubles the time
 to detection; nine draws keep 90\% and sixteen 94\%. Away from the local regime,
@@ -519,21 +523,21 @@ In the setting of Proposition~\ref{prop:necessary}, suppose that the laws
 $P_a$ and $\bar P$ and the score $T = e^{s}$, with $|s| \le B$, do not change
 over time, that $\KL(P_a\|\bar P) < \infty$ for every action $a$, and that the
 fraction of the first $t$ steps at which the policy plays $a$ converges to
-$\pi_a$. Let $g_M(a) = g_M(P_a, \bar P, T)$ be the growth rate
+$\varpi_a$. Let $g_M(a) = g_M(P_a, \bar P, T)$ be the growth rate
 \eqref{eq:growthrate} with the real law $P_a$ in the role of $Q$ and the
 simulator law $\bar P$ in the role of $P$, $g_\infty(a)$ its limit as
 $M \to \infty$, and
-$\tilde Q_a = T\bar P/\E_{\bar P}[T]$. Then, under $H_0$:
+$F_a = T\bar P/\E_{\bar P}[T]$. Then, under $H_0$:
 \begin{enumerate}
-\item[(i)] $g_\infty(a) = \KL(P_a\|\bar P) - \KL(P_a\|\tilde Q_a)$ and
+\item[(i)] $g_\infty(a) = \KL(P_a\|\bar P) - \KL(P_a\|F_a)$ and
 $g_M(a) \ge g_\infty(a) - (\rho_a - 1)/(M+1)$, where
 $\rho_a = \E_{P_a}[T]/\E_{\bar P}[T]$ is the limit of
 Proposition~\ref{prop:necessary}(i). If $1 \in \Lambda$, almost surely
-$\liminf_t t^{-1}\log W_t \ge \sum_a \pi_a\, g_M(a)$.
+$\liminf_t t^{-1}\log W_t \ge \sum_a \varpi_a\, g_M(a)$.
 \item[(ii)] For every $\lambda$, every $M$ and every score,
 $g_M(\lambda; P_a, \bar P, T) \le \KL(P_a\|\bar P)
 \le \log\{1 + \chi^2(P_a\|\bar P)\}$, and almost surely
-$\limsup_t t^{-1}\log W_t \le \sum_a \pi_a \KL(P_a\|\bar P)$. The
+$\limsup_t t^{-1}\log W_t \le \sum_a \varpi_a \KL(P_a\|\bar P)$. The
 likelihood-ratio score attains the bound as $M \to \infty$.
 \item[(iii)] If the twin is run under randomised actions,
 $\bar P = \sum_b u_b P_b$ with $u_b > 0$, then
@@ -543,10 +547,10 @@ with $K$ actions drawn uniformly, $\log K$ and $K - 1$.
 \end{corollary}
 
 The proof is in Appendix~\ref{app:proofs}. The false alarm therefore arrives
-after roughly $\log(1/\alpha)/\sum_a \pi_a g_M(a)$ steps: the rate is a
+after roughly $\log(1/\alpha)/\sum_a \varpi_a g_M(a)$ steps: the rate is a
 Kullback--Leibler divergence, not the $\chi^2$ divergence that governs the
 expected bet, and it is largest for a policy that concentrates on one action,
-$\pi_a \to 1$, as Thompson sampling does. The rate vanishes only if the arms
+$\varpi_a \to 1$, as Thompson sampling does. The rate vanishes only if the arms
 have the same law, and with $K$ arms it can never exceed $\log K$ per step.
 Mathematically the corollary is Theorem~\ref{thm:growth} with the roles of the
 laws reassigned, together with the standard bound for the redundancy of a
@@ -565,40 +569,40 @@ recomputation.
 
 Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
 $p_t$ for the density of the simulator's next outcome under that action, and
-$Q_t$ for the unknown law of the real next outcome. A score is a positive
+$Q_t$, with density $q_t$, for the unknown law of the real next outcome. A score is a positive
 function $T_t$ chosen from the past.
 
 \paragraph{From scores to predictives.} Every score defines a probability
 density for the next real outcome, its \emph{tilted null},
 \begin{equation}\label{eq:tilt}
-\tilde q_t(x) = \frac{T_t(x)\,p_t(x)}{Z_t},
+f_t(x) = \frac{T_t(x)\,p_t(x)}{Z_t},
 \qquad
 Z_t = \E_{P_t}[T_t] = \int T_t(x)\,p_t(x)\,dx,
 \end{equation}
 which integrates to one by construction. It is the simulator's density
 reweighted by the score: the score raises the predicted density where
 $T_t > Z_t$ and lowers it where $T_t < Z_t$. Conversely, any predictive density
-$q$ for the next real outcome, computed from the past, defines the score
-$T_t = q/p_t$, for which $Z_t = \int q = 1$ and $\tilde q_t = q$. The factor
+$f$ for the next real outcome, computed from the past, defines the score
+$T_t = f/p_t$, for which $Z_t = \int f = 1$ and $f_t = f$. The factor
 \eqref{eq:mc} is unchanged when $T_t$ is multiplied by a positive constant,
-$c\,T_t(X_t)/\sum_k c\,T_t(Z_{t,k}) = T_t(X_t)/\sum_k T_t(Z_{t,k})$, and so is
-$\tilde q_t$. Scores up to a constant and predictive densities are therefore the
+$c\,T_t(X_t)/\sum_k c\,T_t(U_{t,k}) = T_t(X_t)/\sum_k T_t(U_{t,k})$, and so is
+$f_t$. Scores up to a constant and predictive densities are therefore the
 same object, and choosing a score means choosing a forecast of the next real
 outcome. For example, with $p_t = \mathcal N(0,1)$, the linear score
 $T_t(x) = e^{\theta x}$ gives $Z_t = e^{\theta^2/2}$ and
-$\tilde q_t = \mathcal N(\theta, 1)$, a forecast that the real outcome is shifted
+$f_t = \mathcal N(\theta, 1)$, a forecast that the real outcome is shifted
 by $\theta$, and the quadratic score $T_t(x) = e^{-\gamma x^2/2}$ gives
-$\tilde q_t = \mathcal N(0, 1/(1+\gamma))$, a forecast that it is less dispersed.
+$f_t = \mathcal N(0, 1/(1+\gamma))$, a forecast that it is less dispersed.
 
 \paragraph{Only the ratio is needed.} The score is $q/p_t$, a ratio of two
 densities, neither of which needs to be evaluated. A classifier separating
 real outcomes (label 1) from simulator draws (label 0) estimates it: if the two
-classes have prior weights $\omega$ and $1-\omega$, Bayes' theorem gives
+classes have prior weights $r$ and $1-r$, Bayes' theorem gives
 \[
-\Pr(\text{real} \mid x) = \frac{\omega\, q(x)}{\omega\, q(x) + (1-\omega)\, p_t(x)},
+\Pr(\text{real} \mid x) = \frac{r\, q(x)}{r\, q(x) + (1-r)\, p_t(x)},
 \qquad
 \log\frac{\Pr(\text{real} \mid x)}{\Pr(\text{simulated} \mid x)}
-= \log\frac{q(x)}{p_t(x)} + \log\frac{\omega}{1-\omega},
+= \log\frac{q(x)}{p_t(x)} + \log\frac{r}{1-r},
 \]
 so the classifier's logit is the log ratio up to an additive constant, which is
 zero with balanced class weights \citep{thomas2022lfire} and in any case
@@ -626,21 +630,21 @@ conditional mean exactly one under the null, whatever $Z_t$ is.
 
 \paragraph{The wealth is a prequential likelihood ratio.} As $M \to \infty$,
 $\widehat Z_t \to Z_t$ by the law of large numbers, so
-$E_t \to T_t(X_t)/Z_t = \tilde q_t(X_t)/p_t(X_t)$ by \eqref{eq:tilt}. With the
+$E_t \to T_t(X_t)/Z_t = f_t(X_t)/p_t(X_t)$ by \eqref{eq:tilt}. With the
 betting fraction $\lambda = 1$, the log wealth therefore tends to
 \begin{equation}\label{eq:prequential-wealth}
-\log W_t \;=\; \sum_{i \le t} \log E_i \;\to\; \sum_{i \le t} \log \tilde q_i(X_i)
+\log W_t \;=\; \sum_{i \le t} \log E_i \;\to\; \sum_{i \le t} \log f_i(X_i)
 - \sum_{i \le t} \log p_i(X_i),
 \end{equation}
 the difference between the cumulative log scores of two forecasters, the
-learned one $(\tilde q_i)$ and the simulator $(p_i)$, each forecast issued before
+learned one $(f_i)$ and the simulator $(p_i)$, each forecast issued before
 the outcome it is scored on. This is the prequential likelihood ratio of
 \citet{dawid1984present}, and the monitor rejects at level $\alpha$ when the
 learned forecaster has predicted the real outcomes $1/\alpha$ times better than
 the simulator did. Under the truth $Q$ the expected increment is
 \[
-\E_Q\Big[\log\frac{\tilde q_i}{p_i}(X_i)\Big]
-= \KL(Q\|P_i) - \KL(Q\|\tilde Q_i),
+\E_Q\Big[\log\frac{f_i}{p_i}(X_i)\Big]
+= \KL(Q\|P_i) - \KL(Q\|F_i),
 \]
 the information against the simulator minus the forecaster's own error, which
 is Theorem~\ref{thm:growth}(ii); a finite $M$ multiplies it by about
@@ -651,7 +655,7 @@ power is a matter of prediction.
 approach to Bayesian inference. In a Bayesian model with likelihood $q_\theta$
 and prior $\pi_0$, the forecasts are the one-step posterior predictives
 \[
-q_t(x) = \int q_\theta(x \mid x_{1:t-1})\,\pi_{t-1}(d\theta),
+m_t(x) = \int q_\theta(x \mid x_{1:t-1})\,\pi_{t-1}(d\theta),
 \qquad
 \pi_{t-1}(d\theta) \propto \prod_{i<t} q_\theta(x_i \mid x_{1:i-1})\,\pi_0(d\theta),
 \]
@@ -660,15 +664,15 @@ the observations; for exchangeable sequences de Finetti's theorem recovers the
 prior and the likelihood from them. \citet{fong2023martingale} take the
 predictives as the primitive. One specifies an update rule
 \[
-q_{t+1} = \mathcal U_t(q_t, X_t),
+m_{t+1} = \mathcal U_t(m_t, X_t),
 \]
 and recovers posterior uncertainty by \emph{predictive resampling}: draw
-$X_{t+1} \sim q_{t+1}$, update, draw $X_{t+2} \sim q_{t+2}$, and so on; any
+$X_{t+1} \sim m_{t+1}$, update, draw $X_{t+2} \sim q_{t+2}$, and so on; any
 quantity computed from the limiting predictive is then a draw from the
 \emph{martingale posterior}. The imputation converges when the predictives form
 a martingale,
 \[
-\E_{X \sim q_t}\big[\mathcal U_t(q_t, X)(x)\big] = q_t(x) \quad \text{for all } x,
+\E_{X \sim m_t}\big[\mathcal U_t(m_t, X)(x)\big] = m_t(x) \quad \text{for all } x,
 \]
 that is, when imputing one more outcome does not move the forecast on average;
 such sequences are the conditionally identically distributed sequences of
@@ -700,41 +704,41 @@ requirement at a fixed cost per observation.
 \subsection{The Bayesian update rule}\label{sec:exactbayes}
 
 By \eqref{eq:prequential-wealth}, the monitor is paid the log score of its
-forecasts $\tilde q_t$. Which forecast should it issue? If the real outcomes
+forecasts $f_t$. Which forecast should it issue? If the real outcomes
 are described by a model $\{Q_\theta\}$ with prior $\pi_0$, the answer is the
 Bayesian rule: $\mathcal U_t$ is Bayes' theorem, the forecast is the posterior
-predictive $q_t$, and the score is $T_t = q_t/p_t$, whose tilted null
-\eqref{eq:tilt} is $q_t$ itself, with $Z_t = 1$. Because the logarithmic score
+predictive $m_t$, and the score is $T_t = m_t/p_t$, whose tilted null
+\eqref{eq:tilt} is $m_t$ itself, with $Z_t = 1$. Because the logarithmic score
 is strictly proper, this is the best bet on average under the model.
 
 \begin{proposition}[The posterior predictive is the Bayes-optimal bet]\label{prop:bayesopt}
 Let $\{Q_\theta\}$ be a model with prior $\pi_0$, under which, given $\theta$,
-the outcomes are i.i.d.\ $Q_\theta$ given the past and the action, and let $q_t$
+the outcomes are i.i.d.\ $Q_\theta$ given the past and the action, and let $m_t$
 be the posterior predictive density of $X_t$ given $\G_t$. For every
 $\G_t$-measurable score $T$ with $\E_P[T] < \infty$, the Bayes-expected growth
 satisfies
 \[
 \E\big[\log E_t^\infty \mid \G_t\big] \le
-\E\Big[\log \frac{q_t}{p}(X_t) \Bigm| \G_t\Big]
+\E\Big[\log \frac{m_t}{p}(X_t) \Bigm| \G_t\Big]
 \quad \text{under the Bayesian model,}
 \]
-with equality if and only if $T \propto q_t/p$, $P$-almost everywhere.
+with equality if and only if $T \propto m_t/p$, $P$-almost everywhere.
 \end{proposition}
 
 \begin{proof}
-$E_t^\infty = \tilde q(X_t)/p(X_t)$, where $\tilde q = T p/\E_P[T]$ is a
-density. Under the Bayesian model, $X_t$ given $\G_t$ has density $q_t$, so
+$E_t^\infty = f(X_t)/p(X_t)$, where $f = T p/\E_P[T]$ is a
+density. Under the Bayesian model, $X_t$ given $\G_t$ has density $m_t$, so
 the difference between the two sides is
-$\E_{q_t}[\log (\tilde q/q_t)] = -\KL(q_t\|\tilde q) \le 0$.
+$\E_{m_t}[\log (f/m_t)] = -\KL(m_t\|f) \le 0$.
 \end{proof}
 
 Which model? Section~\ref{sec:scores} already supplies one. A log-linear
 score $s = \theta^\top\phi$ has the tilted null \eqref{eq:tilt}
-$dQ_\theta/dP = \exp\{\theta^\top \phi(x) - A(\theta)\}$, with
-$A(\theta) = \log \E_P[e^{\theta^\top\phi}] = \log Z(\theta)$, and as $\theta$
+$dQ_\theta/dP = \exp\{\theta^\top \phi(x) - \log Z(\theta)\}$, with
+$Z(\theta) = \E_P[e^{\theta^\top\phi}]$, and as $\theta$
 varies these tilted nulls form an exponential family built on the simulator.
 Taking this family as the model for the real outcomes means that the forecast
-is an average of tilted nulls, $q_t = \int Q_\theta\, \pi_{t-1}(d\theta)$, and
+is an average of tilted nulls, $m_t = \int q_\theta\, \pi_{t-1}(d\theta)$, and
 its score $T_t = \int (dQ_\theta/dP)\, \pi_{t-1}(d\theta)$ turns the process into
 a Bayes factor.
 
@@ -763,14 +767,14 @@ and can lose all its growth.
 Computing a Bayes factor as a product of one-step posterior predictives, as in
 \eqref{eq:prequential}, is classical, and it appears in several equivalent
 forms. In Dawid's prequential form \citep{dawid1984present}, the log marginal
-likelihood is the cumulative log score of the forecasts $q_i$, each issued
+likelihood is the cumulative log score of the forecasts $m_i$, each issued
 before $x_i$ is seen,
 \[
-\log m(x_{1:t}) = \sum_{i=1}^{t} \log q_i(x_i),
+\log m(x_{1:t}) = \sum_{i=1}^{t} \log m_i(x_i),
 \qquad
-q_i(x) = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta).
+m_i(x) = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta).
 \]
-In minimum description length, $-\log m(x_{1:t}) = \sum_i \{-\log q_i(x_i)\}$
+In minimum description length, $-\log m(x_{1:t}) = \sum_i \{-\log m_i(x_i)\}$
 is the length of the Bayes universal code, the sum of the lengths of the
 predictive codes \citep{rissanen1984universal,grunwald2007minimum}, and its
 regret against the best code in the model is
@@ -780,12 +784,12 @@ regret against the best code in the model is
 \]
 for i.i.d.\ data under regularity conditions \citep{clarke1990information}.
 In sequential Monte Carlo, the evidence is estimated by the same product: with
-particles $\theta^{(k)}$ and normalised weights $W_{i-1}^{(k)}$ approximating
+particles $\theta^{(k)}$ and normalised weights $\omega_{i-1}^{(k)}$ approximating
 $\pi_{i-1}$,
 \[
-\hat q_i(x_i) = \sum_{k} W_{i-1}^{(k)}\, q_{\theta^{(k)}}(x_i \mid x_{1:i-1}),
+\hat m_i(x_i) = \sum_{k} \omega_{i-1}^{(k)}\, q_{\theta^{(k)}}(x_i \mid x_{1:i-1}),
 \qquad
-\hat m(x_{1:t}) = \prod_{i=1}^{t} \hat q_i(x_i),
+\hat m(x_{1:t}) = \prod_{i=1}^{t} \hat m_i(x_i),
 \]
 and the particles are reweighted by $q_{\theta^{(k)}}(x_i \mid x_{1:i-1})$ and
 resampled as each observation arrives \citep{kong1994sequential,chopin2002sequential}.
@@ -793,17 +797,17 @@ Finally, for exchangeable models, averaging the chain rule over all orderings of
 the observations gives
 \[
 \log m(x_{1:t}) = \sum_{k=0}^{t-1} \binom{t}{k}^{-1} \sum_{|S| = k}
-\frac{1}{t-k} \sum_{j \notin S} \log q(x_j \mid x_S),
+\frac{1}{t-k} \sum_{j \notin S} \log m(x_j \mid x_S),
 \]
-where $q(\cdot \mid x_S)$ is the posterior predictive given the observations in
+where $m(\cdot \mid x_S)$ is the posterior predictive given the observations in
 $S$: the log marginal likelihood is the sum, over training-set sizes, of
 exhaustive leave-$(t-k)$-out cross-validation scores \citep{fong2020marginal}.
-All these forms need the predictive density $q_i$, and hence the normalising
+All these forms need the predictive density $m_i$, and hence the normalising
 constant of the model. Section~\ref{sec:simlik} gives the analogue of the
 product for a model that can only be sampled, and the averages over posterior
 nodes used to compute it in Section~\ref{sec:blr} are of the same form as the
-sequential Monte Carlo estimate $\hat q_i$. Proposition~\ref{prop:bayes} is, however, only a
-benchmark: Bayes' rule for the tilt needs $A(\theta) = \log Z(\theta)$ at every
+sequential Monte Carlo estimate $\hat m_i$. Proposition~\ref{prop:bayes} is, however, only a
+benchmark: Bayes' rule for the tilt needs $Z(\theta)$ at every
 step and for every $\theta$. This is the normalising constant of
 \eqref{eq:tilt} that the plug-in bet cannot know (Section~\ref{sec:scores}),
 an integral against a law that can only be sampled, and it is exactly what the
@@ -814,10 +818,10 @@ that estimate inside the likelihood.
 
 The Monte Carlo factor itself provides the way out. Fix a parameter
 $\theta \in \mathbb{R}^d$ and $\G_t$-measurable features $\phi_t$, write
-$Z_{t,0} = X_t$ and $Z_{t,k} = Y_{t,k}$, and let
+$U_{t,0} = X_t$ and $U_{t,k} = Y_{t,k}$, and let
 \[
-E_t(\theta) = \frac{(M+1)\exp\{\theta^\top\phi_t(Z_{t,0})\}}
-{\sum_{k=0}^{M}\exp\{\theta^\top\phi_t(Z_{t,k})\}}
+E_t(\theta) = \frac{(M+1)\exp\{\theta^\top\phi_t(U_{t,0})\}}
+{\sum_{k=0}^{M}\exp\{\theta^\top\phi_t(U_{t,k})\}}
 \]
 be the factor \eqref{eq:mc} with score $s_t = \theta^\top\phi_t$. Up to the
 constant $M+1$, $E_t(\theta)$ is the probability that a conditional-logit model
@@ -872,7 +876,7 @@ at most $2D$.
 
 Part (i) says that exact Bayesian updating is available once the likelihood is
 the right one: not the likelihood of the real outcome under the tilt, which
-needs $A(\theta)$, but the likelihood of the real outcome's position among the
+needs $Z(\theta)$, but the likelihood of the real outcome's position among the
 simulations, which the simulations normalise. The Bayes factor of
 Proposition~\ref{prop:bayes} is its limit as $M \to \infty$. Part (ii) holds on
 every path, with no assumption on the alternative: the monitor is never more
@@ -885,28 +889,28 @@ after about $\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps.
 \subsection{Approximate posteriors and the Bayesian learning rule}\label{sec:blr}
 
 The integral in $\bar E_t$ is over $\theta$ only, and any $\G_t$-measurable
-distribution $\tilde\pi_{t-1}$ on $\theta$, an approximate posterior, in
+distribution $\nu_{t-1}$ on $\theta$, an approximate posterior, in
 place of $\pi_{t-1}$ still gives a valid bet
-$\hat E_t = \int E_t(\theta)\,\tilde\pi_{t-1}(d\theta)$, because $E_t(\theta)$ is fair
+$E^{\nu}_t = \int E_t(\theta)\,\nu_{t-1}(d\theta)$, because $E_t(\theta)$ is fair
 for each $\theta$. The price of the approximation is bounded as follows.
 
 \begin{proposition}[Approximate predictive bets]\label{prop:approx}
-Let $\tilde\pi_{t-1}$ be any $\G_t$-measurable distribution on $\mathbb{R}^d$ with mean
-$m_{t-1}$ and covariance $\Sigma_{t-1}$, and $\|\phi_t\| \le G$. Then
-$\hat E_t$ is an e-value given $\G_t$, and
+Let $\nu_{t-1}$ be any $\G_t$-measurable distribution on $\mathbb{R}^d$ with mean
+$\bar\theta_{t-1}$ and covariance $\Sigma_{t-1}$, and $\|\phi_t\| \le G$. Then
+$E^{\nu}_t$ is an e-value given $\G_t$, and
 \[
-\log \hat E_t \;\ge\; \E_{\tilde\pi_{t-1}}\big[\log E_t(\theta)\big]
-\;\ge\; \log E_t(m_{t-1}) - \frac{G^2}{2}\,\mathrm{tr}\,\Sigma_{t-1}.
+\log E^{\nu}_t \;\ge\; \E_{\nu_{t-1}}\big[\log E_t(\theta)\big]
+\;\ge\; \log E_t(\bar\theta_{t-1}) - \frac{G^2}{2}\,\mathrm{tr}\,\Sigma_{t-1}.
 \]
 \end{proposition}
 
 \begin{proof}
 Validity follows from Fubini's theorem. The first inequality is Jensen's.
 The function $\theta \mapsto \log E_t(\theta)$ is concave, with gradient
-$\phi_t(Z_{t,0}) - \sum_k w_k \phi_t(Z_{t,k})$ and Hessian
-$-\mathrm{Cov}_w(\phi_t)$, where $w_k \propto e^{\theta^\top\phi_t(Z_{t,k})}$;
+$\phi_t(U_{t,0}) - \sum_k w_k \phi_t(U_{t,k})$ and Hessian
+$-\mathrm{Cov}_w(\phi_t)$, where $w_k \propto e^{\theta^\top\phi_t(U_{t,k})}$;
 since $\mathrm{Cov}_w(\phi_t) \preceq G^2 I$, a second-order expansion around
-$m_{t-1}$ and the expectation under $\tilde\pi_{t-1}$ give the second inequality.
+$\bar\theta_{t-1}$ and the expectation under $\nu_{t-1}$ give the second inequality.
 \end{proof}
 
 A predictive bet built from an approximate posterior is therefore never worse
@@ -920,10 +924,10 @@ provides such a posterior. It approximates a posterior within an exponential
 family by natural-gradient descent on the expected loss plus the Kullback--Leibler
 divergence from the prior; in a stream, one step per observation with the
 previous approximation as the prior \citep{jones2024bong} gives, for a Gaussian
-$\tilde\pi_t = \mathcal N(m_t, S_t^{-1})$ and a per-step loss $\ell_t$,
+$\nu_t = \mathcal N(\bar\theta_t, S_t^{-1})$ and a per-step loss $\ell_t$,
 \begin{equation}\label{eq:blr}
-S_t = S_{t-1} + \E_{\tilde\pi_{t-1}}[\nabla^2 \ell_t], \qquad
-m_t = m_{t-1} - S_t^{-1}\, \E_{\tilde\pi_{t-1}}[\nabla \ell_t],
+S_t = S_{t-1} + \E_{\nu_{t-1}}[\nabla^2 \ell_t], \qquad
+\bar\theta_t = \bar\theta_{t-1} - S_t^{-1}\, \E_{\nu_{t-1}}[\nabla \ell_t],
 \end{equation}
 which is exact Bayesian updating (the Kalman filter) for a Gaussian likelihood
 and one step of online Newton in general. Its cost is $O((M+1)d^2)$ per step,
@@ -931,17 +935,17 @@ with no refitting and no burn-in.
 
 Two losses are natural. On the simulation
 likelihood, $\ell_t(\theta) = -\log E_t(\theta)$, with gradient
-$\sum_k w_k \phi_t(Z_{t,k}) - \phi_t(Z_{t,0})$ and Hessian
-$\mathrm{Cov}_w(\phi_t)$; expectations under $\tilde\pi_{t-1}$ are computed with fixed
+$\sum_k w_k \phi_t(U_{t,k}) - \phi_t(U_{t,0})$ and Hessian
+$\mathrm{Cov}_w(\phi_t)$; expectations under $\nu_{t-1}$ are computed with fixed
 antithetic nodes, and the bet is the average of $E_t(\theta)$ over the nodes,
 so Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} apply directly.
 Alternatively, $\ell_t$ is the balanced logistic loss of classifying the real
 outcome (weight one) against the $M$ simulations (weight $1/M$ each), a
 generalised posterior \citep{bissiri2016general} that identifies the same tilt
 through noise-contrastive estimation \citep{gutmann2012noise}; with the probit
-approximation $\E_q[\sigma(z^\top\theta)] \approx \sigma(\kappa\mu)$,
-$\mu = z^\top m$, $v = z^\top S^{-1}z$ and $\kappa = (1+\pi v/8)^{-1/2}$, the
-score is the predictive log-odds $\kappa\mu$ and is inserted in \eqref{eq:mc}.
+approximation $\E_\nu[\sigma(z^\top\theta)] \approx \sigma(\kappa\bar\eta)$,
+$\bar\eta = z^\top\bar\theta$, $v = z^\top S^{-1}z$ and $\kappa = (1+\pi v/8)^{-1/2}$, the
+score is the predictive log-odds $\kappa\bar\eta$ and is inserted in \eqref{eq:mc}.
 Both scores start at zero, so the monitor starts by not betting, and both
 shrink where the posterior is uncertain. Features are standardised with
 simulator draws only, before any real data are seen, so that the score stays
@@ -953,48 +957,48 @@ weights, by updating their predictive directly, as martingale posteriors do
 $\sigma(z^\top\theta_t)$ for the logistic loss or the softmax
 $e^{\theta_t^\top z_k}/\sum_{k'} e^{\theta_t^\top z_{k'}}$ over the $M+1$
 outcomes for the simulation likelihood, and updates it by Fisher scoring on the
-predictive's own score,
+predictive's own log-likelihood,
 \begin{equation}\label{eq:mp}
 I_t = I_{t-1} + J_t(\theta_{t-1}), \qquad
-\theta_t = \theta_{t-1} + I_t^{-1}\, s_t(\theta_{t-1}),
+\theta_t = \theta_{t-1} - I_t^{-1}\, \nabla_t(\theta_{t-1}),
 \end{equation}
-where $s_t$ is the score of the new batch and $J_t$ its Fisher information,
+where $\nabla_t$ is the gradient of the new batch's loss and $J_t$ its Fisher information,
 which for both losses does not depend on the labels, and $I_0$ is a prior
-precision. Under the predictive the score has mean zero, so $\theta_t$ is a
+precision. Under the predictive the gradient has mean zero, so $\theta_t$ is a
 martingale, which is the condition for the convergence of predictive resampling
 in parametric martingale posteriors \citep{fong2023martingale}; the predictive
 $\sigma(z^\top\theta_t)$, a nonlinear function of $\theta_t$, is a martingale
-only to first order in the step $I_t^{-1}s_t$. The
+only to first order in the step $I_t^{-1}\nabla_t$. The
 bet uses either the current predictive (the \emph{plug-in predictive}) or an
-average of the factor over $B$ \emph{predictive-resampling} paths, obtained by
+average of the factor over $N$ \emph{predictive-resampling} paths, obtained by
 running \eqref{eq:mp} forward from $(\theta_{t-1}, I_{t-1})$ on past batches
 whose labels are drawn from the predictive; this is the martingale posterior's
-uncertainty, truncated at $H$ steps ($B = 16$, $H = \min(t, 200)$, refreshed every
+uncertainty, truncated at $h_{\max}$ steps ($N = 16$, $h_{\max} = \min(t, 200)$, refreshed every
 ten steps). The two routes differ in where uncertainty comes from: a Gaussian
 approximation of a posterior, or simulation from the predictive. Both give valid
 bets.
 
 The predictive rule need not be parametric. The simplest rule of
 \citet{fong2023martingale} is the empirical predictive, under which the next
-observation is a copy of a past one, $P_{n+1} = (nP_n + \delta_{x_{n+1}})/(n+1)$;
+observation is a copy of a past one, $\mathbb P_{n+1} = (n\mathbb P_n + \delta_{x_{n+1}})/(n+1)$;
 predictive resampling with it is a P\'olya urn, and its martingale posterior is
 the Bayesian bootstrap, which reweights the data by
 $\mathrm{Dirichlet}(1, \ldots, 1)$ weights. Any learner can therefore be made a
 martingale-posterior learner. We do this for a random forest: the exchangeable
 units are the monitoring steps, each contributing its real outcome (label one,
-weight one) and its $M$ simulations (label zero, weight $1/M$), and each of $B$
+weight one) and its $M$ simulations (label zero, weight $1/M$), and each of $N$
 trees is fitted to the past steps with its own Dirichlet weights, so that the
 forest is a sample from the martingale posterior. A leaf's score is its
 log-odds under a $\mathrm{Beta}(a, a)$ prior on its weighted class counts,
 $\log\{(w_1 + a)/(w_0 + a)\}$, so that leaves supported by little data bet
 little, and the bet is the posterior-predictive mixture
-$\bar E_t = B^{-1}\sum_b E_t(\mathrm{tree}_b)$, as in Theorem~\ref{thm:simlik};
+$\bar E_t = N^{-1}\sum_b E_t(\mathrm{tree}_b)$, as in Theorem~\ref{thm:simlik};
 each tree is fitted on the past only, so the mixture is exactly fair, and the
 first inequality of Proposition~\ref{prop:approx} applies. The trees are
-refitted every few steps ($B = 16$, depth at most 6, $a = 3$).
+refitted every few steps ($N = 16$, depth at most 6, $a = 3$).
 
 Under a Gaussian posterior the logit could also be scored on the
-ratio scale, $\log\E_q[e^{z^\top\theta}] = \mu + v/2$, which is the predictive
+ratio scale, $\log\E_\nu[e^{z^\top\theta}] = \bar\eta + v/2$, which is the predictive
 of Propositions~\ref{prop:bayesopt} and~\ref{prop:bayes} when the posterior is
 exact; its uncertainty premium $v/2$ over-bets where the approximation is least
 reliable, and it is the worst score in every experiment below. If the system
@@ -1013,7 +1017,7 @@ the role it plays.
 \textbf{Input:} a simulator that can be run under any action from any state; a
 feature map $z(x)$; the number of simulations $M$; the level $\alpha$; the grid
 $\Lambda$ of betting fractions. \textbf{Initialise:} standardise $z$ with
-simulator draws only; set $m_0 = 0$, $S_0 = I$ (vaguer on the intercept), and
+simulator draws only; set $\bar\theta_0 = 0$, $S_0 = I$ (vaguer on the intercept), and
 $W_0 = 1$.
 \begin{enumerate}
   \item \textbf{Action.} Observe the action $A_t$ chosen by the design from the
@@ -1023,13 +1027,13 @@ $W_0 = 1$.
         --- Exchangeable with $X_t$ under $H_0$.
   \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
         \[
-        \mu = z(x)^\top m_{t-1}, \qquad v = z(x)^\top S_{t-1}^{-1} z(x), \qquad
+        \bar\eta = z(x)^\top \bar\theta_{t-1}, \qquad v = z(x)^\top S_{t-1}^{-1} z(x), \qquad
         \kappa = (1 + \pi v/8)^{-1/2}, \qquad
-        s_{t-1}(x) = \mathrm{clip}(\kappa\,\mu,\, -B,\, B) .
+        s_{t-1}(x) = \mathrm{clip}(\kappa\,\bar\eta,\, -B,\, B) .
         \]
         --- $s_{t-1}$ is the predictive log-odds of ``real'' against
         ``simulated'', an estimate of $\log(q/p)$ shrunk where the posterior is
-        uncertain; it forecasts $\tilde q_t \propto p_t\, e^{s_{t-1}}$
+        uncertain; it forecasts $f_t \propto p_t\, e^{s_{t-1}}$
         \eqref{eq:tilt}. Clipping at $B$ (we use $B = 30$) keeps the score
         predictable, so validity is unaffected, and makes
         Corollary~\ref{cor:cumulative}(ii) apply.
@@ -1038,51 +1042,51 @@ $W_0 = 1$.
         E_t = \frac{(M+1)\, e^{s_{t-1}(X_t)}}{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}} .
         \]
         --- Exactly fair under $H_0$ (Theorem~\ref{thm:valid}); close to
-        $\tilde q_t(X_t)/p_t(X_t)$ for large $M$.
+        $f_t(X_t)/p_t(X_t)$ for large $M$.
   \item \textbf{Wealth.} $W_t = |\Lambda|^{-1}\sum_{\lambda\in\Lambda}
         \prod_{i\le t}(1-\lambda+\lambda E_i)$; reject $H_0$ when
         $W_t \ge 1/\alpha$. --- A test martingale; its log is the
         prequential likelihood ratio \eqref{eq:prequential-wealth} of the
         forecasts against the simulator, and it grows at about
-        $\frac{M}{M+1}\{\KL(Q\|P) - \KL(Q\|\tilde Q)\}$ per step
+        $\frac{M}{M+1}\{\KL(Q\|P) - \KL(Q\|F)\}$ per step
         (Theorem~\ref{thm:growth}).
   \item \textbf{Learn.} Only now, with labels $y_0 = 1$ for $X_t$ and $y_j = 0$
         for $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
-        $p_k = \sigma(s_{t-1}(Z_{t,k}))$, update
+        $p_k = \sigma(s_{t-1}(U_{t,k}))$, update
         \[
-        g = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
-        H = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \qquad
-        S_t = S_{t-1} + H, \quad m_t = m_{t-1} - S_t^{-1} g .
+        \nabla_t = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
+        J_t = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \qquad
+        S_t = S_{t-1} + J_t, \quad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t .
         \]
         --- One step of the Bayesian learning rule \eqref{eq:blr}; the score
         stays predictable.
 \end{enumerate}
 \textbf{Variants.} With the simulation likelihood (Section~\ref{sec:simlik}),
 steps 3--4 are replaced by the posterior-predictive mixture
-$\bar E_t = B^{-1}\sum_b E_t(\theta_b)$ over posterior nodes $\theta_b$, and step 6
+$\bar E_t = N^{-1}\sum_b E_t(\theta_b)$ over posterior nodes $\theta_b$, and step 6
 by \eqref{eq:blr} with $\ell_t = -\log E_t(\theta)$; Theorem~\ref{thm:simlik} and
 Proposition~\ref{prop:approx} then apply.
 
 \textbf{Predictive-first version.} The score can also be updated without any
 posterior over $\theta$, by carrying and updating the classifier's predictive
-itself, $\pi_t(x) = \sigma(z(x)^\top\theta_t)$, as martingale posteriors do.
+itself, $c_t(x) = \sigma(z(x)^\top\theta_t)$, as martingale posteriors do.
 Steps 3 and 6 then become
 \[
-\text{3'.}\quad s_{t-1}(x) = z(x)^\top\theta_{t-1} = \log\frac{\pi_{t-1}(x)}{1 - \pi_{t-1}(x)},
+\text{3'.}\quad s_{t-1}(x) = z(x)^\top\theta_{t-1} = \log\frac{c_{t-1}(x)}{1 - c_{t-1}(x)},
 \]
 \[
 \text{6'.}\quad
 I_t = I_{t-1} + \sum_{k=0}^{M} w_k\, p_k(1-p_k)\, z_k z_k^\top, \qquad
 \theta_t = \theta_{t-1} + I_t^{-1}\sum_{k=0}^{M} w_k\,(y_k - p_k)\, z_k,
 \]
-with $p_k = \pi_{t-1}(Z_{t,k})$ and $I_0 = S_0$: Fisher scoring on the
-predictive's own score \eqref{eq:mp}, under which $\theta_t$ is a martingale.
-The forecast is then $\tilde q_t \propto p_t\, \pi_{t-1}/(1-\pi_{t-1})$, the
+with $p_k = c_{t-1}(U_{t,k})$ and $I_0 = S_0$: Fisher scoring on the
+predictive's own log-likelihood \eqref{eq:mp}, under which $\theta_t$ is a martingale.
+The forecast is then $f_t \propto p_t\, c_{t-1}/(1-c_{t-1})$, the
 current predictive odds with no shrinkage. To carry uncertainty without a
-posterior, step 4 averages the factor over $B$ predictive-resampling paths
+posterior, step 4 averages the factor over $N$ predictive-resampling paths
 $\theta^{(b)}$, obtained by running 6' forward from $(\theta_{t-1}, I_{t-1})$ on
 past batches whose labels are drawn from the predictive,
-$\bar E_t = B^{-1}\sum_b E_t(\theta^{(b)})$. For the logistic loss, 6' is the
+$\bar E_t = N^{-1}\sum_b E_t(\theta^{(b)})$. For the logistic loss, 6' is the
 Newton step of 6 taken at the point $\theta_{t-1}$ rather than averaged over a
 Gaussian posterior: the two versions differ only in where uncertainty comes
 from, a Gaussian approximation ($\kappa$ in step 3) or simulation from the
@@ -1198,7 +1202,7 @@ stopping time at $M = 1$ is 1.8 times that at $M = 64$ (371 against 207 steps),
 close to the factor 2 predicted by Theorem~\ref{thm:growth}(iv); for larger $M$
 the ratios are smaller, as part of the stopping time is spent learning the
 score. Second, with $P = \mathcal N(0,1)$, $Q = \mathcal N(\delta, 1)$ and
-$T(x) = e^{\theta x}$, for which $\tilde Q = \mathcal N(\theta, 1)$,
+$T(x) = e^{\theta x}$, for which $F = \mathcal N(\theta, 1)$,
 $g_\infty = \theta\delta - \theta^2/2$ and $\rho = e^{\theta\delta}$ are
 explicit, the ceiling (i) and the lower bound (iii) of
 Theorem~\ref{thm:growth} hold in all 56 configurations, and for $\delta = 0.25$
@@ -1259,7 +1263,7 @@ bound, $d\log t + d\log(4eGD/d)$ & 10.9 & 15.5 & 17.7 & 20.1 & 21.5 & & \\
 Table~\ref{tab:blr} compares, on the drift task and the bandit with identical
 data, the refitted point estimate with the online Bayesian learning rule of
 Section~\ref{sec:blr}, updated at every step with no burn-in. With the
-logistic loss, the probability-scale predictive $\kappa\mu$ beats the posterior
+logistic loss, the probability-scale predictive $\kappa\bar\eta$ beats the posterior
 mean in every setting and makes the method insensitive to the flexibility of
 the features: with degree-6 features power rises from 0.84 to 0.97 and the
 median stopping time falls from 320 to 214, close to the degree-4 value, and in
@@ -1303,7 +1307,7 @@ alike.
 \centering
 \caption{Update rules, MC e-process throughout (400 replications). BLR: online
 Bayesian learning rule on the logistic loss (probability-scale predictive
-$\kappa\mu$, ratio-scale $\mu+v/2$, or posterior mean $\mu$) or on the
+$\kappa\bar\eta$, ratio-scale $\bar\eta+v/2$, or posterior mean $\bar\eta$) or on the
 simulation likelihood (posterior-predictive mixture bet, or plug-in at the
 posterior mean; prior variance in brackets); predictive update: the
 classifier's predictive updated directly by \eqref{eq:mp}, betting with the
@@ -1862,6 +1866,66 @@ all runs are seeded.
 \appendix
 
 %======================================================================
+\section{Notation}\label{app:notation}
+
+\begin{table}[h]
+\centering
+\caption{Notation. Laws are written with fixed letters: $P$ for the
+simulator, $Q$ for the truth, $F$ for the forecast of a score and $m$ for a
+Bayesian posterior predictive; lower-case letters are their densities, and a
+hat marks a Monte Carlo estimate.}
+\label{tab:notation}
+\begin{tabular}{lll}
+\toprule
+symbol & meaning & where \\
+\midrule
+$t$, $\F_t$, $\G_t = \F_{t-1} \vee \sigma(A_t)$ & time; information after step $t$; information when the bet at $t$ is placed & Sec.~\ref{sec:setting} \\
+$A_t$, $a$ & action chosen by the design (arm, dose, zone) & Sec.~\ref{sec:setting} \\
+$X_t$ & real outcome at time $t$ & Sec.~\ref{sec:setting} \\
+$Y_{t,1}, \ldots, Y_{t,M}$; $M$ & simulator draws under $A_t$ from the current state; their number & \eqref{eq:mc} \\
+$U_{t,0}, \ldots, U_{t,M}$ & pooled outcomes $(X_t, Y_{t,1}, \ldots, Y_{t,M})$ & Sec.~\ref{sec:simlik} \\
+$H_0$ & the simulator reproduces the conditional law under the actions taken & Sec.~\ref{sec:setting} \\
+\midrule
+$P_t$, $p_t$ & simulator law and density of the next outcome (the null) & Sec.~\ref{sec:setting} \\
+$Q_t$, $q_t$ & true law and density of the next real outcome & Sec.~\ref{sec:power} \\
+$F_t$, $f_t$ & forecast of a score, $f_t = e^{s_t} p_t / Z_t$ (the tilted null) & \eqref{eq:tilt} \\
+$Q_\theta$, $q_\theta$ & model for the truth: the tilt of $P$ by $\theta^\top\phi$ & Sec.~\ref{sec:exactbayes} \\
+$\pi_0$, $\pi_t$ & prior and posterior on $\theta$ & Sec.~\ref{sec:exactbayes} \\
+$m_t$; $m(x_{1:t})$; $\hat m_t$ & posterior predictive density; marginal likelihood; its SMC estimate & \eqref{eq:prequential} \\
+$\nu_t = \mathcal N(\bar\theta_t, S_t^{-1})$ & Gaussian approximation of the posterior (BLR) & \eqref{eq:blr} \\
+$P_a$, $\bar P$ & law under action $a$; action-ignoring simulator law & Prop.~\ref{prop:necessary} \\
+$\mathbb P_n$ & empirical predictive & Sec.~\ref{sec:blr} \\
+\midrule
+$s_t$, $T_t = e^{s_t}$ & score, chosen from $\G_t$ & \eqref{eq:mc} \\
+$Z_t$; $\widehat Z_t$; $Z(\theta)$ & $\E_{P_t}[T_t]$; its Monte Carlo estimate; $\E_P[e^{\theta^\top\phi}]$ & \eqref{eq:tilt} \\
+$B$ & bound on the score, $|s_t| \le B$ & Cor.~\ref{cor:cumulative} \\
+$E_t$; $E^{(M)}$; $E_t^\infty$ & Monte Carlo factor; the same in the one-step analysis; its limit as $M \to \infty$ & \eqref{eq:mc} \\
+$E_t(\theta)$; $\bar E_t$; $E_t^{\nu}$ & factor of the score $\theta^\top\phi_t$; posterior mixture; mixture under $\nu_{t-1}$ & Sec.~\ref{sec:simlik} \\
+$\lambda$, $\Lambda$; $\alpha$ & betting fraction and its grid; level & \eqref{eq:wealth} \\
+$W_t$; $\bar W_t$ & wealth; mixture wealth over $\theta$ & \eqref{eq:wealth} \\
+\midrule
+$g_M = g_M(Q, P, T)$; $g_M(\lambda)$ & growth rate with $M$ simulations; with fraction $\lambda$ & \eqref{eq:growthrate} \\
+$g_{M,t}$; $g_\infty$ & conditional growth rate at $t$; limit as $M \to \infty$ & \eqref{eq:growthrate} \\
+$\rho$ & $\E_Q[T]/Z$ & Thm.~\ref{thm:growth} \\
+$\varepsilon$, $\psi$, $h$, $\tilde h$ & local alternative $dQ/dP = 1 + \varepsilon\psi$; score $T = e^{\varepsilon h}$; $h - \E_P h$ & Thm.~\ref{thm:growth} \\
+$R_a$ & likelihood ratio $dP_a/d\bar P$ & Prop.~\ref{prop:necessary} \\
+$\varpi_a$; $u_b$; $K$ & long-run fraction of steps playing $a$; weights of a randomised twin; number of arms & Cor.~\ref{cor:falsealarm} \\
+\midrule
+$\theta$, $\phi_t$, $z(x)$, $d$ & parameter; features; standardised features; dimension & Sec.~\ref{sec:simlik} \\
+$\Theta$, $D$, $G$; $L_t(\theta)$ & parameter set, its diameter, feature bound; simulation likelihood & Thm.~\ref{thm:simlik} \\
+$\bar\theta_t$, $S_t$; $\Sigma_t$ & mean and precision of $\nu_t$; covariance of an approximate posterior & \eqref{eq:blr} \\
+$\bar\eta$, $v$, $\kappa$ & predictive mean and variance of the logit $z^\top\theta$; $(1 + \pi v/8)^{-1/2}$ & Sec.~\ref{sec:blr} \\
+$\ell_t$, $\nabla_t$, $J_t$; $I_t$ & per-step loss, its gradient and Fisher information; accumulated information & \eqref{eq:mp} \\
+$c_t(x)$ & classifier probability $\sigma(z(x)^\top\theta_t)$ (predictive-first rule) & Sec.~\ref{sec:algorithm} \\
+$w_k$ & weights of the outcomes: one for $X_t$, $1/M$ for each $Y_{t,j}$ & Sec.~\ref{sec:algorithm} \\
+$\mathcal U_t$ & update rule of the predictive & Sec.~\ref{sec:scores} \\
+$N$; $h_{\max}$ & number of trees, posterior nodes or resampling paths; truncation & Sec.~\ref{sec:blr} \\
+\midrule
+$\KL$, $\chi^2$, $D_2$ & Kullback--Leibler, chi-squared and Rényi-2 divergences & Sec.~\ref{sec:power} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \section{Proofs}\label{app:proofs}
 %======================================================================
 
@@ -1873,14 +1937,14 @@ $\E_{Q \otimes P^M}[\log E^{(M)} - \log(dQ/dP)(X)] \le
 \log \E_{P \otimes P^M}[E^{(M)}] = 0$.
 
 (ii) By the strong law of large numbers, $M^{-1}\sum_j T(Y_j) \to Z$ almost
-surely, so $E^{(M)} \to T(X)/Z = (d\tilde Q/dP)(X)$. If $|s| \le B$, the average
-$\{T(X) + S\}/(M+1)$, with $S = \sum_j T(Y_j)$, lies in $[e^{-B}, e^{B}]$, so
+surely, so $E^{(M)} \to T(X)/Z = (dF/dP)(X)$. If $|s| \le B$, the average
+$\{T(X) + V\}/(M+1)$, with $V = \sum_j T(Y_j)$, lies in $[e^{-B}, e^{B}]$, so
 $|\log E^{(M)}| \le 2B$ for every $M$ and dominated convergence gives
 $g_M \to g_\infty$. Moreover
-$\log(d\tilde Q/dP) = \log(dQ/dP) - \log(dQ/d\tilde Q)$; take expectations under $Q$.
+$\log(dF/dP) = \log(dQ/dP) - \log(dQ/dF)$; take expectations under $Q$.
 
-(iii) Let $S = \sum_j T(Y_j)$. Then
-$\log E^\infty - \log E^{(M)} = \log\{(T(X) + S)/((M+1)Z)\}$. Conditioning on $X$
+(iii) Let $V = \sum_j T(Y_j)$. Then
+$\log E^\infty - \log E^{(M)} = \log\{(T(X) + V)/((M+1)Z)\}$. Conditioning on $X$
 and applying Jensen's inequality over $Y_{1:M}$,
 \[
 \E\big[\log E^\infty - \log E^{(M)} \mid X\big]
@@ -1891,45 +1955,45 @@ Taking the expectation under $Q$ and applying Jensen's inequality once more
 gives $g_\infty - g_M \le \log\{1 + (\rho - 1)/(M+1)\} \le (\rho-1)/(M+1)$.
 This is Theorem~3 of \citet{dombowsky2026besag} in our notation.
 
-(iv) Let $Z_0 = X$ and $Z_k = Y_k$, and let $\bar h$ and $\overline{h^2}$ be
-the averages of $h(Z_k)$ and $h(Z_k)^2$ over $k = 0, \ldots, M$. The cumulant
-expansion of $\log$ of the average of $e^{\varepsilon h(Z_k)}$ gives
+(iv) Let $U_0 = X$ and $U_k = Y_k$, and let $\bar h$ and $\overline{h^2}$ be
+the averages of $h(U_k)$ and $h(U_k)^2$ over $k = 0, \ldots, M$. The cumulant
+expansion of $\log$ of the average of $e^{\varepsilon h(U_k)}$ gives
 \[
 \log E^{(M)} = \varepsilon\big(h(X) - \bar h\big)
 - \frac{\varepsilon^2}{2}\big(\overline{h^2} - \bar h^2\big) + O(\varepsilon^3).
 \]
 Under $Q \otimes P^M$,
 $\E[h(X) - \bar h] = \frac{M}{M+1}(\E_Q h - \E_P h)
-= \frac{M}{M+1}\,\varepsilon\, \E_P[\tilde h g]$. The second bracket is the
+= \frac{M}{M+1}\,\varepsilon\, \E_P[\tilde h \psi]$. The second bracket is the
 empirical variance of $M+1$ draws that are i.i.d.\ $P$ up to $O(\varepsilon)$,
 with expectation $\frac{M}{M+1}\mathrm{Var}_P(h) + O(\varepsilon)$. Hence
-$g_M = \frac{M}{M+1}\varepsilon^2\big(\E_P[\tilde h g] - \frac12 \E_P[\tilde h^2]\big)
-+ O(\varepsilon^3)$, which equals the stated form since $\E_P[g] = 0$. The
+$g_M = \frac{M}{M+1}\varepsilon^2\big(\E_P[\tilde h \psi] - \frac12 \E_P[\tilde h^2]\big)
++ O(\varepsilon^3)$, which equals the stated form since $\E_P[\psi] = 0$. The
 expansion of $\KL(Q\|P)$ is standard.
 
 \paragraph{Proof of Proposition~\ref{prop:necessary}.}
 Work conditionally on $\G_t$, so that $T$ is a fixed function, $X = X_t$ has
 law $P_a$, and $Y_1, \ldots, Y_M$ are i.i.d.\ $\bar P$ and independent of $X$.
-Let $B = \sup T$, $c = \E_{\bar P}[T]$, which is positive because $T > 0$, and
+Let $B = \sup T$, $Z = \E_{\bar P}[T]$, which is positive because $T > 0$, and
 $\bar T_M = M^{-1}\sum_{j} T(Y_j)$.
 
 (i) Write
 \[
 E_t = \frac{M+1}{M}\cdot\frac{T(X)}{T(X)/M + \bar T_M}.
 \]
-By the strong law of large numbers $\bar T_M \to c$ almost surely, so
-$E_t \to T(X)/c$ almost surely. Let $G_M = \{\bar T_M \ge c/2\}$. On $G_M$,
-since $(M+1)/M \le 2$, $E_t \le 4B/c$. Since $0 < T(Y_j) \le B$, Hoeffding's
+By the strong law of large numbers $\bar T_M \to Z$ almost surely, so
+$E_t \to T(X)/Z$ almost surely. Let $G_M = \{\bar T_M \ge Z/2\}$. On $G_M$,
+since $(M+1)/M \le 2$, $E_t \le 4B/Z$. Since $0 < T(Y_j) \le B$, Hoeffding's
 inequality \citep{hoeffding1963probability} gives
-$P(G_M^c) \le \exp\{-Mc^2/(2B^2)\}$, and since $E_t \le M+1$ always, for
+$P(G_M^Z) \le \exp\{-MZ^2/(2B^2)\}$, and since $E_t \le M+1$ always, for
 $k = 1, 2$,
 \[
-\E[E_t^k \mathbf 1_{G_M^c}] \le (M+1)^k \exp\{-Mc^2/(2B^2)\} \to 0.
+\E[E_t^k \mathbf 1_{G_M^Z}] \le (M+1)^k \exp\{-MZ^2/(2B^2)\} \to 0.
 \]
 On the other hand $\mathbf 1_{G_M} \to 1$ almost surely, so
-$E_t^k \mathbf 1_{G_M} \to (T(X)/c)^k$ almost surely with
-$E_t^k \mathbf 1_{G_M} \le (4B/c)^k$, and dominated convergence gives
-$\E[E_t^k \mathbf 1_{G_M}] \to \E_{P_a}[T^k]/c^k$. Adding the two parts
+$E_t^k \mathbf 1_{G_M} \to (T(X)/Z)^k$ almost surely with
+$E_t^k \mathbf 1_{G_M} \le (4B/Z)^k$, and dominated convergence gives
+$\E[E_t^k \mathbf 1_{G_M}] \to \E_{P_a}[T^k]/Z^k$. Adding the two parts
 proves (i).
 
 (ii) If $P_a = \bar P$ the limit is one for every score. If $P_a \ne \bar P$
@@ -1938,28 +2002,28 @@ $P_a(A) \le \bar P(A)$ for every $A$, and applying this to $A^c$ gives
 equality. The bounded positive score $T = 1 + \mathbf 1_A$ has limit
 $\{1 + P_a(A)\}/\{1 + \bar P(A)\} > 1$. This proves the characterisation.
 
-Now let $P_a \ll \bar P$ with $w = dP_a/d\bar P$, so that $\int w\, d\bar P = 1$
-and $\E_{P_a}[w] = \int w\, dP_a = \int w^2\, d\bar P$. Expanding the square
+Now let $P_a \ll \bar P$ with $R_a = dP_a/d\bar P$, so that $\int R_a\, d\bar P = 1$
+and $\E_{P_a}[R_a] = \int R_a\, dP_a = \int R_a^2\, d\bar P$. Expanding the square
 in the definition of the $\chi^2$ divergence,
 \[
-\chi^2(P_a\|\bar P) = \int (w - 1)^2\, d\bar P
-= \int w^2\, d\bar P - 2\int w\, d\bar P + 1
-= \int w^2\, d\bar P - 1,
+\chi^2(P_a\|\bar P) = \int (R_a - 1)^2\, d\bar P
+= \int R_a^2\, d\bar P - 2\int R_a\, d\bar P + 1
+= \int R_a^2\, d\bar P - 1,
 \]
-which gives the identity. The divergence is zero if and only if $w = 1$
-$\bar P$-almost surely, that is, $P_a = \bar P$. If $w$ is bounded and bounded
-away from zero, $T = w$ is an admissible score, $\E_{\bar P}[w] = 1$, and its
+which gives the identity. The divergence is zero if and only if $R_a = 1$
+$\bar P$-almost surely, that is, $P_a = \bar P$. If $R_a$ is bounded and bounded
+away from zero, $T = R_a$ is an admissible score, $\E_{\bar P}[R_a] = 1$, and its
 limit in (i) is $1 + \chi^2(P_a\|\bar P)$. In general,
-$T_c = \min(w, c) + 1/c$ takes values in $[1/c,\, c + 1/c]$. By monotone
-convergence, $\E_{\bar P}[T_c] = \int \min(w, c)\, d\bar P + 1/c \to 1$ and
-$\E_{P_a}[T_c] = \int \min(w, c)\, w\, d\bar P + 1/c \to \int w^2\, d\bar P$,
+$T_c = \min(R_a, c) + 1/c$ takes values in $[1/c,\, c + 1/c]$. By monotone
+convergence, $\E_{\bar P}[T_c] = \int \min(R_a, c)\, d\bar P + 1/c \to 1$ and
+$\E_{P_a}[T_c] = \int \min(R_a, c)\, R_a\, d\bar P + 1/c \to \int R_a^2\, d\bar P$,
 so the limit in (i) for $T_c$ tends to $1 + \chi^2(P_a\|\bar P) \in (1, \infty]$
 as $c \to \infty$, and exceeds one for $c$ large enough.
 
 (iii) Fix $\lambda \in \Lambda$ as in the statement and let
 $\xi_i = \log(1 - \lambda + \lambda E_i)$. Since $0 < E_i \le M+1$,
 $\xi_i \in [\log(1-\lambda),\, \log(1 + \lambda M)]$, an interval of length
-$R$, say. For $x \ge -\lambda$, Taylor's theorem with the Lagrange remainder
+$C$, say. For $x \ge -\lambda$, Taylor's theorem with the Lagrange remainder
 gives $\log(1+x) = x - x^2/\{2(1+\zeta)^2\}$ for some $\zeta$ between $0$ and
 $x$, and $1 + \zeta \ge 1 - \lambda \ge 1/2$, so $\log(1+x) \ge x - 2x^2$.
 Taking $x = \lambda(E_i - 1) \ge -\lambda$, on $\Omega_0$ and for $i \ge t_0$,
@@ -1968,20 +2032,20 @@ Taking $x = \lambda(E_i - 1) \ge -\lambda$, on $\Omega_0$ and for $i \ge t_0$,
 - 2\lambda^2\,\E[(E_i - 1)^2 \mid \G_i]
 \ge \lambda\mu - 2\lambda^2\sigma^2 \ge \lambda\mu/2,
 \]
-using $\lambda \le \mu/(4\sigma^2)$. Let $D_i = \xi_i - \E[\xi_i \mid \G_i]$.
-Since $D_i$ is $\F_i$-measurable and $\G_i \subseteq \F_i \subseteq \G_{i+1}$,
-$(D_i)$ is a martingale difference sequence for the filtration
-$(\G_{i+1})_{i \ge 0}$, with $|D_i| \le R$. The Azuma--Hoeffding inequality
+using $\lambda \le \mu/(4\sigma^2)$. Let $\Delta_i = \xi_i - \E[\xi_i \mid \G_i]$.
+Since $\Delta_i$ is $\F_i$-measurable and $\G_i \subseteq \F_i \subseteq \G_{i+1}$,
+$(\Delta_i)$ is a martingale difference sequence for the filtration
+$(\G_{i+1})_{i \ge 0}$, with $|\Delta_i| \le C$. The Azuma--Hoeffding inequality
 \citep{azuma1967weighted} gives
-$P(|\sum_{i \le t} D_i| \ge \varepsilon t) \le 2\exp\{-\varepsilon^2 t/(2R^2)\}$,
+$P(|\sum_{i \le t} \Delta_i| \ge \varepsilon t) \le 2\exp\{-\varepsilon^2 t/(2C^2)\}$,
 which is summable in $t$, so by the Borel--Cantelli lemma
-$t^{-1}\sum_{i \le t} D_i \to 0$ almost surely. Finally, $W_t$ is an average
+$t^{-1}\sum_{i \le t} \Delta_i \to 0$ almost surely. Finally, $W_t$ is an average
 of $|\Lambda|$ nonnegative terms, one of which is $\exp(\sum_{i \le t}\xi_i)$, so
 \[
 \frac{\log W_t}{t} \ge -\frac{\log|\Lambda|}{t}
 + \frac1t\sum_{i < t_0} \xi_i
 + \frac1t\sum_{t_0 \le i \le t} \E[\xi_i \mid \G_i]
-+ \frac1t\sum_{i \le t} D_i .
++ \frac1t\sum_{i \le t} \Delta_i .
 \]
 On $\Omega_0$ the first two terms vanish as $t \to \infty$, the third has
 $\liminf$ at least $\lambda\mu/2$ and the last tends to zero almost surely.
@@ -1996,33 +2060,33 @@ so it applies with $Q = P_a$ and $P = \bar P$; $\rho_a < \infty$ because the
 score is bounded. This gives the first two statements of (i). Since the laws
 and the score do not change, the conditional growth rate of the $\lambda = 1$
 factor at a step where $a$ is played is $g_M(a)$, so
-$t^{-1}\sum_{i \le t}\E[\log E_i \mid \G_i] \to \sum_a \pi_a g_M(a)$, and
+$t^{-1}\sum_{i \le t}\E[\log E_i \mid \G_i] \to \sum_a \varpi_a g_M(a)$, and
 Corollary~\ref{cor:cumulative} gives the last statement of (i).
 
-(ii) Let $w = dP_a/d\bar P$ and $e_\lambda = 1 - \lambda + \lambda E_t$. If the
+(ii) Let $R_a = dP_a/d\bar P$ and $e_\lambda = 1 - \lambda + \lambda E_t$. If the
 real outcome had law $\bar P$, the $M+1$ draws would be exchangeable and
 $\E_{\bar P \otimes \bar P^M}[e_\lambda] = 1$ by
 Proposition~\ref{prop:exact}. The likelihood ratio of
-$P_a \otimes \bar P^M$ to $\bar P \otimes \bar P^M$ is $w(X)$, so by Jensen's
+$P_a \otimes \bar P^M$ to $\bar P \otimes \bar P^M$ is $R_a(X)$, so by Jensen's
 inequality, as in the proof of Theorem~\ref{thm:growth}(i),
 \[
 \E_{P_a \otimes \bar P^M}\big[\log e_\lambda\big] - \KL(P_a\|\bar P)
-= \E_{P_a \otimes \bar P^M}\Big[\log\frac{e_\lambda}{w(X)}\Big]
+= \E_{P_a \otimes \bar P^M}\Big[\log\frac{e_\lambda}{R_a(X)}\Big]
 \le \log \E_{\bar P \otimes \bar P^M}\big[e_\lambda\big] = 0 .
 \]
 Jensen's inequality also gives
-$\KL(P_a\|\bar P) = \E_{P_a}[\log w] \le \log \E_{P_a}[w] = \log\{1 + \chi^2(P_a\|\bar P)\}$
+$\KL(P_a\|\bar P) = \E_{P_a}[\log R_a] \le \log \E_{P_a}[R_a] = \log\{1 + \chi^2(P_a\|\bar P)\}$
 by Proposition~\ref{prop:necessary}(ii). For each $\lambda \in \Lambda$ the
 increments $\log e_\lambda$ are bounded, because $|s| \le B$ keeps $E_t$ in
 $[e^{-2B}, M+1]$, so the martingale strong law gives
-$\limsup_t t^{-1}\sum_{i \le t}\log e_{\lambda,i} \le \sum_a \pi_a \KL(P_a\|\bar P)$
+$\limsup_t t^{-1}\sum_{i \le t}\log e_{\lambda,i} \le \sum_a \varpi_a \KL(P_a\|\bar P)$
 almost surely; $W_t$ is at most the largest of the $|\Lambda|$ products, which
-gives the bound on $W_t$. For the likelihood-ratio score, $\tilde Q_a = P_a$ and
+gives the bound on $W_t$. For the likelihood-ratio score, $F_a = P_a$ and
 $g_\infty(a) = \KL(P_a\|\bar P)$ by Theorem~\ref{thm:growth}(ii).
 
 (iii) For every measurable set $A$, $\bar P(A) \ge u_a P_a(A)$, so
-$w \le 1/u_a$. Hence $\KL(P_a\|\bar P) = \E_{P_a}[\log w] \le \log(1/u_a)$ and
-$1 + \chi^2(P_a\|\bar P) = \E_{P_a}[w] \le 1/u_a$.
+$R_a \le 1/u_a$. Hence $\KL(P_a\|\bar P) = \E_{P_a}[\log R_a] \le \log(1/u_a)$ and
+$1 + \chi^2(P_a\|\bar P) = \E_{P_a}[R_a] \le 1/u_a$.
 
 \paragraph{Proof of Proposition~\ref{prop:bayes}.} By Fubini,
 $\E_P[T_t] = \int \E_P[dQ_\theta/dP]\,\pi_{t-1}(d\theta) = 1$, so by
