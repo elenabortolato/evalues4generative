@@ -438,23 +438,56 @@ Carlo normalisation improves on an under-powered exact e-value. Over time,
 the growth rates add up.
 
 \begin{corollary}[Cumulative growth]\label{cor:cumulative}
-If $1 \in \Lambda$ and the scores are bounded, $|s_t| \le B$, then
-$\log W_t \ge \sum_{i \le t} \log E_i - \log |\Lambda|$, each $\log E_i$ lies
-in $[-2B, \log(M+1)]$, and almost surely
-$\liminf_t t^{-1}\big(\log W_t - \sum_{i \le t} g_{M,i}\big) \ge 0$, where
-$g_{M,i} = \E[\log E_i \mid \G_i]$ is the conditional growth rate at time $i$,
-that is, \eqref{eq:growthrate} evaluated at the conditional laws and the score
-at time $i$. If the average
-conditional growth rate stays above $\bar g > 0$, the test rejects with
-probability one, after about $(\log(1/\alpha) + \log|\Lambda|)/\bar g$ steps.
+For $\lambda \in \Lambda$ let
+$g_{M,i}(\lambda) = \E[\log(1 - \lambda + \lambda E_i) \mid \G_i]$ be the
+conditional growth rate of the $\lambda$-term of \eqref{eq:wealth} at time $i$.
+\begin{enumerate}
+\item[(i)] For every $\lambda \in \Lambda$ with $\lambda < 1$, and with no
+condition on the scores,
+$\log W_t \ge \sum_{i \le t} \log(1 - \lambda + \lambda E_i) - \log|\Lambda|$,
+each increment lies in $[\log(1-\lambda),\, \log(1 + \lambda M)]$, and almost
+surely
+\[
+\liminf_{t \to \infty} \frac1t \Big(\log W_t - \sum_{i \le t} g_{M,i}(\lambda)\Big) \ge 0 .
+\]
+\item[(ii)] If $1 \in \Lambda$ and the scores are bounded, $|s_t| \le B$, the
+same holds for $\lambda = 1$, with increments $\log E_i \in [-2B, \log(M+1)]$
+and rates $g_{M,i} = g_{M,i}(1)$.
+\end{enumerate}
+If, for some $\lambda \in \Lambda$, the average of $g_{M,i}(\lambda)$ over
+$i \le t$ stays above $\bar g > 0$, the test rejects with probability one,
+after about $(\log(1/\alpha) + \log|\Lambda|)/\bar g$ steps.
 \end{corollary}
 
 \begin{proof}
-The average \eqref{eq:wealth} is at least $|\Lambda|^{-1}$ times its $\lambda = 1$
-term. The bounds on $\log E_i$ follow from \eqref{eq:mc}, and the martingale
-strong law applies to the bounded differences
-$\log E_i - \E[\log E_i \mid \G_i]$.
+The average \eqref{eq:wealth} is at least $|\Lambda|^{-1}$ times any one of its
+terms. Since $0 < E_i \le M+1$ by \eqref{eq:mc}, the increment
+$\log(1 - \lambda + \lambda E_i)$ lies in $[\log(1-\lambda), \log(1+\lambda M)]$
+for $\lambda < 1$, whatever the score; for $\lambda = 1$ and $|s_i| \le B$,
+every term of \eqref{eq:mc} lies between $e^{-B}$ and $e^{B}$, so
+$\log E_i \in [-2B, \log(M+1)]$. In both cases the differences
+$\log(1 - \lambda + \lambda E_i) - g_{M,i}(\lambda)$ are bounded martingale
+differences for the filtration $(\G_{i+1})$, and the martingale strong law
+(Azuma--Hoeffding and Borel--Cantelli, as in the proof of
+Proposition~\ref{prop:necessary}) shows that their average tends to zero
+almost surely.
 \end{proof}
+
+Part (i) removes any assumption on the learner: the hedged terms of the
+wealth have bounded increments for every score, so their growth is governed
+by the conditional rates however the score is formed. The two rates are
+related by concavity of the logarithm,
+$\log(1 - \lambda + \lambda E) \ge \lambda \log E$, so
+$g_{M,i}(\lambda) \ge \lambda\, g_{M,i}$: betting a fraction $\lambda$ keeps
+at least a fraction $\lambda$ of the full growth rate, and more when the full
+bet is too aggressive. Part (ii) needs bounded scores. Any predictable score
+can be clipped to $[-B, B]$ without affecting validity
+(Theorem~\ref{thm:valid}), and all our learners clip at $B = 30$, so (ii)
+holds for them as implemented. Ridge penalisation alone does not provide such
+a bound: with a fixed prior the penalised estimate is only guaranteed to satisfy
+$\|\hat\theta_t\| = O(\sqrt{t})$ (compare the objective with its value at
+$\theta = 0$), and unbounded features, such as polynomials of Gaussian outcomes,
+make the score unbounded for any fixed coefficient.
 
 The same theory gives the rate at which an action-ignoring twin produces a
 false alarm. In the setting of Proposition~\ref{prop:necessary} the real
@@ -950,12 +983,15 @@ $W_0 = 1$.
   \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
         \[
         \mu = z(x)^\top m_{t-1}, \qquad v = z(x)^\top S_{t-1}^{-1} z(x), \qquad
-        \kappa = (1 + \pi v/8)^{-1/2}, \qquad s_{t-1}(x) = \kappa\,\mu .
+        \kappa = (1 + \pi v/8)^{-1/2}, \qquad
+        s_{t-1}(x) = \mathrm{clip}(\kappa\,\mu,\, -B,\, B) .
         \]
         --- $s_{t-1}$ is the predictive log-odds of ``real'' against
         ``simulated'', an estimate of $\log(q/p)$ shrunk where the posterior is
         uncertain; it forecasts $\hat q_t \propto p_t\, e^{s_{t-1}}$
-        \eqref{eq:tilt}.
+        \eqref{eq:tilt}. Clipping at $B$ (we use $B = 30$) keeps the score
+        predictable, so validity is unaffected, and makes
+        Corollary~\ref{cor:cumulative}(ii) apply.
   \item \textbf{Bet.}
         \[
         E_t = \frac{(M+1)\, e^{s_{t-1}(X_t)}}{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}} .
