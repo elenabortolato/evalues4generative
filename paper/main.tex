@@ -166,8 +166,9 @@ The contributions are four. First, the Monte Carlo e-process is a test
 martingale for every allocation rule, including interim analyses, arm dropping
 and re-assignment, provided the simulator is run conditionally on the history
 and on the action taken (Theorem~\ref{thm:valid}); simulating from a mixture
-over actions instead makes the expected bet $1+\chi^2>1$ under the null
-(Proposition~\ref{prop:necessary}). Second, every score bets on a tilted null
+over actions instead makes the expected bet larger than one under the null,
+with limit $1+\chi^2$ for the likelihood-ratio score, and the wealth grows
+exponentially (Proposition~\ref{prop:necessary}). Second, every score bets on a tilted null
 $\hat Q$, and its growth rate with an unlimited simulation budget is
 $\KL(Q\|P)-\KL(Q\|\hat Q)$; for local alternatives a budget of $M$ simulations
 keeps exactly a fraction $M/(M+1)$ of it (Theorem~\ref{thm:growth}). Third,
@@ -300,34 +301,53 @@ enters only through the requirement that the simulator be run under the action
 actually taken, and this requirement is essential.
 
 \begin{proposition}[Conditioning on the action cannot be dropped]\label{prop:necessary}
-Suppose the simulator draws at time $t$ come from a law $\bar P$ that does not
-depend on $A_t$, for instance the twin run under uniformly random actions,
-while the policy takes an action $a$ with $P_a = P_t(\cdot \mid \F_{t-1}, a) \ne \bar P$.
-For a bounded score $T > 0$, under $H_0$ and as $M \to \infty$,
+Suppose that $H_0$ holds and that at time $t$ the policy takes an action $a$,
+with $P_a = P_t(\cdot \mid \F_{t-1}, a)$, while, conditionally on $\G_t$, the
+simulator draws $Y_{t,1}, \ldots, Y_{t,M}$ are i.i.d.\ from a law $\bar P$
+that does not depend on $A_t$ (for instance the twin run under uniformly
+random actions) and are independent of $X_t$. Let $T > 0$ be a bounded
+$\G_t$-measurable score.
+\begin{enumerate}
+\item[(i)] As $M \to \infty$,
 \[
-\E[E_t \mid \G_t] \;\to\; \frac{\E_{P_a}[T]}{\E_{\bar P}[T]},
+\E[E_t \mid \G_t] \to \frac{\E_{P_a}[T]}{\E_{\bar P}[T]}
+\quad\text{and}\quad
+\E[E_t^2 \mid \G_t] \to \frac{\E_{P_a}[T^2]}{(\E_{\bar P}[T])^2}.
 \]
-which equals $1 + \chi^2(P_a \,\|\, \bar P) > 1$ for $T = dP_a/d\bar P$ when this
-ratio is bounded, and exceeds one for its truncation at a large enough level.
-A policy that keeps choosing such actions, as Thompson sampling does once it
-has found the best arm, then gives the factors a conditional mean bounded away
-from one, so that $\E[\log(1-\lambda+\lambda E_t) \mid \G_t] > 0$ for small
-$\lambda$ and the wealth \eqref{eq:wealth}, which contains such $\lambda$,
-grows exponentially under $H_0$.
+\item[(ii)] The limit in (i) equals one for every bounded score if and only if
+$P_a = \bar P$. If $P_a \ll \bar P$ and $w = dP_a/d\bar P$, then
+\[
+\E_{P_a}\Big[\frac{dP_a}{d\bar P}\Big] = \int w^2\, d\bar P
+= 1 + \chi^2(P_a \,\|\, \bar P),
+\]
+the truncated scores $T_c = \min(w, c) + 1/c$ have limits that tend to
+$1 + \chi^2(P_a\|\bar P) \in (1, \infty]$ as $c \to \infty$ when
+$P_a \ne \bar P$, and if $w$ is bounded and bounded away from zero the score
+$T = w$ has limit exactly $1 + \chi^2(P_a\|\bar P)$.
+\item[(iii)] Suppose that on an event $\Omega_0$ there is a finite time $t_0$
+such that, for all $t \ge t_0$, $\E[E_t \mid \G_t] \ge 1 + \mu$ and
+$\E[(E_t - 1)^2 \mid \G_t] \le \sigma^2$ for constants $\mu, \sigma > 0$. If
+$\Lambda$ contains some $\lambda \le \min\{1/2,\, \mu/(4\sigma^2)\}$, then on
+$\Omega_0$, almost surely,
+$\liminf_{t} t^{-1} \log W_t \ge \lambda\mu/2 > 0$. In particular the test
+rejects the true null with probability at least $P(\Omega_0)$.
+\end{enumerate}
 \end{proposition}
 
-\begin{proof}
-By the law of large numbers and bounded convergence,
-$E_t \to T(X_t)/\E_{\bar P}[T]$ in $L^1$, and $X_t \sim P_a$ under $H_0$.
-Write $\mu = \E[E_t \mid \G_t] - 1 > 0$ and
-$\sigma^2 = \E[(E_t - 1)^2 \mid \G_t] < \infty$. Since $E_t \ge 0$,
-$x = \lambda(E_t - 1) \ge -\lambda$, and Taylor's theorem gives
-$\log(1+x) \ge x - x^2/\{2(1-\lambda)^2\}$, so
-$\E[\log(1-\lambda+\lambda E_t) \mid \G_t] \ge \lambda\mu -
-\lambda^2\sigma^2/\{2(1-\lambda)^2\}$, which is positive for small $\lambda$.
-For $T = dP_a/d\bar P$, $\E_{\bar P}[T] = 1$ and
-$\E_{P_a}[T] = \int (dP_a/d\bar P)^2\, d\bar P = 1 + \chi^2(P_a\|\bar P)$.
-\end{proof}
+The proof is in Appendix~\ref{app:proofs}. The hypothesis of (iii) is what
+(i) and (ii) deliver when the laws and the score do not change and the policy
+keeps choosing an action with $P_a \ne \bar P$, as Thompson sampling does once
+it has settled on the best arm: for $M$ large enough the conditional mean of
+the factor is a constant larger than one, and its second moment is bounded by
+(i). The identity in (ii) is not new: it is the definition of the
+$\chi^2$ divergence written as the second moment of a likelihood ratio
+\citep[Section~2.4]{tsybakov2009introduction}, equivalently
+$\log \E_{P_a}[dP_a/d\bar P] = D_2(P_a\|\bar P)$, the R\'enyi divergence of
+order two \citep{vanerven2014renyi}. What the proposition adds is that this
+quantity is the exact limit of the expected Monte Carlo bet when the simulator
+ignores the action, and that the condition $P_a = \bar P$ is not only
+sufficient for fairness (Theorem~\ref{thm:valid}) but necessary for the bet to
+be fair against every score.
 
 The same argument applies to the history. A twin re-initialised at a resting
 state rather than at the participant's current state samples from a law that
@@ -1738,6 +1758,87 @@ with expectation $\frac{M}{M+1}\mathrm{Var}_P(h) + O(\varepsilon)$. Hence
 $g_M = \frac{M}{M+1}\varepsilon^2\big(\E_P[\tilde h g] - \frac12 \E_P[\tilde h^2]\big)
 + O(\varepsilon^3)$, which equals the stated form since $\E_P[g] = 0$. The
 expansion of $\KL(Q\|P)$ is standard.
+
+\paragraph{Proof of Proposition~\ref{prop:necessary}.}
+Work conditionally on $\G_t$, so that $T$ is a fixed function, $X = X_t$ has
+law $P_a$, and $Y_1, \ldots, Y_M$ are i.i.d.\ $\bar P$ and independent of $X$.
+Let $B = \sup T$, $c = \E_{\bar P}[T]$, which is positive because $T > 0$, and
+$\bar T_M = M^{-1}\sum_{j} T(Y_j)$.
+
+(i) Write
+\[
+E_t = \frac{M+1}{M}\cdot\frac{T(X)}{T(X)/M + \bar T_M}.
+\]
+By the strong law of large numbers $\bar T_M \to c$ almost surely, so
+$E_t \to T(X)/c$ almost surely. Let $G_M = \{\bar T_M \ge c/2\}$. On $G_M$,
+since $(M+1)/M \le 2$, $E_t \le 4B/c$. Since $0 < T(Y_j) \le B$, Hoeffding's
+inequality \citep{hoeffding1963probability} gives
+$P(G_M^c) \le \exp\{-Mc^2/(2B^2)\}$, and since $E_t \le M+1$ always, for
+$k = 1, 2$,
+\[
+\E[E_t^k \mathbf 1_{G_M^c}] \le (M+1)^k \exp\{-Mc^2/(2B^2)\} \to 0.
+\]
+On the other hand $\mathbf 1_{G_M} \to 1$ almost surely, so
+$E_t^k \mathbf 1_{G_M} \to (T(X)/c)^k$ almost surely with
+$E_t^k \mathbf 1_{G_M} \le (4B/c)^k$, and dominated convergence gives
+$\E[E_t^k \mathbf 1_{G_M}] \to \E_{P_a}[T^k]/c^k$. Adding the two parts
+proves (i).
+
+(ii) If $P_a = \bar P$ the limit is one for every score. If $P_a \ne \bar P$
+there is a measurable set $A$ with $P_a(A) > \bar P(A)$: otherwise
+$P_a(A) \le \bar P(A)$ for every $A$, and applying this to $A^c$ gives
+equality. The bounded positive score $T = 1 + \mathbf 1_A$ has limit
+$\{1 + P_a(A)\}/\{1 + \bar P(A)\} > 1$. This proves the characterisation.
+
+Now let $P_a \ll \bar P$ with $w = dP_a/d\bar P$, so that $\int w\, d\bar P = 1$
+and $\E_{P_a}[w] = \int w\, dP_a = \int w^2\, d\bar P$. Expanding the square
+in the definition of the $\chi^2$ divergence,
+\[
+\chi^2(P_a\|\bar P) = \int (w - 1)^2\, d\bar P
+= \int w^2\, d\bar P - 2\int w\, d\bar P + 1
+= \int w^2\, d\bar P - 1,
+\]
+which gives the identity. The divergence is zero if and only if $w = 1$
+$\bar P$-almost surely, that is, $P_a = \bar P$. If $w$ is bounded and bounded
+away from zero, $T = w$ is an admissible score, $\E_{\bar P}[w] = 1$, and its
+limit in (i) is $1 + \chi^2(P_a\|\bar P)$. In general,
+$T_c = \min(w, c) + 1/c$ takes values in $[1/c,\, c + 1/c]$. By monotone
+convergence, $\E_{\bar P}[T_c] = \int \min(w, c)\, d\bar P + 1/c \to 1$ and
+$\E_{P_a}[T_c] = \int \min(w, c)\, w\, d\bar P + 1/c \to \int w^2\, d\bar P$,
+so the limit in (i) for $T_c$ tends to $1 + \chi^2(P_a\|\bar P) \in (1, \infty]$
+as $c \to \infty$, and exceeds one for $c$ large enough.
+
+(iii) Fix $\lambda \in \Lambda$ as in the statement and let
+$\xi_i = \log(1 - \lambda + \lambda E_i)$. Since $0 < E_i \le M+1$,
+$\xi_i \in [\log(1-\lambda),\, \log(1 + \lambda M)]$, an interval of length
+$R$, say. For $x \ge -\lambda$, Taylor's theorem with the Lagrange remainder
+gives $\log(1+x) = x - x^2/\{2(1+\zeta)^2\}$ for some $\zeta$ between $0$ and
+$x$, and $1 + \zeta \ge 1 - \lambda \ge 1/2$, so $\log(1+x) \ge x - 2x^2$.
+Taking $x = \lambda(E_i - 1) \ge -\lambda$, on $\Omega_0$ and for $i \ge t_0$,
+\[
+\E[\xi_i \mid \G_i] \ge \lambda\,\E[E_i - 1 \mid \G_i]
+- 2\lambda^2\,\E[(E_i - 1)^2 \mid \G_i]
+\ge \lambda\mu - 2\lambda^2\sigma^2 \ge \lambda\mu/2,
+\]
+using $\lambda \le \mu/(4\sigma^2)$. Let $D_i = \xi_i - \E[\xi_i \mid \G_i]$.
+Since $D_i$ is $\F_i$-measurable and $\G_i \subseteq \F_i \subseteq \G_{i+1}$,
+$(D_i)$ is a martingale difference sequence for the filtration
+$(\G_{i+1})_{i \ge 0}$, with $|D_i| \le R$. The Azuma--Hoeffding inequality
+\citep{azuma1967weighted} gives
+$P(|\sum_{i \le t} D_i| \ge \varepsilon t) \le 2\exp\{-\varepsilon^2 t/(2R^2)\}$,
+which is summable in $t$, so by the Borel--Cantelli lemma
+$t^{-1}\sum_{i \le t} D_i \to 0$ almost surely. Finally, $W_t$ is an average
+of $|\Lambda|$ nonnegative terms, one of which is $\exp(\sum_{i \le t}\xi_i)$, so
+\[
+\frac{\log W_t}{t} \ge -\frac{\log|\Lambda|}{t}
++ \frac1t\sum_{i < t_0} \xi_i
++ \frac1t\sum_{t_0 \le i \le t} \E[\xi_i \mid \G_i]
++ \frac1t\sum_{i \le t} D_i .
+\]
+On $\Omega_0$ the first two terms vanish as $t \to \infty$, the third has
+$\liminf$ at least $\lambda\mu/2$ and the last tends to zero almost surely.
+Hence $W_t \to \infty$ exponentially fast on $\Omega_0$, and $W_t$ crosses
+$1/\alpha$ there almost surely.
 
 \paragraph{Proof of Proposition~\ref{prop:bayes}.} By Fubini,
 $\E_P[T_t] = \int \E_P[dQ_\theta/dP]\,\pi_{t-1}(d\theta) = 1$, so by
