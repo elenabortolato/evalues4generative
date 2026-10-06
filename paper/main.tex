@@ -347,7 +347,9 @@ order two \citep{vanerven2014renyi}. What the proposition adds is that this
 quantity is the exact limit of the expected Monte Carlo bet when the simulator
 ignores the action, and that the condition $P_a = \bar P$ is not only
 sufficient for fairness (Theorem~\ref{thm:valid}) but necessary for the bet to
-be fair against every score.
+be fair against every score. Part (iii) only says that the wealth grows; how fast
+it grows is given exactly by the growth-rate theory of the next section
+(Corollary~\ref{cor:falsealarm}).
 
 The same argument applies to the history. A twin re-initialised at a resting
 state rather than at the participant's current state samples from a law that
@@ -430,6 +432,48 @@ term. The bounds on $\log E_i$ follow from \eqref{eq:mc}, and the martingale
 strong law applies to the bounded differences
 $\log E_i - \E[\log E_i \mid \G_i]$.
 \end{proof}
+
+The same theory gives the rate at which an action-ignoring twin produces a
+false alarm. In the setting of Proposition~\ref{prop:necessary} the real
+outcome has law $P_a$ and the simulator law is $\bar P$, so the factor is the
+one Theorem~\ref{thm:growth} analyses with $Q = P_a$ and $P = \bar P$: under the
+true null, the test behaves as if it were testing $P_a$ against $\bar P$.
+
+\begin{corollary}[False-alarm rate of an action-ignoring twin]\label{cor:falsealarm}
+In the setting of Proposition~\ref{prop:necessary}, suppose that the laws
+$P_a$ and $\bar P$ and the score $T = e^{s}$, with $|s| \le B$, do not change
+over time, that $\KL(P_a\|\bar P) < \infty$ for every action $a$, and that the
+fraction of the first $t$ steps at which the policy plays $a$ converges to
+$\pi_a$. Let $g_M(a)$ and $g_\infty(a)$ be the growth rates of
+Theorem~\ref{thm:growth} with $Q = P_a$ and $P = \bar P$, and
+$\hat Q_a = T\bar P/\E_{\bar P}[T]$. Then, under $H_0$:
+\begin{enumerate}
+\item[(i)] $g_\infty(a) = \KL(P_a\|\bar P) - \KL(P_a\|\hat Q_a)$ and
+$g_M(a) \ge g_\infty(a) - (\rho_a - 1)/(M+1)$, where
+$\rho_a = \E_{P_a}[T]/\E_{\bar P}[T]$ is the limit of
+Proposition~\ref{prop:necessary}(i). If $1 \in \Lambda$, almost surely
+$\liminf_t t^{-1}\log W_t \ge \sum_a \pi_a\, g_M(a)$.
+\item[(ii)] For every $\lambda$, every $M$ and every score,
+$\E[\log(1 - \lambda + \lambda E_t) \mid \G_t] \le \KL(P_a\|\bar P)
+\le \log\{1 + \chi^2(P_a\|\bar P)\}$, and almost surely
+$\limsup_t t^{-1}\log W_t \le \sum_a \pi_a \KL(P_a\|\bar P)$. The
+likelihood-ratio score attains the bound as $M \to \infty$.
+\item[(iii)] If the twin is run under randomised actions,
+$\bar P = \sum_b u_b P_b$ with $u_b > 0$, then
+$\KL(P_a\|\bar P) \le \log(1/u_a)$ and $\chi^2(P_a\|\bar P) \le 1/u_a - 1$;
+with $K$ actions drawn uniformly, $\log K$ and $K - 1$.
+\end{enumerate}
+\end{corollary}
+
+The proof is in Appendix~\ref{app:proofs}. The false alarm therefore arrives
+after roughly $\log(1/\alpha)/\sum_a \pi_a g_M(a)$ steps: the rate is a
+Kullback--Leibler divergence, not the $\chi^2$ divergence that governs the
+expected bet, and it is largest for a policy that concentrates on one action,
+$\pi_a \to 1$, as Thompson sampling does. The rate vanishes only if the arms
+have the same law, and with $K$ arms it can never exceed $\log K$ per step.
+Mathematically the corollary is Theorem~\ref{thm:growth} with the roles of the
+laws reassigned, together with the standard bound for the redundancy of a
+mixture code \citep{grunwald2007minimum}; its content is the reading.
 
 %======================================================================
 \section{Betting is predicting}\label{sec:predictive}
@@ -1839,6 +1883,42 @@ On $\Omega_0$ the first two terms vanish as $t \to \infty$, the third has
 $\liminf$ at least $\lambda\mu/2$ and the last tends to zero almost surely.
 Hence $W_t \to \infty$ exponentially fast on $\Omega_0$, and $W_t$ crosses
 $1/\alpha$ there almost surely.
+
+\paragraph{Proof of Corollary~\ref{cor:falsealarm}.}
+Condition on $\G_t$ at a time when $a$ is played. The real outcome has law $P_a$,
+the simulator draws are i.i.d.\ $\bar P$ and independent of it, and
+Theorem~\ref{thm:growth} uses nothing about the hypothesis beyond these laws,
+so it applies with $Q = P_a$ and $P = \bar P$; $\rho_a < \infty$ because the
+score is bounded. This gives the first two statements of (i). Since the laws
+and the score do not change, the conditional growth rate of the $\lambda = 1$
+factor at a step where $a$ is played is $g_M(a)$, so
+$t^{-1}\sum_{i \le t}\E[\log E_i \mid \G_i] \to \sum_a \pi_a g_M(a)$, and
+Corollary~\ref{cor:cumulative} gives the last statement of (i).
+
+(ii) Let $w = dP_a/d\bar P$ and $e_\lambda = 1 - \lambda + \lambda E_t$. If the
+real outcome had law $\bar P$, the $M+1$ draws would be exchangeable and
+$\E_{\bar P \otimes \bar P^M}[e_\lambda] = 1$ by
+Proposition~\ref{prop:exact}. The likelihood ratio of
+$P_a \otimes \bar P^M$ to $\bar P \otimes \bar P^M$ is $w(X)$, so by Jensen's
+inequality, as in the proof of Theorem~\ref{thm:growth}(i),
+\[
+\E_{P_a \otimes \bar P^M}\big[\log e_\lambda\big] - \KL(P_a\|\bar P)
+= \E_{P_a \otimes \bar P^M}\Big[\log\frac{e_\lambda}{w(X)}\Big]
+\le \log \E_{\bar P \otimes \bar P^M}\big[e_\lambda\big] = 0 .
+\]
+Jensen's inequality also gives
+$\KL(P_a\|\bar P) = \E_{P_a}[\log w] \le \log \E_{P_a}[w] = \log\{1 + \chi^2(P_a\|\bar P)\}$
+by Proposition~\ref{prop:necessary}(ii). For each $\lambda \in \Lambda$ the
+increments $\log e_\lambda$ are bounded, because $|s| \le B$ keeps $E_t$ in
+$[e^{-2B}, M+1]$, so the martingale strong law gives
+$\limsup_t t^{-1}\sum_{i \le t}\log e_{\lambda,i} \le \sum_a \pi_a \KL(P_a\|\bar P)$
+almost surely; $W_t$ is at most the largest of the $|\Lambda|$ products, which
+gives the bound on $W_t$. For the likelihood-ratio score, $\hat Q_a = P_a$ and
+$g_\infty(a) = \KL(P_a\|\bar P)$ by Theorem~\ref{thm:growth}(ii).
+
+(iii) For every measurable set $A$, $\bar P(A) \ge u_a P_a(A)$, so
+$w \le 1/u_a$. Hence $\KL(P_a\|\bar P) = \E_{P_a}[\log w] \le \log(1/u_a)$ and
+$1 + \chi^2(P_a\|\bar P) = \E_{P_a}[w] \le 1/u_a$.
 
 \paragraph{Proof of Proposition~\ref{prop:bayes}.} By Fubini,
 $\E_P[T_t] = \int \E_P[dQ_\theta/dP]\,\pi_{t-1}(d\theta) = 1$, so by
