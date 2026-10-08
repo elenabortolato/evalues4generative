@@ -32,8 +32,8 @@ in `results/`, so any table can be checked against them without re-running.
 **Randomness.** Every replication draws from `numpy.random.default_rng` with a
 seed fixed by the replication index, and no script uses an unseeded generator.
 With the library versions above, re-running a script reproduces the stored
-numbers exactly. Runs in parallel (`--workers`) give the same numbers as serial
-runs.
+numbers exactly. Seeds depend on the replication index, not on the worker,
+so parallel runs (`--workers`) give the same numbers as serial runs.
 
 **Running times** are approximate, for a 4-core machine. "Minutes" means under
 about 10 minutes.
