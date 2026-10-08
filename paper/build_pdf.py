@@ -174,6 +174,7 @@ def inline_text(s: str) -> str:
     s = re.sub(r"\\textbf\{([^{}]*)\}", r"<strong>\1</strong>", s)
     s = re.sub(r"\\(?:emph|textit)\{([^{}]*)\}", r"<em>\1</em>", s)
     s = re.sub(r"\\texttt\{([^{}]*)\}", r"<code>\1</code>", s)
+    s = re.sub(r"\\url\{([^{}]*)\}", r"<a href=\"\1\"><code>\1</code></a>", s)
     s = re.sub(r"\\phantom\{[^{}]*\}", "&numsp;", s)
     s = s.replace("\\newblock", " ").replace("\\ldots", "…").replace("\\dots", "…")
     s = s.replace("---", "&mdash;").replace("--", "&ndash;")
@@ -375,10 +376,14 @@ class Builder:
         out, pos = [], 0
         app = body.find("\\appendix")
         in_app = False
-        for m in re.finditer(r"\\(section|subsection|paragraph)\{", body):
+        for m in re.finditer(r"\\(section|subsection|paragraph)(\*?)\{", body):
             out.append(body[pos : m.start()])
             title, after = take_braced(body, m.end() - 1)
-            if m.group(1) == "section":
+            if m.group(2):  # unnumbered heading, e.g. \section*{Data availability}
+                tag = "h2" if m.group(1) == "section" else "h3"
+                out.append(self.hole(
+                    f'<{tag} class="unnumbered">{self.text(title)}</{tag}>'))
+            elif m.group(1) == "section":
                 if app >= 0 and m.start() > app and not in_app:
                     in_app = True
                     self.counters["section"] = 0

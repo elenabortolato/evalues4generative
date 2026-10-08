@@ -2,6 +2,8 @@
 
 **Paper draft:** [`paper/main.pdf`](paper/main.pdf) (source in `paper/`).
 
+**Reproducing the paper:** see [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) for the script, command and output behind every table and figure.
+
 A proof of concept for the research proposal *Simulation-Based E-Values and
 Mixtures for Valid Inference in Dynamic and Adaptive Systems*.
 
