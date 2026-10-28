@@ -1,7 +1,8 @@
 # Reproducing the paper
 
 This file explains how to reproduce every table and figure in
-*Betting against the simulator* (`paper/main.pdf`) and its supplement
+*Betting against the simulator: Monte Carlo e-processes under adaptive
+actions* (`paper/main.pdf`) and its supplement
 (`paper/supplement.pdf`) from the code in this repository.
 
 ## 1. Setup

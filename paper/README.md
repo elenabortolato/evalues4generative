@@ -1,7 +1,7 @@
 # Paper draft
 
-`main.tex` + `references.bib`: *Betting against the simulator: anytime-valid
-criticism of generative models and digital twins under adaptive control.*
+`main.tex` + `references.bib`: *Betting against the simulator: Monte Carlo
+e-processes under adaptive actions.*
 Standard LaTeX (natbib, amsthm). Figures are read from `../figures/`.
 
 ```bash
