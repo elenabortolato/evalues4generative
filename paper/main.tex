@@ -1339,6 +1339,82 @@ the parametric family of the drift is worth a factor of about 3.5 over learning
 it from samples (58 against 209 steps); and with a learned score all-in betting
 fails (power 0.41), so the mixture over $\lambda$ is the right strategy.
 
+\subsection{Comparison with concurrent methods}\label{sec:exp-concurrent}
+
+The concurrent methods of Section~\ref{sec:intro} use the same bet and differ
+from ours in how the score is chosen. We compare them on the drift task and the
+bandit, with the same simulations, the same mixture over $\lambda$ and the same
+data for every method, so that only the score differs. For
+\citet{forre2026anytime} we use their two scores: the score refitted every ten
+steps by maximising the penalised empirical growth on the past, which is the
+maximiser of the simulation likelihood under a ridge penalty, with the bet
+placed at the maximiser; and a score fitted once, before monitoring, on
+simulations from a guessed alternative. For \citet{cortinovis2026slice} we use
+SLICE as it would serve our question, with a single null ($G = 1$): an
+amortised neural ratio network trained once on $2 \times 10^5$ simulations from
+the simulator's parametrised family (curvature $b$ for the drift, a location
+shift per arm for the bandit), evaluated at a predictable estimate of the
+parameter. Both concurrent methods assume independent data; in the bandit they
+are run on simulations under the arm actually chosen, which our
+Theorem~\ref{thm:valid} makes valid, and once as published, with the twin run
+on random arms. Besides the alternatives of Sections~\ref{sec:exp-drift}
+and~\ref{sec:exp-bandit}, which lie inside SLICE's family, each task has an
+alternative outside it: in the drift the curvature is unchanged and the first
+coordinate is 20\% wider, and in the bandit the most pulled arm keeps its mean
+and its noise is 50\% larger.
+
+\begin{table}[t]
+\centering
+\caption{Comparison with the scores of \citet{forre2026anytime} (F\&B) and
+\citet{cortinovis2026slice} (SLICE); 400 replications per scenario. Entries:
+power within the horizon and, in brackets, the median stopping time;
+``in family'': the alternatives of Sections~\ref{sec:exp-drift}
+and~\ref{sec:exp-bandit}; ``out of family'': departures that SLICE's
+parametrised family does not contain. False alarms: range over the two tasks.
+Time: computing time per replication on one core, drift / bandit; the
+simulators are cheap here, so it measures mostly the cost of the score, and
+for SLICE it excludes the training of the network. The F\&B score fitted in advance uses the true in-family drift
+alternative. All variants are in the Supplement.}
+\label{tab:concurrent}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{2}{c}{drift} & \multicolumn{2}{c}{bandit} & false & time \\
+score & in family & out of family & in family & out of family & alarms & (s) \\
+\midrule
+ours, BLR logistic & 0.98 (209) & 0.70 (344) & 1.00 (38) & 1.00 (112) & 1.8--2.0\% & 0.3 / 0.2 \\
+ours, simulation likelihood & 0.97 (223) & 0.85 (258) & 1.00 (55) & 0.99 (157) & 1.0--1.3\% & 0.3 / 0.15 \\
+F\&B, refitted on the past & 0.99 (200) & 0.89 (250) & 1.00 (61) & 0.99 (167) & 1.5--2.0\% & 1.0 / 0.65 \\
+F\&B, fitted in advance & 1.00 (61) & 0.01 & -- & -- & 2.5\% & -- \\
+SLICE, neural ratio, $G = 1$ & 1.00 (71) & 0.01 & 1.00 (35) & 0.56 (258) & 0.7--3.3\% & 0.45 / 0.4 \\
+F\&B, twin on random arms & -- & -- & \multicolumn{2}{c}{false alarms 100\%} & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:concurrent} shows four things. First, conditioning on the action
+is necessary for every score: run as published, with the twin on random arms,
+the refitted score of \citet{forre2026anytime} rejects the true null in every
+bandit run, and with simulations under the chosen arm it is valid. Second,
+scores that know where the departure lies are fastest: when the alternative is
+inside the family, SLICE stops after 71 steps on the drift and 35 on the bandit,
+and a score fitted in advance on the true alternative after 61, against about
+200 for scores learned from the data. Third, this knowledge is also their
+weakness: out of the family, SLICE has power 0.01 on the drift and 0.56 on the
+bandit, and a score fitted on the expected alternative has power 0.01, while
+every score learned from real against simulated outcomes keeps its power.
+Fourth, among the scores learned from the data, the refitted maximiser of
+\citet{forre2026anytime} and our posterior-predictive updates perform alike,
+slightly better for the refit on the drift and for ours on the bandit, but ours
+cost a third as much and carry the pathwise guarantee of
+Theorem~\ref{thm:simlik}, since they update one step per observation instead
+of refitting on the whole history. The network of SLICE cost $2 \times 10^5$
+simulations and 26 seconds here, because the simulators are cheap;
+\citet{cortinovis2026slice} use $10^7$ simulations per model. When an amortised
+score is available, nothing forces a choice: the average of its wealth and
+ours is again a test martingale, which is close to the faster of the two when
+the departure is inside the family and keeps power when it is not.
+
 %======================================================================
 \section{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
 %======================================================================

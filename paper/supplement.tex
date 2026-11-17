@@ -529,7 +529,8 @@ conditioning on the action rejects a true null in every run
 
 This section collects material moved out of the main text: the rejection
 curves of the drift experiment, all variants of the update rules, the regret
-check of Theorem~3, and the trial and the regional analysis with each learner.
+check of Theorem~3, the trial and the regional analysis with each learner, and
+all variants of the comparison with concurrent methods.
 
 \subsection{Drift experiment: rejection curves}
 
@@ -739,6 +740,73 @@ Bayesian-bootstrap forest & 0.002 & 0.00 & 15 & 32 & 1 Aug 2021 & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Comparison with concurrent methods: all variants}
+
+Table~\ref{tab:concurrent-full} reports every score of Section~5.5 of the main
+text, including the refitted score with a weak penalty (prior variance 1
+instead of 0.03), the score fitted in advance on a wrong guess of the
+alternative (curvature 0.2 instead of 0.8), and SLICE with the exact
+parametric ratio instead of the network, which is its best case. The
+refitted score maximises the penalised growth by damped Newton steps with a
+backtracking line search, every ten steps from step 20. SLICE's network is a
+multilayer perceptron with three hidden layers of 128 units, trained by neural
+ratio estimation (joint against shuffled pairs; SLICE uses the contrastive
+NRE-C objective) on $2 \times 10^5$ pairs from a uniform prior over the
+family, $b \in [0, 1.5]$ for the drift and a shift in $[-1, 1]$ for the bandit;
+the parameter is estimated by maximum likelihood (drift) or by the arm's mean
+(bandit) from past real data. Times are wall-clock seconds for 800 replications
+on four cores; the simulations are cheap here, so they measure mostly the cost
+of the score.
+
+\begin{table}[h]
+\centering
+\caption{All scores of the comparison with concurrent methods (400
+replications per scenario). Rate: share of runs that reject; median: median
+stopping time under the alternative.}
+\label{tab:concurrent-full}
+\small
+\begin{tabular}{llrrrr}
+\toprule
+scenario & score & false alarms & power & median & time (s) \\
+\midrule
+drift, in family & ours, BLR logistic & 0.018 & 0.983 & 209 & 63 \\
+ & ours, simulation likelihood & 0.013 & 0.968 & 223 & 59 \\
+ & F\&B refitted, penalty 0.03 & 0.020 & 0.988 & 200 & 200 \\
+ & F\&B refitted, penalty 1 & 0.033 & 0.995 & 192 & 224 \\
+ & F\&B fitted in advance, true alternative & 0.025 & 1.000 & 61 & -- \\
+ & F\&B fitted in advance, wrong guess & 0.028 & 0.000 & -- & -- \\
+ & SLICE, exact ratio & 0.007 & 1.000 & 75 & -- \\
+ & SLICE, neural ratio & 0.007 & 1.000 & 71 & 91 \\
+drift, out of family & ours, BLR logistic & 0.018 & 0.703 & 344 & 63 \\
+ & ours, simulation likelihood & 0.013 & 0.850 & 258 & 55 \\
+ & F\&B refitted, penalty 0.03 & 0.020 & 0.887 & 250 & 201 \\
+ & F\&B fitted in advance, expected alternative & 0.025 & 0.007 & -- & -- \\
+ & SLICE, exact ratio & 0.007 & 0.005 & -- & -- \\
+ & SLICE, neural ratio & 0.007 & 0.005 & -- & 91 \\
+bandit, in family & ours, BLR logistic & 0.020 & 1.000 & 38 & 40 \\
+ & ours, simulation likelihood & 0.010 & 1.000 & 55 & 30 \\
+ & F\&B refitted, penalty 0.03 & 0.015 & 1.000 & 61 & 130 \\
+ & F\&B refitted, penalty 1 & 0.015 & 1.000 & 47 & 151 \\
+ & SLICE, exact ratio & 0.035 & 1.000 & 35 & -- \\
+ & SLICE, neural ratio & 0.033 & 1.000 & 35 & 83 \\
+ & F\&B refitted, twin on random arms & 1.000 & 1.000 & 49 & 119 \\
+bandit, out of family & ours, BLR logistic & 0.020 & 1.000 & 112 & 40 \\
+ & ours, simulation likelihood & 0.010 & 0.988 & 157 & 31 \\
+ & F\&B refitted, penalty 0.03 & 0.015 & 0.988 & 167 & 119 \\
+ & SLICE, exact ratio & 0.035 & 0.647 & 158 & -- \\
+ & SLICE, neural ratio & 0.033 & 0.562 & 258 & 81 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two times are omitted because they measure our code rather than the method:
+the scores fitted in advance were refitted in every replication, which in use
+happens once, and the exact SLICE ratio of the bandit is evaluated in a slow
+Python loop. The network was trained once per task, in 26 seconds. Out of the
+family on the bandit, SLICE keeps some power because the noisier arm makes the
+estimated shift fluctuate, and the ratio of the skewed family responds to the
+fluctuation; it does not estimate the change of scale.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

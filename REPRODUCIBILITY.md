@@ -61,10 +61,11 @@ about 10 minutes.
 | Figure 2 | growth rate vs M (Theorem 2) | `python experiments/exp4_growth_rate.py` | `results/exp4.json`, `figures/exp4_growth_rate.png` | minutes |
 | Section 5.3 (regret) | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
 | Table 3 | update rules (selected rows; all rows in Table S5) | as for Table S5 below | | |
-| Table 4 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
-| Table 5, Figure 3 | Italian regions, synthetic and real data | `python experiments/exp9_italy_regions.py` then `python experiments/exp9_figure.py` | `results/exp9.json`, `figures/exp9_italy_regions.png` | ~10–30 min |
-| Table 6 | direction of the 2021 regional alarms | `python experiments/alarm_directions.py` (after `exp8b` and `exp9`) | `results/alarm_directions.json` | seconds |
-| Table 7 | notation | none (text) | | |
+| Table 4 | comparison with concurrent methods (Forré & Brenner; SLICE) | `python experiments/exp15_concurrent_methods.py --task drift,bandit,drift-mis,bandit-mis` | `results/exp15.json` | ~1 h in all |
+| Table 5 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
+| Table 6, Figure 3 | Italian regions, synthetic and real data | `python experiments/exp9_italy_regions.py` then `python experiments/exp9_figure.py` | `results/exp9.json`, `figures/exp9_italy_regions.png` | ~10–30 min |
+| Table 7 | direction of the 2021 regional alarms | `python experiments/alarm_directions.py` (after `exp8b` and `exp9`) | `results/alarm_directions.json` | seconds |
+| Table 8 | notation | none (text) | | |
 
 The experiment numbers in the file names follow the order in which the
 experiments were written, not the order of the paper.
@@ -85,6 +86,7 @@ experiments were written, not the order of the paper.
 | Table S6 | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
 | Table S7 | MAMS trial, each learner | `python experiments/exp11_mams_trial.py --learner L --scenarios null` and `... --scenarios snacking`, for L in `choice`, `mp-logistic-plugin`, `mp-logistic-resample`, `mp-choice-plugin`, `mp-choice-resample`, `forest-mixture-early` | `results/exp11_<L>_<scenario>.json` (`results/exp11_choice.json` for `choice`) | ~15–40 min per run |
 | Table S8 | Italian regions, each learner | `python experiments/exp9_italy_regions.py --learner L`, for L in `mp-logistic-plugin`, `mp-logistic-resample`, `mp-choice-plugin`, `mp-choice-resample`, `forest-mixture-early` | `results/exp9_<L>.json` | ~10–30 min per learner |
+| Table S9 | comparison with concurrent methods, all variants | as for Table 4 above | `results/exp15.json` | |
 
 `experiments/exp8_italy_covid.py` (national cases, `figures/exp8_italy_covid.png`)
 is an earlier version of the national analysis. It is kept for reference and
