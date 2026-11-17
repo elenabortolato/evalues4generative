@@ -1,0 +1,4 @@
+drift  slice-nre network trained: {'simulations': 200000, 'seconds': 26.3, 'epochs': 12}
+drift  slice-nre       false alarms 0.007  power 1.000  median 71.0  (91s)
+bandit slice-nre network trained: {'simulations': 200000, 'seconds': 26.6, 'epochs': 13}
+bandit slice-nre       false alarms 0.033  power 1.000  median 35.0  (83s)

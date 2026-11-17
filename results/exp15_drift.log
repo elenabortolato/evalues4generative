@@ -1,0 +1,7 @@
+drift  ours-blr        false alarms 0.018  power 0.983  median 209.0  (63s)
+drift  ours-simlik     false alarms 0.013  power 0.968  median 223.0  (59s)
+drift  fb-online       false alarms 0.020  power 0.988  median 200.5  (200s)
+drift  fb-online-tau1  false alarms 0.033  power 0.995  median 191.5  (224s)
+drift  fb-pre-true     false alarms 0.025  power 1.000  median 61.0  (125s)
+drift  fb-pre-wrong    false alarms 0.028  power 0.000  median None  (119s)
+drift  slice-exact     false alarms 0.007  power 1.000  median 75.0  (20s)

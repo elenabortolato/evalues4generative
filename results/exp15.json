@@ -1,0 +1,168 @@
+{
+ "drift": {
+  "ours-blr": {
+   "null": {
+    "rate": 0.0175,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9825,
+    "median": 209.0
+   }
+  },
+  "ours-simlik": {
+   "null": {
+    "rate": 0.0125,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9675,
+    "median": 223.0
+   }
+  },
+  "fb-online": {
+   "null": {
+    "rate": 0.02,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9875,
+    "median": 200.5
+   }
+  },
+  "fb-online-tau1": {
+   "null": {
+    "rate": 0.0325,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.995,
+    "median": 191.5
+   }
+  },
+  "fb-pre-true": {
+   "null": {
+    "rate": 0.025,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 61.0
+   }
+  },
+  "fb-pre-wrong": {
+   "null": {
+    "rate": 0.0275,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.0,
+    "median": null
+   }
+  },
+  "slice-exact": {
+   "null": {
+    "rate": 0.0075,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 75.0
+   }
+  },
+  "slice-nre": {
+   "offline_cost": {
+    "simulations": 200000,
+    "seconds": 26.3,
+    "epochs": 12
+   },
+   "null": {
+    "rate": 0.0075,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 71.0
+   },
+   "online_seconds": 91.1
+  }
+ },
+ "bandit": {
+  "ours-blr": {
+   "null": {
+    "rate": 0.02,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 38.0
+   }
+  },
+  "ours-simlik": {
+   "null": {
+    "rate": 0.01,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 55.0
+   }
+  },
+  "fb-online": {
+   "null": {
+    "rate": 0.015,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 61.0
+   }
+  },
+  "fb-online-tau1": {
+   "null": {
+    "rate": 0.015,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 47.0
+   }
+  },
+  "slice-exact": {
+   "null": {
+    "rate": 0.035,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 35.0
+   }
+  },
+  "fb-online-iid": {
+   "null": {
+    "rate": 1.0,
+    "median": 69.0
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 49.0
+   }
+  },
+  "slice-nre": {
+   "offline_cost": {
+    "simulations": 200000,
+    "seconds": 26.6,
+    "epochs": 13
+   },
+   "null": {
+    "rate": 0.0325,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 35.0
+   },
+   "online_seconds": 83.0
+  }
+ }
+}

@@ -1,0 +1,6 @@
+bandit ours-blr        false alarms 0.020  power 1.000  median 38.0  (40s)
+bandit ours-simlik     false alarms 0.010  power 1.000  median 55.0  (30s)
+bandit fb-online       false alarms 0.015  power 1.000  median 61.0  (130s)
+bandit fb-online-tau1  false alarms 0.015  power 1.000  median 47.0  (151s)
+bandit slice-exact     false alarms 0.035  power 1.000  median 35.0  (176s)
+bandit fb-online-iid   false alarms 1.000  power 1.000  median 49.0  (119s)
