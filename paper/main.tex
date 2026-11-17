@@ -915,7 +915,7 @@ at most $2D$.
         \]
         In particular, for i.i.d.\ data under a fixed action and features,
         $\liminf_t t^{-1}\log \bar W_t \ge \sup_{\theta\in\Theta} g_M(\theta)$,
-        and by Theorem~\ref{thm:growth}
+        and, if $\KL(Q\|P) < \infty$, by Theorem~\ref{thm:growth}
         $g_M(\theta) \ge \KL(Q\|P) - \KL(Q\|Q_\theta) - \log\{1 + (\rho_\theta - 1)/(M+1)\}$,
         where $Q_\theta$ is the tilt of $P$ by $\theta^\top\phi$ and
         $\rho_\theta = \E_Q[e^{\theta^\top\phi}]/\E_P[e^{\theta^\top\phi}]$.
@@ -957,8 +957,12 @@ Validity follows from Fubini's theorem. The first inequality is Jensen's.
 The function $\theta \mapsto \log E_t(\theta)$ is concave, with gradient
 $\phi_t(U_{t,0}) - \sum_k w_k \phi_t(U_{t,k})$ and Hessian
 $-\mathrm{Cov}_w(\phi_t)$, where $w_k \propto e^{\theta^\top\phi_t(U_{t,k})}$;
-since $\mathrm{Cov}_w(\phi_t) \preceq G^2 I$, a second-order expansion around
-$\bar\theta_{t-1}$ and the expectation under $\nu_{t-1}$ give the second inequality.
+since $\mathrm{Cov}_w(\phi_t) \preceq \E_w[\phi_t\phi_t^\top] \preceq G^2 I$,
+Taylor's theorem with integral remainder around $m = \bar\theta_{t-1}$ gives
+$\log E_t(\theta) \ge \log E_t(m) + \nabla\log E_t(m)^\top(\theta - m)
+- \frac{G^2}{2}\|\theta - m\|^2$ for every $\theta$. Taking the expectation
+under $\nu_{t-1}$, the linear term vanishes because $m$ is its mean, and
+$\E_{\nu_{t-1}}\|\theta - m\|^2 = \mathrm{tr}\,\Sigma_{t-1}$.
 \end{proof}
 
 A predictive bet built from an approximate posterior is therefore never worse
@@ -2057,9 +2061,13 @@ Taking the expectation under $Q$ and applying Jensen's inequality once more
 gives $g_\infty - g_M \le \log\{1 + (\rho - 1)/(M+1)\} \le (\rho-1)/(M+1)$.
 This is Theorem~3 of \citet{dombowsky2026besag} in our notation.
 
-(iv) Let $U_0 = X$ and $U_k = Y_k$, and let $\bar h$ and $\overline{h^2}$ be
-the averages of $h(U_k)$ and $h(U_k)^2$ over $k = 0, \ldots, M$. The cumulant
-expansion of $\log$ of the average of $e^{\varepsilon h(U_k)}$ gives
+(iv) Take $\varepsilon < 1/\|\psi\|_\infty$, so that $Q$ is a probability
+measure. Let $U_0 = X$ and $U_k = Y_k$, and let $\bar h$ and $\overline{h^2}$ be
+the averages of $h(U_k)$ and $h(U_k)^2$ over $k = 0, \ldots, M$. Since
+$\log E^{(M)} = \varepsilon h(X) - \log\big\{(M+1)^{-1}\sum_k e^{\varepsilon h(U_k)}\big\}$,
+the cumulant expansion of the logarithm of the average of $e^{\varepsilon h(U_k)}$
+gives, with a remainder bounded by $C\varepsilon^3\|h\|_\infty^3$ for an absolute
+constant $C$, uniformly in the sample,
 \[
 \log E^{(M)} = \varepsilon\big(h(X) - \bar h\big)
 - \frac{\varepsilon^2}{2}\big(\overline{h^2} - \bar h^2\big) + O(\varepsilon^3).
@@ -2067,11 +2075,18 @@ expansion of $\log$ of the average of $e^{\varepsilon h(U_k)}$ gives
 Under $Q \otimes P^M$,
 $\E[h(X) - \bar h] = \frac{M}{M+1}(\E_Q h - \E_P h)
 = \frac{M}{M+1}\,\varepsilon\, \E_P[\tilde h \psi]$. The second bracket is the
-empirical variance of $M+1$ draws that are i.i.d.\ $P$ up to $O(\varepsilon)$,
-with expectation $\frac{M}{M+1}\mathrm{Var}_P(h) + O(\varepsilon)$. Hence
+empirical variance of the $M+1$ values, bounded by $\|h\|_\infty^2$. Under
+$P \otimes P^M$ its expectation is $\frac{M}{M+1}\mathrm{Var}_P(h)$, and since
+$dQ/dP = 1 + \varepsilon\psi$ the expectation of a function bounded by $K$ changes
+by at most $\varepsilon\|\psi\|_\infty K$ when $X \sim Q$, so its expectation is
+$\frac{M}{M+1}\mathrm{Var}_P(h) + O(\varepsilon)$. The remainder of the expansion
+has expectation $O(\varepsilon^3)$ by the uniform bound. Hence
 $g_M = \frac{M}{M+1}\varepsilon^2\big(\E_P[\tilde h \psi] - \frac12 \E_P[\tilde h^2]\big)
-+ O(\varepsilon^3)$, which equals the stated form since $\E_P[\psi] = 0$. The
-expansion of $\KL(Q\|P)$ is standard.
++ O(\varepsilon^3)$, which equals the stated form since
+$\E_P[\psi^2] - \E_P[(\psi - \tilde h)^2] = 2\E_P[\tilde h\psi] - \E_P[\tilde h^2]$.
+Finally, $\KL(Q\|P) = \E_P[(1 + \varepsilon\psi)\log(1 + \varepsilon\psi)]
+= \varepsilon\E_P[\psi] + \frac{\varepsilon^2}{2}\E_P[\psi^2] + O(\varepsilon^3)$,
+and $\E_P[\psi] = 0$.
 
 \paragraph{Proof of Proposition~\ref{prop:necessary}.}
 Work conditionally on $\G_t$, so that $T$ is a fixed function, $X = X_t$ has
@@ -2211,7 +2226,7 @@ $\E[\bar E_t \mid \G_t] = 1$, and $\bar W_t$ is a test martingale.
 
 (ii) Let $F(\theta) = \log L_t(\theta)$, a concave function, and let
 $\theta^* \in \Theta$ maximise it. Its gradient is
-$\sum_{i \le t}\{\phi_i(Z_{i,0}) - \sum_k w_{ik}\phi_i(Z_{i,k})\}$, of norm at
+$\sum_{i \le t}\{\phi_i(U_{i,0}) - \sum_k w_{ik}\phi_i(U_{i,k})\}$, of norm at
 most $2Gt$, so $F(\theta) \ge F(\theta^*) - 2Gt\|\theta - \theta^*\|$. For
 $0 < r \le 2D$, the set $\theta^* + \frac{r}{2D}(\Theta - \theta^*)$ lies in
 $\Theta$ by convexity and within distance $r$ of $\theta^*$, and its volume is
@@ -2231,7 +2246,7 @@ $r = \sqrt{d/(tG^2)}$ gives the second bound.
 
 (iii) Let $B_\Theta = \max_{\theta\in\Theta}\|\theta\|$. For fixed
 $\theta \in \Theta$,
-$E_i(\theta) = (M+1)/\{1 + \sum_{k \ge 1} e^{\theta^\top(\phi_i(Z_{i,k}) - \phi_i(Z_{i,0}))}\}$
+$E_i(\theta) = (M+1)/\{1 + \sum_{k \ge 1} e^{\theta^\top(\phi_i(U_{i,k}) - \phi_i(U_{i,0}))}\}$
 lies in $[(M+1)/(1 + M e^{2GB_\Theta}),\, M+1]$. The differences
 $\log E_i(\theta) - g_{M,i}(\theta)$ are bounded martingale differences, so
 their average tends to zero almost surely. Part (ii) gives
@@ -2239,7 +2254,8 @@ $\log \bar W_t \ge \sum_{i \le t} \log E_i(\theta) - d\log t - O(1)$ for every
 $\theta \in \Theta$, and $d\log t / t \to 0$. In the i.i.d.\ case
 $g_{M,i}(\theta) = g_M(\theta)$; taking a countable dense subset of $\Theta$
 and using the continuity of $g_M$ gives the supremum. The last inequality is
-Theorem~\ref{thm:growth}(ii)--(iii) applied to the score $e^{\theta^\top\phi}$.
+Theorem~\ref{thm:growth}(ii)--(iii) applied to the score $e^{\theta^\top\phi}$,
+which is bounded, when $\KL(Q\|P) < \infty$.
 
 %======================================================================
 \section{Experimental details}\label{app:details}
