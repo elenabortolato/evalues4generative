@@ -290,7 +290,8 @@ class Builder:
                 cls.append("midrule")
             if "\\bottomrule" in raw:
                 pending_top = True
-            cell_src = re.sub(r"\\(?:top|mid|bottom)rule", "", raw).strip()
+            cell_src = re.sub(r"\\(?:top|mid|bottom)rule", "", raw)
+            cell_src = re.sub(r"\\cmidrule(?:\([a-z]*\))?\{[^}]*\}", "", cell_src).strip()
             if not cell_src:
                 continue
             cells = re.split(r"(?<!\\)&", cell_src)

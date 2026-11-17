@@ -62,10 +62,11 @@ about 10 minutes.
 | Section 5.3 (regret) | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
 | Table 3 | update rules (selected rows; all rows in Table S5) | as for Table S5 below | | |
 | Table 4 | comparison with concurrent methods (Forré & Brenner; SLICE) | `python experiments/exp15_concurrent_methods.py --task drift,bandit,drift-mis,bandit-mis` | `results/exp15.json` | ~1 h in all |
-| Table 5 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
-| Table 6, Figure 3 | Italian regions, synthetic and real data | `python experiments/exp9_italy_regions.py` then `python experiments/exp9_figure.py` | `results/exp9.json`, `figures/exp9_italy_regions.png` | ~10–30 min |
-| Table 7 | direction of the 2021 regional alarms | `python experiments/alarm_directions.py` (after `exp8b` and `exp9`) | `results/alarm_directions.json` | seconds |
-| Table 8 | notation | none (text) | | |
+| Table 5 | auditing a language-model API with adaptive prompts | replies: `python experiments/exp16_llm_generate.py --models DIR` (needs `llama-cpp-python` and the GGUF files of Qwen2.5-1.5B-Instruct at q8_0, q4_k_m, q3_k_m and Qwen2.5-0.5B-Instruct at q4_k_m; the replies used are in `data/llm_audit/replies.json`); audit: `python experiments/exp16_llm_audit.py` | `results/exp16.json` | ~3 h for the replies on 4 CPU cores; ~30 min for the audit |
+| Table 6 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
+| Table 7, Figure 3 | Italian regions, synthetic and real data | `python experiments/exp9_italy_regions.py` then `python experiments/exp9_figure.py` | `results/exp9.json`, `figures/exp9_italy_regions.png` | ~10–30 min |
+| Table 8 | direction of the 2021 regional alarms | `python experiments/alarm_directions.py` (after `exp8b` and `exp9`) | `results/alarm_directions.json` | seconds |
+| Table 9 | notation | none (text) | | |
 
 The experiment numbers in the file names follow the order in which the
 experiments were written, not the order of the paper.
