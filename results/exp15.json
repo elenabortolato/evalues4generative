@@ -164,5 +164,140 @@
    },
    "online_seconds": 83.0
   }
+ },
+ "drift-mis": {
+  "ours-blr": {
+   "null": {
+    "rate": 0.0175,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.7025,
+    "median": 344.5
+   },
+   "online_seconds": 63.1
+  },
+  "ours-simlik": {
+   "null": {
+    "rate": 0.0125,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.85,
+    "median": 258.0
+   },
+   "online_seconds": 55.3
+  },
+  "fb-online": {
+   "null": {
+    "rate": 0.02,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.8875,
+    "median": 250.0
+   },
+   "online_seconds": 201.5
+  },
+  "fb-pre-true": {
+   "null": {
+    "rate": 0.025,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.0075,
+    "median": null
+   },
+   "online_seconds": 125.8
+  },
+  "slice-exact": {
+   "null": {
+    "rate": 0.0075,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.005,
+    "median": null
+   },
+   "online_seconds": 20.2
+  },
+  "slice-nre": {
+   "offline_cost": {
+    "simulations": 200000,
+    "seconds": 24.6,
+    "epochs": 12
+   },
+   "null": {
+    "rate": 0.0075,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.005,
+    "median": null
+   },
+   "online_seconds": 91.0
+  }
+ },
+ "bandit-mis": {
+  "ours-blr": {
+   "null": {
+    "rate": 0.02,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 112.0
+   },
+   "online_seconds": 39.5
+  },
+  "ours-simlik": {
+   "null": {
+    "rate": 0.01,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9875,
+    "median": 156.5
+   },
+   "online_seconds": 31.0
+  },
+  "fb-online": {
+   "null": {
+    "rate": 0.015,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9875,
+    "median": 167.0
+   },
+   "online_seconds": 119.2
+  },
+  "slice-exact": {
+   "null": {
+    "rate": 0.035,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.6475,
+    "median": 157.5
+   },
+   "online_seconds": 146.7
+  },
+  "slice-nre": {
+   "offline_cost": {
+    "simulations": 200000,
+    "seconds": 27.2,
+    "epochs": 13
+   },
+   "null": {
+    "rate": 0.0325,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.5625,
+    "median": 257.5
+   },
+   "online_seconds": 80.9
+  }
  }
 }

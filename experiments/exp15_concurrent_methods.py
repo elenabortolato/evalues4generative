@@ -40,6 +40,11 @@ Tasks
   bandit  the Thompson-sampling bandit of Experiment 2 (parametric family:
           a location shift per arm)
 
+  drift-mis   the alternative is outside SLICE's family: the curvature stays at
+              b = 0.5 and the first coordinate's scale grows to 1.2
+  bandit-mis  the alternative is outside SLICE's family: arm 2, the most
+              pulled, keeps its mean and its noise is scaled by 1.5
+
 Output: results/exp15.json
 """
 
@@ -66,6 +71,9 @@ import exp2_adaptive_bandit as d2  # noqa: E402
 
 DRIFT = ["ours-blr", "ours-simlik", "fb-online", "fb-online-tau1", "fb-pre-true",
          "fb-pre-wrong", "slice-exact", "slice-nre"]
+DRIFT_MIS = ["ours-blr", "ours-simlik", "fb-online", "fb-pre-true", "slice-exact", "slice-nre"]
+BANDIT_MIS = ["ours-blr", "ours-simlik", "fb-online", "slice-exact", "slice-nre"]
+SCALE_X1, SCALE_ARM2 = 1.2, 1.5
 BANDIT = ["ours-blr", "ours-simlik", "fb-online", "fb-online-tau1", "slice-exact",
           "slice-nre", "fb-online-iid"]
 NETS = {}       # trained once per task in the parent process, inherited by the workers
@@ -136,11 +144,15 @@ def drift_learner(name, seed, m):
     raise ValueError(name)
 
 
-def run_drift(seed, alt, horizon, m, alpha, name):
+def run_drift(seed, alt, horizon, m, alpha, name, mis=False):
     rng = np.random.default_rng(seed)
-    b_real = d1.B1 if alt else d1.B0
+    b_real = d1.B1 if (alt and not mis) else d1.B0
     mon = Monitor(drift_learner(name, seed, m), alpha=alpha)
     real = d1.banana(rng, horizon, b_real)
+    if alt and mis:
+        # same curvature, wider first coordinate: outside the family in b
+        real = np.column_stack([SCALE_X1 * real[:, 0],
+                                real[:, 1] + d1.B0 * ((SCALE_X1 * real[:, 0]) ** 2 - real[:, 0] ** 2)])
     for t in range(horizon):
         x = real[t:t + 1]
         mon.step(x[0], d1.banana(rng, m, d1.B0))
@@ -190,14 +202,15 @@ def bandit_learner(name, seed):
     raise ValueError(name)
 
 
-def run_bandit(seed, alt, horizon, m, alpha, name):
+def run_bandit(seed, alt, horizon, m, alpha, name, mis=False):
     rng = np.random.default_rng(seed)
-    shift = d2.SHIFT if alt else np.zeros(d2.K)
+    shift = d2.SHIFT if (alt and not mis) else np.zeros(d2.K)
+    scale = np.array([1.0, 1.0, SCALE_ARM2]) if (alt and mis) else np.ones(d2.K)
     mon = Monitor(bandit_learner(name, seed), alpha=alpha)
     n, s = np.zeros(d2.K), np.zeros(d2.K)
     for t in range(horizon):
         a = int(np.argmax(rng.normal(s / (n + 1), 1 / np.sqrt(n + 1))))
-        y = d2.MU[a] + shift[a] + np.exp(rng.standard_normal() / 2) - d2.C
+        y = d2.MU[a] + shift[a] + scale[a] * (np.exp(rng.standard_normal() / 2) - d2.C)
         n[a] += 1
         s[a] += y
         if name == "fb-online-iid":
@@ -226,18 +239,21 @@ def main():
     out_path = ROOT / "results" / "exp15.json"
     res = json.loads(out_path.read_text()) if out_path.exists() else {}
     for task in args.task.split(","):
-        names = args.methods.split(",") if args.methods else (DRIFT if task == "drift" else BANDIT)
-        run, horizon = (run_drift, 500) if task == "drift" else (run_bandit, 400)
+        default = {"drift": DRIFT, "bandit": BANDIT, "drift-mis": DRIFT_MIS,
+                   "bandit-mis": BANDIT_MIS}[task]
+        names = args.methods.split(",") if args.methods else default
+        base = task.split("-")[0]
+        run, horizon = (run_drift, 500) if base == "drift" else (run_bandit, 400)
+        run = partial(run, mis=task.endswith("-mis"))
         for name in names:
             if task == "drift" and name == "fb-online-iid":
                 continue
             row = {}
-            if name == "slice-nre" and task not in NETS:
-                NETS[task] = train_net(task)
-                row["offline_cost"] = NETS[task].cost
-                print(f"{task:6s} slice-nre network trained: {NETS[task].cost}", flush=True)
-            elif name == "slice-nre":
-                row["offline_cost"] = NETS[task].cost
+            if name == "slice-nre" and base not in NETS:
+                NETS[base] = train_net(base)
+                print(f"{task:6s} slice-nre network trained: {NETS[base].cost}", flush=True)
+            if name == "slice-nre":
+                row["offline_cost"] = NETS[base].cost
             t0 = time.time()
             for label, alt, offset in [("null", False, 0), ("alt", True, 10**6)]:
                 job = partial(run, alt=alt, horizon=horizon, m=args.m, alpha=args.alpha, name=name)

@@ -1,0 +1,13 @@
+drift-mis ours-blr        false alarms 0.018  power 0.703  median 344.5  (63s)
+drift-mis ours-simlik     false alarms 0.013  power 0.850  median 258.0  (55s)
+drift-mis fb-online       false alarms 0.020  power 0.887  median 250.0  (201s)
+drift-mis fb-pre-true     false alarms 0.025  power 0.007  median None  (126s)
+drift-mis slice-exact     false alarms 0.007  power 0.005  median None  (20s)
+drift-mis slice-nre network trained: {'simulations': 200000, 'seconds': 24.6, 'epochs': 12}
+drift-mis slice-nre       false alarms 0.007  power 0.005  median None  (91s)
+bandit-mis ours-blr        false alarms 0.020  power 1.000  median 112.0  (40s)
+bandit-mis ours-simlik     false alarms 0.010  power 0.988  median 156.5  (31s)
+bandit-mis fb-online       false alarms 0.015  power 0.988  median 167.0  (119s)
+bandit-mis slice-exact     false alarms 0.035  power 0.647  median 157.5  (147s)
+bandit-mis slice-nre network trained: {'simulations': 200000, 'seconds': 27.2, 'epochs': 13}
+bandit-mis slice-nre       false alarms 0.033  power 0.562  median 257.5  (81s)
