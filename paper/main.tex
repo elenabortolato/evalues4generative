@@ -41,13 +41,14 @@ such adaptivity and under optional stopping, and likelihood ratios and Bayes
 factors are their canonical, log-optimal forms. Two obstacles stand in the way:
 the likelihood is often available only through a simulator, and under adaptive
 allocation it is path-dependent; and a Bayes factor must in general be
-recomputed as data arrive. We remove both. Recent work bets on the real
-observation's share of a score among fresh simulations,
-$(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$, for independent data. We run the
-simulator $M$ times under the action actually taken and from the current
-state, so that by exchangeability the resulting e-process is exactly valid for
-every allocation rule and every score, and we show that conditioning on the
-action is necessary. Every score
+recomputed as data arrive. We remove both. A density ratio learned by
+classifying real against simulated outcomes becomes an exact bet when it is
+normalised over fresh simulations: the bet is the real observation's share of
+the score, $(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$. Running the simulator
+$M$ times under the action actually taken and from the current state makes the
+real observation exchangeable with the simulations, so the resulting
+e-process is exactly valid for every allocation rule and every score, and we
+show that conditioning on the action is necessary. Every score
 is a one-step predictive distribution, and the log wealth is the prequential
 likelihood ratio of these predictives against the simulator. The bet itself,
 as a function of the score's parameter, is a conditional-logit likelihood whose
@@ -131,24 +132,27 @@ recomputed from the whole history \citep{bon2024safe}. Surrogate and
 prediction-powered e-values reduce the cost at the price of an approximation to
 the base e-value \citep{csillag2025prediction}.
 
-For the first obstacle, a construction that needs only samples from the null
-has emerged recently for independent data. At each step the real outcome and
-$M$ fresh simulations are scored, and the bet is the real outcome's share of
-the total score, rescaled by $M+1$. Under the null the real outcome is
-exchangeable with the simulated ones, so the bet is fair whatever the score:
-it compares the score of the observed labelling with its average over the
-$M+1$ ways of labelling one outcome as real, the mechanism of Monte Carlo and
-permutation tests \citep{besag1989generalized,ramdas2023game,luciano2025permutations}.
-For a single test this is the soft-rank e-value of \citet{wang2022false}, and
-its product over an i.i.d.\ stream is the Besag--Clifford e-process of
-\citet{dombowsky2026besag}. \citet{forre2026anytime} use it for simulation-based
-hypothesis testing: they show that the likelihood ratio is the optimal score
-for every $M$, bound the loss from a finite $M$, and fit the score by
-maximising its empirical growth, including online on past observations.
+For the first obstacle, the starting point is ratio estimation by
+classification \citep{thomas2022lfire}: a classifier trained to separate real
+from simulated outcomes estimates the ratio of their densities, using only
+samples from the simulator. Used directly as a bet, an estimated ratio is not
+an e-value, because it does not integrate exactly to one against the simulator.
+The step that makes it exact follows from Monte Carlo tests
+\citep{besag1989generalized}: score the real outcome and $M$ fresh simulations,
+and bet the real outcome's share of the total score, rescaled by $M+1$. Under
+the null the real outcome is exchangeable with the simulated ones, so the bet
+is fair whatever the score: it compares the score of the observed labelling
+with its average over the $M+1$ ways of labelling one outcome as real, the
+mechanism of permutation tests \citep{ramdas2023game,luciano2025permutations}.
+This combination is natural, and for independent data it has been reached
+independently in recent work. For a single test it is the soft-rank e-value of
+\citet{wang2022false}, and its product over an i.i.d.\ stream is the
+Besag--Clifford e-process of \citet{dombowsky2026besag}.
+\citet{forre2026anytime} use it for simulation-based hypothesis testing,
+fitting the score by maximising its empirical growth, and
 \citet{cortinovis2026slice} invert it into confidence sequences for the
-parameters of a simulator, with scores given by amortised neural ratio
-estimators and observations that may depend on i.i.d.\ covariates. In all
-three, the observations are independent and the simulator has no state.
+parameters of a simulator, with amortised neural ratio scores. In all three
+the observations are independent and the simulator has no state;
 \citet{forre2026anytime} name data streams that depend on the past as an open
 problem, and this is the setting of adaptive designs.
 
@@ -160,10 +164,9 @@ exactly valid for every allocation policy, including interim analyses, arm
 dropping and the re-assignment of participants who carry their state from one
 stage to the next. We also show that the conditioning cannot be dropped: a
 simulator run without regard to the action yields false alarms with
-probability one, at a rate we give. The score can be a density ratio learned
-by classifying real against simulated outcomes \citep{thomas2022lfire}, and
-the Monte Carlo normalisation turns any such estimate into an exact e-value;
-the learner affects only power.
+probability one, at a rate we give. Any estimate of the density ratio, learned by
+classifying real against simulated outcomes, becomes an exact e-value; the
+learner affects only power.
 
 For the second obstacle, we show that choosing a score is the same as choosing
 a one-step predictive distribution for the next real outcome, and that the log
@@ -222,10 +225,11 @@ of trials with a false discovery rate of 0.3\%. The second application uses real
 data: COVID-19 transmission twins for Italy's regions in 2021, under
 restriction zones assigned by the government from the data.
 
-Several ingredients are not new, and we say so where they are used: the
-exchangeability argument of Monte Carlo tests \citep{besag1989generalized}; the
-one-step e-value and its product for independent data
-\citep{wang2022false,dombowsky2026besag,forre2026anytime,cortinovis2026slice};
+We developed the construction independently, as the direct way to make
+classifier-based ratio estimation \citep{thomas2022lfire} exact under adaptive
+allocation. Where our results coincide with earlier or concurrent work we say
+so where they are used: the one-step e-value and its product for independent
+data \citep{wang2022false,dombowsky2026besag,forre2026anytime,cortinovis2026slice};
 the optimality of the likelihood-ratio score and the finite-$M$ bound of
 Theorem~\ref{thm:growth}(i) and (iii)
 \citep{dombowsky2026besag,forre2026anytime,cortinovis2026slice}; scores fitted
