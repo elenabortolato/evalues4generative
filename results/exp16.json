@@ -1,7 +1,7 @@
 {
  "config": {
   "replies": "/home/user/evalues4generative/data/llm_audit/replies.json",
-  "scenarios": "null,all-q4,some-q4,all-q3",
+  "scenarios": "all-05b,some-05b",
   "methods": "ours-bandit,ours-uniform,ours-mixed,slice,fb-pre",
   "reps": 400,
   "horizon": 400,
@@ -236,6 +236,120 @@
     0.25
    ],
    "seconds": 10.9
+  }
+ },
+ "all-05b": {
+  "ours-bandit": {
+   "reject": 1.0,
+   "median_stop": 109.0,
+   "pulls": [
+    0.231,
+    0.226,
+    0.283,
+    0.261
+   ],
+   "seconds": 15.3
+  },
+  "ours-uniform": {
+   "reject": 1.0,
+   "median_stop": 123.0,
+   "pulls": [
+    0.251,
+    0.249,
+    0.251,
+    0.25
+   ],
+   "seconds": 16.7
+  },
+  "ours-mixed": {
+   "reject": 1.0,
+   "median_stop": 56.0,
+   "pulls": [
+    0.239,
+    0.244,
+    0.266,
+    0.251
+   ],
+   "seconds": 9.5
+  },
+  "slice": {
+   "reject": 0.9925,
+   "median_stop": 110.0,
+   "pulls": [
+    0.248,
+    0.255,
+    0.248,
+    0.25
+   ],
+   "seconds": 19.1
+  },
+  "fb-pre": {
+   "reject": 0.9975,
+   "median_stop": 70.0,
+   "pulls": [
+    0.248,
+    0.253,
+    0.247,
+    0.252
+   ],
+   "seconds": 10.5
+  }
+ },
+ "some-05b": {
+  "ours-bandit": {
+   "reject": 1.0,
+   "median_stop": 52.0,
+   "pulls": [
+    0.179,
+    0.296,
+    0.3,
+    0.225
+   ],
+   "seconds": 7.8
+  },
+  "ours-uniform": {
+   "reject": 1.0,
+   "median_stop": 77.0,
+   "pulls": [
+    0.249,
+    0.251,
+    0.248,
+    0.252
+   ],
+   "seconds": 10.7
+  },
+  "ours-mixed": {
+   "reject": 1.0,
+   "median_stop": 46.0,
+   "pulls": [
+    0.198,
+    0.283,
+    0.276,
+    0.243
+   ],
+   "seconds": 7.6
+  },
+  "slice": {
+   "reject": 0.9975,
+   "median_stop": 107.0,
+   "pulls": [
+    0.252,
+    0.248,
+    0.246,
+    0.254
+   ],
+   "seconds": 17.7
+  },
+  "fb-pre": {
+   "reject": 1.0,
+   "median_stop": 59.0,
+   "pulls": [
+    0.256,
+    0.249,
+    0.241,
+    0.254
+   ],
+   "seconds": 8.0
   }
  }
 }

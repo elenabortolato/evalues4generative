@@ -21,6 +21,10 @@ Scenarios
              routing: outside a mixture family with one routing fraction)
   all-q3     a fraction 0.3 of every prompt is answered by the 3-bit model,
              while the baselines that need R were trained on the 4-bit model
+  all-05b    a fraction 0.3 of every prompt is answered by a different,
+             smaller model (Qwen2.5-0.5B), unexpected by the baselines,
+             which were trained on the 4-bit model
+  some-05b   as some-q4, with the 0.5B model as the substitute
 Methods
   ours-bandit   Monte Carlo e-process, logistic BLR score on hashed character
                 n-grams with one block per prompt; the prompt is chosen by UCB
@@ -72,6 +76,8 @@ SCENARIOS = {
     "all-q4": dict(sub="q4_k_m", frac={k: 0.3 for k in PROMPTS}),
     "some-q4": dict(sub="q4_k_m", frac={"color": 0.5, "number": 0.5}),
     "all-q3": dict(sub="q3_k_m", frac={k: 0.3 for k in PROMPTS}),
+    "all-05b": dict(sub="05b", frac={k: 0.3 for k in PROMPTS}),
+    "some-05b": dict(sub="05b", frac={"color": 0.5, "number": 0.5}),
 }
 BASELINE_SUB = "q4_k_m"          # the substitute the baselines are trained on
 UCB_C, MIN_SHARE = 1.0, 0.1   # prompt choice: UCB on log growth, each prompt >= 10%
@@ -105,7 +111,9 @@ class Pools:
         self.feat, self.idx = [], {}
         for k, prompt in enumerate(PROMPTS):
             texts = []
-            for q in ["q8_0", "q4_k_m", "q3_k_m"]:
+            for q in ["q8_0", "q4_k_m", "q3_k_m", "05b"]:
+                if f"{q}|{prompt}" not in raw:
+                    continue
                 reps = list(raw[f"{q}|{prompt}"])
                 rng.shuffle(reps)
                 n_train = len(reps) // 3

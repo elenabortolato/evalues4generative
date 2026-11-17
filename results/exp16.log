@@ -18,3 +18,13 @@ all-q3   ours-uniform  reject 0.938  median 204.0  pulls [0.25, 0.249, 0.249, 0.
 all-q3   ours-mixed    reject 1.000  median 64.0  pulls [0.201, 0.277, 0.256, 0.265]  10.6 s
 all-q3   slice         reject 0.963  median 149.0  pulls [0.253, 0.249, 0.249, 0.249]  25.4 s
 all-q3   fb-pre        reject 0.995  median 71.5  pulls [0.251, 0.251, 0.247, 0.25]  10.9 s
+all-05b  ours-bandit   reject 1.000  median 109.0  pulls [0.231, 0.226, 0.283, 0.261]  15.3 s
+all-05b  ours-uniform  reject 1.000  median 123.0  pulls [0.251, 0.249, 0.251, 0.25]  16.7 s
+all-05b  ours-mixed    reject 1.000  median 56.0  pulls [0.239, 0.244, 0.266, 0.251]  9.5 s
+all-05b  slice         reject 0.993  median 110.0  pulls [0.248, 0.255, 0.248, 0.25]  19.1 s
+all-05b  fb-pre        reject 0.998  median 70.0  pulls [0.248, 0.253, 0.247, 0.252]  10.5 s
+some-05b ours-bandit   reject 1.000  median 52.0  pulls [0.179, 0.296, 0.3, 0.225]  7.8 s
+some-05b ours-uniform  reject 1.000  median 77.0  pulls [0.249, 0.251, 0.248, 0.252]  10.7 s
+some-05b ours-mixed    reject 1.000  median 46.0  pulls [0.198, 0.283, 0.276, 0.243]  7.6 s
+some-05b slice         reject 0.998  median 107.0  pulls [0.252, 0.248, 0.246, 0.254]  17.7 s
+some-05b fb-pre        reject 1.000  median 59.0  pulls [0.256, 0.249, 0.241, 0.254]  8.0 s
