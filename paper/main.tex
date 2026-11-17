@@ -1415,6 +1415,26 @@ score is available, nothing forces a choice: the average of its wealth and
 ours is again a test martingale, which is close to the faster of the two when
 the departure is inside the family and keeps power when it is not.
 
+The difference between the two scores learned from the data is also a
+difference in what kind of predictive they are. The refitted score of
+\citet{forre2026anytime} is a prequential forecasting system in the sense of
+\citet{dawid1984present}: a sequence of one-step predictives
+$\tilde T_t \propto p_t\, e^{\hat\theta_{t-1}^\top\phi}$, each computed from the
+past, which is all that validity and the prequential reading of the wealth
+\eqref{eq:prequential-wealth} require; the same holds for SLICE at its
+estimated parameter. It is a plug-in, however. A sequence of plug-ins at a
+refitted maximiser is in general not the predictive sequence of any
+exchangeable model, so it has no de Finetti representation with a parameter
+and a posterior \citep{fortini2000exchangeability,fortini2024exchangeability};
+it is a martingale, the condition of \citet{fong2023martingale} and of
+\citet{berti2004limit}, only approximately; and it carries no uncertainty about
+the score's parameter. Our updates average over that uncertainty, through the
+posterior of the simulation likelihood, which is an exact Bayesian predictive,
+or through predictive resampling, under which the parameter of the
+predictive-first rule \eqref{eq:mp} is an exact martingale. This averaging is
+what yields the pathwise regret bound of Theorem~\ref{thm:simlik} and the
+cautious early bets that make our scores competitive at a third of the cost.
+
 %======================================================================
 \section{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
 %======================================================================
