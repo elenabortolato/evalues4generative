@@ -41,11 +41,13 @@ such adaptivity and under optional stopping, and likelihood ratios and Bayes
 factors are their canonical, log-optimal forms. Two obstacles stand in the way:
 the likelihood is often available only through a simulator, and under adaptive
 allocation it is path-dependent; and a Bayes factor must in general be
-recomputed as data arrive. We remove both. At each step the simulator is run
-$M$ times under the action actually taken, and the real observation's share of
-a score, $(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$, is the bet. By
-exchangeability the resulting e-process is exactly valid for every allocation
-rule and every score, and conditioning on the action is necessary. Every score
+recomputed as data arrive. We remove both. Recent work bets on the real
+observation's share of a score among fresh simulations,
+$(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$, for independent data. We run the
+simulator $M$ times under the action actually taken and from the current
+state, so that by exchangeability the resulting e-process is exactly valid for
+every allocation rule and every score, and we show that conditioning on the
+action is necessary. Every score
 is a one-step predictive distribution, and the log wealth is the prequential
 likelihood ratio of these predictives against the simulator. The bet itself,
 as a function of the score's parameter, is a conditional-logit likelihood whose
@@ -129,22 +131,39 @@ recomputed from the whole history \citep{bon2024safe}. Surrogate and
 prediction-powered e-values reduce the cost at the price of an approximation to
 the base e-value \citep{csillag2025prediction}.
 
-This paper removes both obstacles while keeping exact validity. For the first,
-at each step the simulator is run $M$ times \emph{under the action actually
-taken}, the real outcome and the $M$ simulated ones are scored, and the bet is
-the real outcome's share of the total score, rescaled by $M+1$. Under the null
-the real outcome is exchangeable with the simulated ones, so the bet is fair
-whatever the score: it compares the score of the observed labelling with its
-average over the $M+1$ ways of labelling one outcome as real, the permutation
-mechanism that also underlies permutation e-values and accelerates approximate
-Bayesian computation \citep{ramdas2023game,luciano2025permutations}. The score
-can be a density ratio learned by classifying real against simulated outcomes
-\citep{thomas2022lfire}, and the Monte Carlo normalisation turns any such
-estimate into an exact e-value. For an i.i.d.\ null the single bet is the
-soft-rank e-value of \citet{wang2022false}, and its product is the
-Besag--Clifford e-process of \citet{dombowsky2026besag}. Adaptive allocation
-enters only through the requirement that the simulator be run under the action
-taken, and we show that this requirement cannot be dropped.
+For the first obstacle, a construction that needs only samples from the null
+has emerged recently for independent data. At each step the real outcome and
+$M$ fresh simulations are scored, and the bet is the real outcome's share of
+the total score, rescaled by $M+1$. Under the null the real outcome is
+exchangeable with the simulated ones, so the bet is fair whatever the score:
+it compares the score of the observed labelling with its average over the
+$M+1$ ways of labelling one outcome as real, the mechanism of Monte Carlo and
+permutation tests \citep{besag1989generalized,ramdas2023game,luciano2025permutations}.
+For a single test this is the soft-rank e-value of \citet{wang2022false}, and
+its product over an i.i.d.\ stream is the Besag--Clifford e-process of
+\citet{dombowsky2026besag}. \citet{forre2026anytime} use it for simulation-based
+hypothesis testing: they show that the likelihood ratio is the optimal score
+for every $M$, bound the loss from a finite $M$, and fit the score by
+maximising its empirical growth, including online on past observations.
+\citet{cortinovis2026slice} invert it into confidence sequences for the
+parameters of a simulator, with scores given by amortised neural ratio
+estimators and observations that may depend on i.i.d.\ covariates. In all
+three, the observations are independent and the simulator has no state.
+\citet{forre2026anytime} name data streams that depend on the past as an open
+problem, and this is the setting of adaptive designs.
+
+This paper takes the construction to that setting. The simulator is run $M$
+times \emph{under the action actually taken and from the current state}, so
+that the real outcome is exchangeable with the simulated ones conditionally on
+the whole past, whatever rule chose the action. The resulting e-process is
+exactly valid for every allocation policy, including interim analyses, arm
+dropping and the re-assignment of participants who carry their state from one
+stage to the next. We also show that the conditioning cannot be dropped: a
+simulator run without regard to the action yields false alarms with
+probability one, at a rate we give. The score can be a density ratio learned
+by classifying real against simulated outcomes \citep{thomas2022lfire}, and
+the Monte Carlo normalisation turns any such estimate into an exact e-value;
+the learner affects only power.
 
 For the second obstacle, we show that choosing a score is the same as choosing
 a one-step predictive distribution for the next real outcome, and that the log
@@ -157,29 +176,38 @@ simulator would need a normalising constant that a sampler cannot provide, but
 the bet itself, seen as a function of the score's parameter, is a
 conditional-logit likelihood whose normalising constant the simulations do
 provide. Bayesian updating on this simulation likelihood is exact, factorises
-over time, and has a pathwise regret guarantee. In practice we update a
+over time, and, unlike the asymptotic guarantees available for fitted scores,
+has a regret bound that holds on every sample path. In practice we update a
 Gaussian approximation with one natural-gradient step of the Bayesian learning
 rule per observation \citep{khan2023bayesian,jones2024bong}, which keeps
 validity exact at a bounded cost in power.
 
-The contributions are four. First, the Monte Carlo e-process is a test
-martingale for every allocation rule, including interim analyses, arm dropping
-and re-assignment, provided the simulator is run conditionally on the history
-and on the action taken (Theorem~\ref{thm:valid}); simulating from a mixture
-over actions instead makes the expected bet larger than one under the null,
-with limit $1+\chi^2$ for the likelihood-ratio score, and the wealth grows
-exponentially (Proposition~\ref{prop:necessary}). Second, every score bets on a tilted null
+The contributions are four.
+\begin{enumerate}
+\item \emph{Adaptive actions.} The Monte Carlo e-process is a test martingale
+for every allocation rule, provided the simulator is run conditionally on the
+history and on the action taken (Theorem~\ref{thm:valid}). Simulating from a
+mixture over actions instead makes the expected bet larger than one under the
+null, with limit $1+\chi^2$ for the likelihood-ratio score, and the wealth
+grows exponentially, at a rate of at most $\log K$ per step with $K$ arms
+(Proposition~\ref{prop:necessary} and Corollary~\ref{cor:falsealarm}).
+\item \emph{Power of an arbitrary score.} Every score bets on a tilted null
 $\tilde T$, and its growth rate with an unlimited simulation budget is
-$\KL(Q\|P)-\KL(Q\|\tilde T)$; for local alternatives a budget of $M$ simulations
-keeps exactly a fraction $M/(M+1)$ of it (Theorem~\ref{thm:growth}). Third,
-exact Bayesian updating on the simulation likelihood gives posterior-predictive
-bets that factorise over time and, on every sample path and with no assumption
-on the alternative, stay within $d\log t$ of the best score in the class chosen
-in hindsight, $(d/2)\log t$ for an interior optimum
-(Theorem~\ref{thm:simlik}); approximate posteriors keep validity at a bounded
-cost (Proposition~\ref{prop:approx}). Fourth, one e-process per arm, combined by
-e-BH \citep{wang2022false,xu2021unified}, identifies the arms on which the
-simulator fails, with false-discovery-rate control under arbitrary allocation.
+$\KL(Q\|P)-\KL(Q\|\tilde T)$, the information against the simulator minus the
+error of the score's forecast; for local alternatives a budget of $M$
+simulations keeps exactly a fraction $M/(M+1)$ of it
+(Theorem~\ref{thm:growth}).
+\item \emph{Predictive updating with a pathwise guarantee.} Exact Bayesian
+updating on the simulation likelihood gives posterior-predictive bets that
+factorise over time and, on every sample path and with no assumption on the
+alternative, stay within $d\log t$ of the best score in the class chosen in
+hindsight, $(d/2)\log t$ for an interior optimum (Theorem~\ref{thm:simlik});
+approximate posteriors keep validity at a bounded cost
+(Proposition~\ref{prop:approx}).
+\item \emph{Adaptive designs.} One e-process per arm, combined by e-BH
+\citep{wang2022false,xu2021unified}, identifies the arms on which the simulator
+fails, with false-discovery-rate control under arbitrary allocation.
+\end{enumerate}
 
 The main application is a MAMS trial of five insulin-dosing strategies over
 three stages, with futility analyses, re-assignment of participants on dropped
@@ -194,12 +222,16 @@ of trials with a false discovery rate of 0.3\%. The second application uses real
 data: COVID-19 transmission twins for Italy's regions in 2021, under
 restriction zones assigned by the government from the data.
 
-The one-step e-value and its product for an i.i.d.\ null
-\citep{wang2022false,dombowsky2026besag}, the exchangeability argument of Monte
-Carlo tests \citep{besag1989generalized}, the finite-$M$ bound of
-Theorem~\ref{thm:growth}(iii), which is Theorem~3 of \citet{dombowsky2026besag}
-in our notation, and e-BH for bandit multiple testing \citep{xu2021unified} are
-not new; Section~\ref{sec:related} discusses the relation to this work.
+Several ingredients are not new, and we say so where they are used: the
+exchangeability argument of Monte Carlo tests \citep{besag1989generalized}; the
+one-step e-value and its product for independent data
+\citep{wang2022false,dombowsky2026besag,forre2026anytime,cortinovis2026slice};
+the optimality of the likelihood-ratio score and the finite-$M$ bound of
+Theorem~\ref{thm:growth}(i) and (iii)
+\citep{dombowsky2026besag,forre2026anytime,cortinovis2026slice}; scores fitted
+online on past observations for independent data \citep{forre2026anytime}; and
+e-BH for bandit multiple testing \citep{xu2021unified}.
+Section~\ref{sec:related} discusses the relation to this work.
 Section~\ref{sec:method} sets up the problem and gives the method and its
 validity, Section~\ref{sec:power} its power, and Section~\ref{sec:predictive}
 the predictive view and the update rules, summarised in Algorithm~1
@@ -442,7 +474,10 @@ Assume $\KL(Q\|P) < \infty$ and $\rho < \infty$.
 Part (i) is the log-optimality of the likelihood ratio. When the score is the
 likelihood ratio, $\tilde T = Q$ and (ii) is the limit in Theorem~1 of
 \citet{dombowsky2026besag}; part (iii) is their Theorem~3, rewritten with the
-tilted null. What is new is the reading of an arbitrary score through
+tilted null. The optimality of the likelihood-ratio score for every $M$ and the
+finite-$M$ bound for that score were also obtained, concurrently, by
+\citet[Proposition~3.2]{forre2026anytime} and
+\citet[Proposition~4.2]{cortinovis2026slice}. What is new is the reading of an arbitrary score through
 $\tilde T$ in (ii), and the local constant in (iv), which factorises the
 efficiency relative to the oracle likelihood ratio into a simulation term and
 a learning term,
@@ -627,7 +662,11 @@ E_t = \frac{T_t(X_t)}{\widehat Z_t},
 \widehat Z_t = \frac{1}{M+1}\Big\{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})\Big\},
 \]
 and Proposition~\ref{prop:exact} shows that this self-normalisation makes the
-conditional mean exactly one under the null, whatever $Z_t$ is.
+conditional mean exactly one under the null, whatever $Z_t$ is. For independent
+data, \citet{forre2026anytime} fit the score by maximising the empirical growth
+of this normalised bet on past observations; the update rules of
+Sections~\ref{sec:simlik} and~\ref{sec:blr} replace that refit by one step per
+observation, with a pathwise guarantee for the exact rule.
 
 \paragraph{The wealth is a prequential likelihood ratio.} As $M \to \infty$,
 $\widehat Z_t \to Z_t$ by the law of large numbers, so
@@ -831,7 +870,8 @@ real outcome. It is a likelihood for $\theta$ whose normalising constant is a
 sum over the simulations, and it is always computable. We call
 $L_t(\theta) = \prod_{i \le t} E_i(\theta)$ the \emph{simulation likelihood}.
 Its logarithm is, up to constants, the InfoNCE objective of contrastive
-learning \citep{oord2018representation} and the partial likelihood of
+learning \citep{oord2018representation}, a link also drawn by
+\citet{cortinovis2026slice} for the optimal score, and the partial likelihood of
 ranking-based noise-contrastive estimation \citep{ma2018noise}. With a prior
 $\pi_0$ on $\theta$ and posterior $\pi_t \propto \pi_0 L_t$, the
 \emph{posterior-predictive bet} is
@@ -1787,6 +1827,24 @@ efficiency $M/(M+1)$; the predictive view of the score and exact Bayesian
 updating on the simulation likelihood with its pathwise regret; and per-arm
 monitoring in adaptive designs. Their MCMC construction applies directly when
 the simulator is itself an MCMC sampler.
+
+Two concurrent papers use the same normalised bet for independent data.
+\citet{forre2026anytime} test a simulator $P_0$ against an alternative $P_1$
+that can also only be sampled, or against any departure from $P_0$. They show
+that the likelihood ratio is the optimal score for every $M$, bound the loss
+from a finite $M$, prove approximate growth optimality of scores fitted by
+maximising the empirical growth, under compactness and M-estimation
+conditions, and refit the score online on past observations; data streams that
+depend on the past are left open. \citet{cortinovis2026slice} invert the
+e-process over the parameter of a simulator into confidence sequences, with
+amortised neural ratio scores trained before monitoring and fixed, and extend
+validity to observations that depend on i.i.d.\ covariates. Relative to both,
+this paper treats actions chosen from the data and simulators with state,
+shows that conditioning on the action is necessary and quantifies the failure
+when it is dropped, reads arbitrary scores through the tilted null with the
+local efficiency $M/(M+1)$, gives sequential Bayesian and predictive updates of
+the score with a pathwise regret bound, and applies the method to adaptive
+designs.
 
 Model-X sequential tests of conditional independence \citep{shaer2023modelx}
 draw a dummy covariate from its known conditional law at each step and bet on a
