@@ -30,10 +30,15 @@ Monte Carlo e-processes under adaptive actions''}
 
 \date{Draft --- \today}
 
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
 \begin{document}
 \maketitle
 
-This supplement contains four analyses referred to in the main text. Theorem,
+This supplement contains four analyses referred to in the main text and, in
+Section~S5, additional results for Sections~5 to~7. Theorem,
 section, equation and table numbers without an S refer to the main text.
 
 \section{Monitoring one patient under closed-loop control}\label{sec:t1d-patient}
@@ -519,6 +524,221 @@ conditioning on the action rejects a true null in every run
 (Table~2).
 
 %======================================================================
+
+\section{Additional results for Sections 5 to 7}\label{sec:more}
+
+This section collects material moved out of the main text: the rejection
+curves of the drift experiment, all variants of the update rules, the regret
+check of Theorem~3, and the trial and the regional analysis with each learner.
+
+\subsection{Drift experiment: rejection curves}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{exp1_generative_drift.png}
+\caption{Probability of having rejected by time $t$ in the generative-drift
+experiment. Left: the null is true (false alarms). Right: the model has
+drifted (detections). The dotted line is $\alpha = 0.05$.}
+\label{fig:drift}
+\end{figure}
+
+\subsection{Update rules: all variants}
+
+
+Table~\ref{tab:blr-full} compares, on the drift task and the bandit with identical
+data, the refitted point estimate with the online Bayesian learning rule of
+Section~4.4 of the main text, updated at every step with no burn-in. With the
+logistic loss, the probability-scale predictive $\kappa\bar\eta$ beats the posterior
+mean in every setting and makes the method insensitive to the flexibility of
+the features: with degree-6 features power rises from 0.84 to 0.97 and the
+median stopping time falls from 320 to 214, close to the degree-4 value, and in
+the bandit it is the fastest score (38 against 49 steps). The ratio-scale
+predictive $\mu + v/2$ is the worst score in every setting, with power 0.74--0.81
+in the drift task, as its uncertainty premium over-bets where the Gaussian
+approximation is least reliable. On the simulation likelihood, the
+posterior-predictive bet beats the plug-in bet at the posterior mean (223
+against 265 steps), as Proposition~5 suggests, and with a prior
+variance of 0.03 it comes within 7\% of the logistic learner (223 against 209
+steps with degree 4, 222 against 214 with degree 6); with the default prior
+variance of one it needs 290 steps. The two learners fail in opposite
+directions: the logistic learner's bets are aggressive (in steps 100--250 the
+factors have mean 1.18 and standard deviation 1.15, and the best betting
+fraction is 0.5), and the mixture over $\lambda$ tempers them, whereas the
+simulation-likelihood bets are cautious (mean 1.08, standard deviation 0.62,
+best fraction 0.75), and a fraction below one cannot amplify a cautious bet.
+False alarms stay between 1.0\% and 3.3\% for every score; using the logistic
+posterior odds directly as the bet gives between 14\% and 74\% false alarms.
+
+The predictive-first updates (the predictive-first update of Section~4.4) are valid in every setting and
+slower than their Gaussian counterparts on the drift task: 234--277 steps with
+degree-4 features, against 209--223, and with the flexible degree-6 features the
+plug-in and resampled predictives lose much of their power (0.65 and 0.64,
+against 0.97). On the bandit they are on par (41--57 steps, against 38--51).
+Predictive resampling helps slightly on the drift task (234 against 243 steps
+on the simulation likelihood), and the simulation likelihood is the better
+loss for predictive-first updates, as it is for the posterior mixture. The
+Gaussian route's advantage comes from its shrinkage: the posterior covariance
+damps early bets for as long as the posterior is wide, whereas truncated
+predictive resampling quickly concentrates around the current predictive.
+The Bayesian-bootstrap forest is valid as well (4.5\% false alarms on the drift
+task over 400 null runs, 2.0\% on the bandit), and it is the slowest learner on
+these problems: a power of 0.61 within 500 steps on the drift, where the
+discrepancy is a smooth change of curvature that a polynomial score represents
+directly and trees approximate by axis-aligned steps, and a median of 63 steps
+on the bandit. The mixture over trees and the forest's mean log-odds perform
+alike.
+
+\begin{table}[t]
+\centering
+\caption{Update rules, MC e-process throughout (400 replications). BLR: online
+Bayesian learning rule on the logistic loss (probability-scale predictive
+$\kappa\bar\eta$, ratio-scale $\bar\eta+v/2$, or posterior mean $\bar\eta$) or on the
+simulation likelihood (posterior-predictive mixture bet, or plug-in at the
+posterior mean; prior variance in brackets); predictive update: the
+classifier's predictive updated directly by (the predictive-first update of Section~4.4), betting with the
+current predictive (plug-in) or averaging over predictive-resampling paths;
+Bayesian-bootstrap forest: trees fitted with Dirichlet weights (the martingale
+posterior of the empirical predictive) on the raw outcomes, refitted every 25
+steps from step 20.}
+\label{tab:blr-full}
+\begin{tabular}{llrrr}
+\toprule
+task & score & false alarms & power & median stop \\
+\midrule
+drift, degree 4 & refitted point estimate & 0.030 & 0.990 & 198 \\
+ & BLR logistic, posterior mean & 0.030 & 0.965 & 238 \\
+ & BLR logistic, probability scale & 0.018 & 0.983 & 209 \\
+ & BLR logistic, ratio scale & 0.015 & 0.810 & 340 \\
+ & BLR simulation likelihood, mixture (1) & 0.025 & 0.820 & 291 \\
+ & BLR simulation likelihood, mixture (0.03) & 0.013 & 0.968 & 223 \\
+ & BLR simulation likelihood, mean (0.03) & 0.025 & 0.938 & 265 \\
+ & predictive update, logistic, plug-in & 0.020 & 0.810 & 277 \\
+ & predictive update, logistic, resampling & 0.022 & 0.802 & 266 \\
+ & predictive update, simulation likelihood, plug-in & 0.018 & 0.895 & 243 \\
+ & predictive update, simulation likelihood, resampling & 0.010 & 0.920 & 234 \\
+ & Bayesian-bootstrap forest, mixture over trees & 0.045 & 0.605 & 420 \\
+ & Bayesian-bootstrap forest, mean log-odds & 0.045 & 0.620 & 411 \\
+drift, degree 6 & refitted point estimate & 0.028 & 0.838 & 320 \\
+ & BLR logistic, posterior mean & 0.033 & 0.940 & 242 \\
+ & BLR logistic, probability scale & 0.015 & 0.965 & 214 \\
+ & BLR logistic, ratio scale & 0.013 & 0.738 & 364 \\
+ & BLR simulation likelihood, mixture (0.03) & 0.018 & 0.915 & 222 \\
+ & predictive update, logistic, plug-in & 0.033 & 0.650 & 353 \\
+ & predictive update, logistic, resampling & 0.025 & 0.643 & 363 \\
+bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
+ & BLR logistic, posterior mean & 0.025 & 1.000 & 51 \\
+ & BLR logistic, probability scale & 0.030 & 1.000 & 38 \\
+ & BLR logistic, ratio scale & 0.025 & 0.995 & 106 \\
+ & predictive update, logistic, plug-in & 0.025 & 1.000 & 41 \\
+ & predictive update, logistic, resampling & 0.025 & 1.000 & 42 \\
+ & predictive update, simulation likelihood, plug-in & 0.010 & 1.000 & 54 \\
+ & predictive update, simulation likelihood, resampling & 0.013 & 1.000 & 57 \\
+ & Bayesian-bootstrap forest, mixture over trees & 0.020 & 0.998 & 63 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Regret of the posterior-predictive e-process}
+
+Section~5.3 of the main text describes the set-up. Table~\ref{tab:regret}
+reports the largest regret over the 12 paths of each scenario.
+
+\begin{table}[t]
+\centering
+\caption{Regret of the exact posterior-predictive e-process against the best
+score in hindsight, $\sup_\theta \log L_t(\theta) - \log \bar W_t$ (maximum
+over 12 paths), and the bound of Theorem~3(ii). Slope: increase
+of the mean regret per unit of $\log t$ between $t = 100$ and $t = 2000$.}
+\label{tab:regret}
+\begin{tabular}{lrrrrrrr}
+\toprule
+ & \multicolumn{5}{c}{maximum regret at $t =$} & & \\
+scenario & 10 & 100 & 300 & 1000 & 2000 & slope & $\log \bar W_{2000}$ \\
+\midrule
+null & 1.9 & 4.1 & 5.1 & 6.3 & 7.0 & 1.02 & $-5.6$ \\
+mean shift & 2.6 & 4.0 & 5.0 & 6.2 & 6.9 & 1.02 & 228 \\
+scale change & 2.2 & 4.5 & 5.6 & 6.8 & 7.5 & 1.01 & 257 \\
+drift at $t = 500$ & 1.9 & 4.1 & 5.1 & 6.5 & 7.3 & 1.10 & 236 \\
+\midrule
+bound, $d\log t + d\log(4eGD/d)$ & 10.9 & 15.5 & 17.7 & 20.1 & 21.5 & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The trial with each learner}
+
+Table~\ref{tab:trial-learners} compares all learners. The four predictive-first
+learners of Section~4.4 of the main text are valid as well, with false alarms in 1--5\%
+of trials while the stateless twin raises them in 81--98\%; they detect snacking
+in 99\% of trials after a median of 42--51 participant-days, and e-BH flags D in
+99\% of trials and B in 37--62\%, with A, C and E flagged in at most 2\%.
+The Bayesian-bootstrap forest, refitted every ten participant-days from the
+fifth, is valid (2\% false alarms) and the slowest to detect (a median of 59
+participant-days), and e-BH flags B in 31\% of trials; refitted every 25 days
+from the twentieth, as in the simulation studies, it flags B in only 3\%,
+because an arm dropped at the first interim analysis leaves its own forest
+too few days to be fitted before the arm stops accruing data.
+
+\begin{table}[t]
+\centering
+\caption{The MAMS trial with each learner (100 replications per scenario).
+Null: false-alarm rate of the monitor and of the stateless twin with the same
+learner. Snacking: detection rate, median participant-days to the first alarm,
+and the share of trials in which e-BH flags arms D and B.}
+\label{tab:trial-learners}
+\begin{tabular}{lrrrrr}
+\toprule
+ & \multicolumn{2}{c}{null} & \multicolumn{3}{c}{defensive snacking} \\
+learner & monitor & stateless & detected (days) & e-BH D & e-BH B \\
+\midrule
+Gaussian BLR, logistic & 0.02 & 0.95 & 0.99 (32) & 0.99 & 0.64 \\
+Gaussian BLR, simulation likelihood & 0.02 & 0.98 & 0.99 (51) & 0.99 & 0.39 \\
+predictive, logistic, plug-in & 0.05 & 0.87 & 0.99 (42) & 0.99 & 0.62 \\
+predictive, logistic, resampling & 0.04 & 0.81 & 0.99 (47) & 0.99 & 0.47 \\
+predictive, simulation likelihood, plug-in & 0.04 & 0.98 & 0.99 (49) & 0.99 & 0.38 \\
+predictive, simulation likelihood, resampling & 0.01 & 0.97 & 0.99 (51) & 0.99 & 0.37 \\
+Bayesian-bootstrap forest & 0.02 & 0.98 & 0.99 (59) & 0.98 & 0.31 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The regional analysis with each learner}
+
+The real-data results above use the Gaussian logistic learner.
+Table~\ref{tab:regions-learners} repeats the analysis with the four
+predictive-first learners. All are valid on the synthetic series and detect
+the variant nationally after 6--7 weeks, against 8 for the Gaussian learner. On
+the real data the plug-in predictives agree with it on the national alarm (14
+March 2021, or two weeks earlier) and on e-BH, which rejects the twin in all 21
+regions; the resampled predictives are more cautious, with about half as many
+regional alarms and a national alarm in April or June, and with the logistic
+loss e-BH rejects no region at the end of 2021. The Bayesian-bootstrap forest,
+refitted every five weeks from the fifth, is valid but slow, with a national
+delay of 15 weeks: each region's forest learns from at most 53 weekly points.
+
+\begin{table}[t]
+\centering
+\caption{The regional analysis with each learner. Synthetic (estimated
+effects): regional and national false-alarm rates under the null, and median
+national delay in weeks under the variant. Real data: number of regional
+alarms, date of the national alarm, and number of regions rejected by e-BH at
+the end of 2021.}
+\label{tab:regions-learners}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{synthetic} & \multicolumn{3}{c}{real data} \\
+learner & regional & national & delay & alarms & national alarm & e-BH \\
+\midrule
+Gaussian BLR, logistic & 0.019 & 0.01 & 8 & 96 & 14 Mar 2021 & 21 \\
+predictive, logistic, plug-in & 0.014 & 0.00 & 6 & 118 & 28 Feb 2021 & 21 \\
+predictive, logistic, resampling & 0.013 & 0.02 & 6 & 52 & 4 Apr 2021 & 0 \\
+predictive, simulation likelihood, plug-in & 0.003 & 0.01 & 6 & 86 & 14 Mar 2021 & 21 \\
+predictive, simulation likelihood, resampling & 0.005 & 0.01 & 7 & 45 & 6 Jun 2021 & 20 \\
+Bayesian-bootstrap forest & 0.002 & 0.00 & 15 & 32 & 1 Aug 2021 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \bibliographystyle{plainnat}
 \bibliography{references}
