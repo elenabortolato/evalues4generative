@@ -40,8 +40,13 @@ Methods
                 SLICE does in its LLM audit); uniform prompts
   fb-pre        score log rho_k fitted in advance on R against P (Forre and
                 Brenner's pretrained score); uniform prompts
-Both baselines are given replies of the substitute in advance, which ours
-does not need.
+  fb-bandit     the pretrained score of fb-pre inside our design: prompts
+                chosen by UCB, the twin run on the chosen prompt
+  combo-bandit  the average of two wealths on the same data, one with the
+                learned score of ours-bandit and one with the pretrained score
+                of fb-pre, prompts chosen by UCB on their average factor
+The baselines and the methods using the pretrained score are given replies
+of the substitute in advance, which the learned score does not need.
 
 Output: results/exp16.json
 """
@@ -81,7 +86,8 @@ SCENARIOS = {
 }
 BASELINE_SUB = "q4_k_m"          # the substitute the baselines are trained on
 UCB_C, MIN_SHARE = 1.0, 0.1   # prompt choice: UCB on log growth, each prompt >= 10%
-METHODS = ["ours-bandit", "ours-uniform", "ours-mixed", "slice", "fb-pre"]
+METHODS = ["ours-bandit", "ours-uniform", "ours-mixed", "slice", "fb-pre", "fb-bandit",
+           "combo-bandit"]
 
 
 # ------------------------------------------------------------------ features
@@ -175,15 +181,16 @@ def mle_fraction(lr: np.ndarray) -> float:
 def run(seed, scenario, method, horizon, m, alpha, rho_models):
     rng = np.random.default_rng(seed)
     sc = SCENARIOS[scenario]
-    lam_mix = LambdaMixture()
-    if method.startswith("ours"):
+    lam_mix, lam_mix2 = LambdaMixture(), LambdaMixture()
+    learns = method.startswith("ours") or method == "combo-bandit"
+    if learns:
         twin = np.vstack([POOLS.rows(k, "q8_0", "stream", rng, 200) for k in range(K)])
         learner = BLRRatio(prior_var=1.0, mode="predictive", feature_map=block_features).fit_scaler(twin)
     n_pull, g_sum = np.zeros(K), np.zeros(K)
     past_lr, first = [], None
     for t in range(1, horizon + 1):
         # 1. action: chosen from the past only
-        if method in ("ours-bandit", "ours-mixed"):
+        if method in ("ours-bandit", "ours-mixed", "fb-bandit", "combo-bandit"):
             if t <= 2 * K:
                 a = (t - 1) % K
             elif n_pull.min() < MIN_SHARE * t:
@@ -202,22 +209,30 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
             ys = POOLS.rows(a, "q8_0", "stream", rng, m)
         # 3-4. score fixed before x is seen, and the bet
         rows = np.vstack([x, ys])
-        if method.startswith("ours"):
-            s = learner.score(rows)
-        elif method == "slice":
-            th = mle_fraction(np.asarray(past_lr))
-            s = np.log(np.maximum(1 - th + th * np.exp(log_rho(rho_models, rows)), 1e-300))
-        else:  # fb-pre
-            s = log_rho(rho_models, rows)
-        e = mc_factor(s[0], s[1:])
-        w = lam_mix.update(e)
+        if method == "combo-bandit":
+            # two e-processes on the same data, the learned and the pretrained
+            # score; their average wealth is again a test supermartingale
+            s, s2 = learner.score(rows), log_rho(rho_models, rows)
+            e1, e2 = mc_factor(s[0], s[1:]), mc_factor(s2[0], s2[1:])
+            w = 0.5 * (lam_mix.update(e1) + lam_mix2.update(e2))
+            e = 0.5 * (e1 + e2)
+        else:
+            if method.startswith("ours"):
+                s = learner.score(rows)
+            elif method == "slice":
+                th = mle_fraction(np.asarray(past_lr))
+                s = np.log(np.maximum(1 - th + th * np.exp(log_rho(rho_models, rows)), 1e-300))
+            else:  # fb-pre, fb-bandit
+                s = log_rho(rho_models, rows)
+            e = mc_factor(s[0], s[1:])
+            w = lam_mix.update(e)
         if first is None and w >= 1 / alpha:
             first = t
             break
         # 6. learn after the bet
         n_pull[a] += 1
         g_sum[a] += np.log(0.5 + 0.5 * e)
-        if method.startswith("ours"):
+        if learns:
             learner.update(x, ys)
         elif method == "slice":
             past_lr.append(log_rho(rho_models, x)[0])
