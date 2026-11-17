@@ -1415,6 +1415,49 @@ score is available, nothing forces a choice: the average of its wealth and
 ours is again a test martingale, which is close to the faster of the two when
 the departure is inside the family and keeps power when it is not.
 
+\begin{remark}[Inside and outside the family]\label{rem:family}
+SLICE fixes a parametrised family $\{P_\theta\}$ of simulators, with the null
+at $\theta_0$, and bets with the score
+$s_t = \log (p_{\hat\theta_{t-1}}/p_{\theta_0})$, where $\hat\theta_{t-1}$ is
+estimated from the past real outcomes; its tilted null is
+$\tilde T_t = P_{\hat\theta_{t-1}}$. An alternative is \emph{inside the family}
+when $Q = P_\theta$ for some $\theta \ne \theta_0$, and \emph{outside} it
+otherwise. Outside, $\hat\theta_t$ converges to the projection
+$\theta^* = \arg\min_\theta \KL(Q\|P_\theta)$, and with an unlimited budget
+the growth rate tends to
+$g_\infty = \KL(Q\|P_{\theta_0}) - \KL(Q\|P_{\theta^*})$
+(Theorem~\ref{thm:growth}(ii)). When $\theta^* = \theta_0$ the score itself
+tends to zero, every factor tends to one, and the wealth stops growing however
+large $\KL(Q\|P_{\theta_0})$ is and however good the network.
+
+Both out-of-family alternatives of Table~\ref{tab:concurrent} are of this
+kind. In the drift, the family is $x = (z_1, z_2 + b(z_1^2 - 1))$ with
+$z \sim \mathcal N(0, I)$, in which $x_1 \sim \mathcal N(0, 1)$ for every $b$,
+and the real data are $x = (1.2 z_1, z_2 + b_0(1.44 z_1^2 - 1))$ with
+$b_0 = 0.5$. No $b$ produces the wider first coordinate, and the
+least-squares estimate of $b$ converges to
+$\E[x_2(x_1^2 - 1)]/\E[(x_1^2 - 1)^2] = b_0$, so the power is 0.01. In the
+bandit, the family is
+$y \mid a = \mu_a + \delta_a + e^{\varepsilon/2} - e^{1/8}$ with
+$\varepsilon \sim \mathcal N(0, 1)$, in which $\delta$ moves only the location
+of each arm, while the real noise of the most pulled arm is 1.5 times larger
+with the same mean. The estimate of $\delta_a$ converges to zero, and the
+power of 0.56 comes only from its early fluctuations. Our scores
+$z(x)^\top\theta$ are learned from real against simulated outcomes rather than
+within a family of simulators, and their features contain $x_1^2$ and the
+squared outcome of each arm, so a change of scale moves $\tilde T_t$ towards
+$Q$; their power is 0.70 to 0.85 on the drift and 1.00 on the bandit.
+
+Our network is trained as a binary classifier of joint against shuffled
+pairs (NRE-A), whereas \citet{cortinovis2026slice} use the contrastive
+estimator NRE-C \citep{miller2022contrastive}. Both estimate
+$\log p_\theta(y)/m(y)$, NRE-C up to a function of $y$ alone, which cancels in
+$s_t$. The choice can affect the power inside the family, where our network is
+already close to the exact ratio (71 against 75 steps on the drift, 35 against
+35 on the bandit), but not outside it, where the exact ratio itself has power
+0.005 on the drift.
+\end{remark}
+
 The difference between the two scores learned from the data is also a
 difference in what kind of predictive they are. The refitted score of
 \citet{forre2026anytime} is a prequential forecasting system in the sense of
