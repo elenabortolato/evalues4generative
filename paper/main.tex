@@ -35,8 +35,7 @@ Monte Carlo e-processes under adaptive actions}
 
 \begin{abstract}
 Multi-arm multi-stage trials, bandits and digital twins collect data
-adaptively: which arm is observed, and under which intervention, depends on
-what has been seen so far. We test whether a simulator reproduces such a
+adaptively: which arm is observed depends on what has been seen. We test whether a simulator reproduces such a
 system with e-processes, which allow optional stopping. A score learned by classifying real against simulated
 outcomes becomes an exact bet when normalised over fresh simulations,
 $(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$, a bet that concurrent work has
@@ -50,10 +49,11 @@ adaptively makes every score faster, those of concurrent methods included, by
 up to 61\% in the number of queries. The growth rate of any score splits into
 a simulation cost, exactly $M/(M+1)$ for local alternatives, and a learning
 cost, $\KL(Q\|\tilde T)$, where $\tilde T$ is the score's forecast.
-Bayesian updating on the bet, a conditional-logit likelihood in the score's
-parameter, stays within $d\log t$ of the best score in hindsight on every
-sample path. In a multi-arm multi-stage trial of insulin-dosing strategies with
-futility analyses and re-assignment of participants, the monitor controls
+Treated as a likelihood in the score's parameter, the bet admits exact
+Bayesian updating: posterior-predictive bets, rather than the plug-in scores
+of concurrent work, stay within $d\log t$ of the best score in hindsight on
+every sample path. In a multi-arm multi-stage trial of insulin-dosing strategies with
+re-assignment of participants, the monitor controls
 false alarms and identifies the arms on which the simulator fails; monitors
 that ignore the allocation or the participants' history do not.
 \end{abstract}
@@ -237,6 +237,22 @@ expected bet larger than one under the null, with limit $1+\chi^2$ for the
 likelihood-ratio score, and the wealth grows exponentially, at a rate of at
 most $\log K$ per step with $K$ arms (Proposition~\ref{prop:necessary} and
 Corollary~\ref{cor:falsealarm}).
+\item \emph{Prequential Bayesian updating of the score.} The bet, as a
+function of the score's parameter, is a conditional-logit likelihood that the
+simulations normalise. Treating it as a likelihood, rather than as an
+objective to maximise, gives exact Bayesian updating: the bet is the
+posterior-predictive average over the score's parameter instead of a plug-in
+at a point estimate, it factorises over time and is updated in one step per
+observation, and, by the regret bounds for Bayesian mixtures, the wealth stays
+on every sample path within $d\log t$ of the best score in the class chosen in
+hindsight, $(d/2)\log t$ for an interior optimum (Theorem~\ref{thm:simlik}).
+The concurrent papers bet at a point estimate, with guarantees that are
+asymptotic at best. As $M$ grows the log wealth is the prequential likelihood
+ratio of the score's forecasts against the simulator, which places the method
+in the predictive approach to inference \citep{dawid1984present,fong2023martingale};
+approximate posteriors, such as one step of the Bayesian learning rule per
+observation, keep validity exact at a bounded cost in power
+(Proposition~\ref{prop:approx}).
 \item \emph{Adaptive actions as a source of power.} Once the simulator is run
 under the action taken, the actions can be chosen to gather evidence where it
 accumulates fastest. In an audit of a language-model API, choosing the prompts
@@ -248,13 +264,6 @@ $\KL(Q\|P)-\KL(Q\|\tilde T)$, the information against the simulator minus the
 error of the score's forecast; for local alternatives a budget of $M$
 simulations keeps exactly a fraction $M/(M+1)$ of it
 (Theorem~\ref{thm:growth}).
-\item \emph{Bayesian updating on the simulation likelihood.} Exact Bayesian
-updating of the score's parameter gives posterior-predictive bets that
-factorise over time and, by the regret bounds for Bayesian mixtures, stay on
-every sample path within $d\log t$ of the best score in the class chosen in
-hindsight, $(d/2)\log t$ for an interior optimum (Theorem~\ref{thm:simlik});
-approximate posteriors keep validity at a bounded cost
-(Proposition~\ref{prop:approx}).
 \item \emph{Adaptive designs.} One e-process per arm, combined by e-BH
 \citep{wang2022false,xu2021unified}, identifies the arms on which the simulator
 fails, with false-discovery-rate control under arbitrary allocation.
@@ -1882,7 +1891,12 @@ allocation rule, shows that it is necessary and quantifies the failure
 when it is dropped, reads arbitrary scores through the tilted null with the
 local efficiency $M/(M+1)$, gives sequential Bayesian and predictive updates of
 the score with a pathwise regret bound, and applies the method to adaptive
-designs.
+designs. Neither paper updates the score's parameter by Bayes' rule: both bet
+at a point estimate, the maximiser of the empirical growth in
+\citet{forre2026anytime} and a predictable estimate or posterior summary in
+\citet{cortinovis2026slice}. Treating the bet as a likelihood, averaging it
+over the posterior of the score's parameter, the prequential reading of the
+wealth and the pathwise regret bound are specific to this paper.
 
 Model-X sequential tests of conditional independence \citep{shaer2023modelx}
 draw a dummy covariate from its known conditional law at each step and bet on a
