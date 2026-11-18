@@ -4,3 +4,15 @@ __pycache__/
 paper/vendor/
 paper/main.html
 paper/supplement.html
+paper/**/*.aux
+paper/**/*.log
+paper/**/*.out
+paper/**/*.blg
+paper/**/*.blg.txt
+paper/**/*.bbl
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.blg
+paper/*.blg.txt
+paper/*.bbl

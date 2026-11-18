@@ -7,6 +7,7 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{adjustbox}
 \usepackage[round,authoryear]{natbib}
 \usepackage[hidelinks]{hyperref}
 
@@ -100,10 +101,12 @@ a telescoping product of one-step conditionals: with $m(x_{1:0}) = 1$,
 $m(x_{1:t}) = \prod_{i \le t} m(x_{1:i})/m(x_{1:i-1})$ and
 $p_0(x_{1:t}) = \prod_{i \le t} p_0(x_i \mid x_{1:i-1})$. Hence
 \begin{equation}\label{eq:prequential}
+\begin{gathered}
 \mathrm{BF}_t = \frac{m(x_{1:t})}{p_0(x_{1:t})}
 = \prod_{i=1}^{t} \frac{m_i(x_i)}{p_0(x_i \mid x_{1:i-1})},
-\qquad
+\\
 m_i(x) = \frac{m(x_{1:i-1}, x)}{m(x_{1:i-1})} = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta),
+\end{gathered}
 \end{equation}
 where the last equality is Bayes' rule: dividing the integrand of
 $m(x_{1:i-1}, x)$ by $m(x_{1:i-1})$ turns the prior times the likelihood of
@@ -513,9 +516,11 @@ and, independently, $Y_1, \ldots, Y_M$ i.i.d.\ $P$, and let
 $E^{(M)} = (M+1)T(X)/\{T(X) + \sum_{j} T(Y_j)\}$ be the factor \eqref{eq:mc}
 computed from them. The \emph{growth rate} with $M$ simulator draws is
 \begin{equation}\label{eq:growthrate}
-g_M = g_M(Q, P, T) = \E_{Q \otimes P^M}\big[\log E^{(M)}\big]
-= \int \log\frac{(M+1)\,T(x)}{T(x) + \sum_{j=1}^M T(y_j)}\;
+\begin{aligned}
+g_M = g_M(Q, P, T) &= \E_{Q \otimes P^M}\big[\log E^{(M)}\big] \\
+&= \int \log\frac{(M+1)\,T(x)}{T(x) + \sum_{j=1}^M T(y_j)}\;
 Q(dx) \prod_{j=1}^M P(dy_j),
+\end{aligned}
 \end{equation}
 the expected logarithm of one factor when the whole wealth is bet. Since
 $\log E^{(M)} \le \log(M+1)$ it is well defined in $[-\infty, \log(M+1)]$, and
@@ -1162,9 +1167,11 @@ $W_0 = 1$.
         --- Exchangeable with $X_t$ under $H_0$.
   \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
         \[
-        \bar\eta = z(x)^\top \bar\theta_{t-1}, \qquad v = z(x)^\top S_{t-1}^{-1} z(x), \qquad
+        \begin{gathered}
+        \bar\eta = z(x)^\top \bar\theta_{t-1}, \qquad v = z(x)^\top S_{t-1}^{-1} z(x), \\
         \kappa = (1 + \pi v/8)^{-1/2}, \qquad
         s_{t-1}(x) = \mathrm{clip}(\kappa\,\bar\eta,\, -B,\, B) .
+        \end{gathered}
         \]
         --- $s_{t-1}$ is the predictive log-odds of ``real'' against
         ``simulated'', an estimate of $\log(q/p)$ shrunk where the posterior is
@@ -1189,9 +1196,11 @@ $W_0 = 1$.
         for $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
         $p_k = \sigma(s_{t-1}(U_{t,k}))$, update
         \[
+        \begin{gathered}
         \nabla_t = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
-        J_t = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \qquad
-        S_t = S_{t-1} + J_t, \quad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t .
+        J_t = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \\
+        S_t = S_{t-1} + J_t, \qquad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t .
+        \end{gathered}
         \]
         --- One step of the Bayesian learning rule \eqref{eq:blr}; the score
         stays predictable.
@@ -1775,6 +1784,7 @@ alarm. Middle: the design, as the share of trials in which each arm is still
 active at the end, and the mean number of re-assigned participants. Bottom:
 share of trials in which e-BH flags each arm, at $\alpha = 0.05$.}
 \label{tab:trial}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lrrr}
 \toprule
 monitor & null & insulin resistance & defensive snacking \\
@@ -1793,6 +1803,7 @@ participants re-assigned (mean) & 65 & 14 & 43 \\
 A / B / C / D / E & 0 / 0 / 0 / 0 / 0.01 & 1 / 1 / 1 / 1 / 1 & 0 / 0.64 / 0 / 0.99 / 0.01 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 Table~\ref{tab:trial} summarises 100 replications of each scenario. Only the
@@ -2056,6 +2067,7 @@ a Bayesian posterior predictive; lower-case letters are densities, except that
 $\tilde T$ denotes both the tilted null and its density $T p/Z$; $\tilde m$
 denotes sequential Monte Carlo estimates.}
 \label{tab:notation}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lll}
 \toprule
 symbol & meaning & where \\
@@ -2105,6 +2117,7 @@ $N$; $h_{\max}$ & number of trees, posterior nodes or resampling paths; truncati
 $\KL$, $\chi^2$, $D_2$ & Kullback--Leibler, chi-squared and Rényi-2 divergences & Sec.~\ref{sec:power} \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 \section{Proofs}\label{app:proofs}
@@ -2284,8 +2297,11 @@ $1 + \chi^2(P_a\|\bar P) = \E_{P_a}[R_a] \le 1/u_a$.
 $\E_P[T_t] = \int \E_P[dQ_\theta/dP]\,\pi_{t-1}(d\theta) = 1$, so by
 Theorem~\ref{thm:growth}(ii) $E_t^\infty = T_t(X_t)$. Writing
 $q_\theta = dQ_\theta/dP$, the posterior predictive ratio is
-$T_t(x) = \int q_\theta(x) \prod_{i<t} q_\theta(X_i)\,\pi_0(d\theta) \big/
-\int \prod_{i<t} q_\theta(X_i)\,\pi_0(d\theta)$, and the product over $t$
+\[
+T_t(x) = \frac{\int q_\theta(x) \prod_{i<t} q_\theta(X_i)\,\pi_0(d\theta)}
+{\int \prod_{i<t} q_\theta(X_i)\,\pi_0(d\theta)},
+\]
+and the product over $t$
 telescopes to the marginal likelihood ratio. The Laplace expansion under
 regularity conditions is \citet{clarke1990information}. Finally
 $\E_Q[\log q_\theta] = \KL(Q\|P) - \KL(Q\|Q_\theta)$.

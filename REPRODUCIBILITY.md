@@ -116,6 +116,17 @@ access.
 cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
 ```
 
+The submission to *Statistics and Computing* (Springer Nature template,
+`sn-jnl.cls` with the author-year style) is generated from `paper/main.tex`, so
+the two versions share the same text:
+
+```bash
+cd paper/stco && python make_stco.py
+pdflatex manuscript && bibtex manuscript && pdflatex manuscript && pdflatex manuscript
+```
+
+`paper/stco/cover_letter.md` is the draft cover letter.
+
 `paper/build_pdf.py` produces a preview PDF without a TeX installation, through
 HTML and headless Chromium. It is a convenience for editing and does not
 replace a LaTeX build:
