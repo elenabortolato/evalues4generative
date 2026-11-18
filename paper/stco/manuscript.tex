@@ -305,25 +305,35 @@ ignores the prompt does not.
 
 We developed the construction independently, as the direct way to make
 classifier-based ratio estimation \citep{thomas2022lfire} exact under adaptive
-allocation. Appendix~\ref{app:timeline} records the timing relative to the
-concurrent papers. Where our results coincide with earlier or concurrent work we say
-so where they are used: the one-step e-value and its product for independent
-data \citep{wang2022false,dombowsky2026besag,forre2026anytime,cortinovis2026slice};
-the optimality of the likelihood-ratio score and the finite-$M$ bound of
+allocation; Appendix~\ref{app:timeline} records the timing relative to the
+concurrent papers. Where our results coincide with earlier or concurrent work
+we say so where they are used: the one-step e-value and its product for
+independent data
+\citep{wang2022false,dombowsky2026besag,forre2026anytime,cortinovis2026slice};
+validity conditionally on independent covariates, which is
+Theorem~\ref{thm:valid} for actions without state, and the remark that the
+construction extends to dependent data by conditioning on the past
+\citep[Corollary~C.1 and Appendix~C.1.1]{cortinovis2026slice}; the optimality
+of the likelihood-ratio score and the finite-$M$ bound of
 Theorem~\ref{thm:growth}(i) and (iii)
-\citep{dombowsky2026besag,forre2026anytime,cortinovis2026slice}; scores fitted
-online on past observations for independent data \citep{forre2026anytime}; and
-e-BH for bandit multiple testing \citep{xu2021unified}.
-Section~\ref{sec:related} discusses the relation to this work.
+\citep{dombowsky2026besag,forre2026anytime,cortinovis2026slice}; the
+conditional-logit form of the bet, as a contrastive objective
+\citep{ma2018noise} and as the growth maximised by \citet{forre2026anytime};
+scores fitted online on past observations for independent data
+\citep{forre2026anytime}; the regret bounds for Bayesian mixtures used in
+Theorem~\ref{thm:simlik} \citep{kakade2005online}; and e-BH for bandit
+multiple testing \citep{xu2021unified}. Section~\ref{sec:related} discusses
+this work in more detail.
+
 Section~\ref{sec:method} sets up the problem and gives the method and its
-validity, Section~\ref{sec:power} its power, and Section~\ref{sec:predictive}
-the predictive view and the update rules, summarised in Algorithm~1
-(Section~\ref{sec:algorithm}). Section~\ref{sec:experiments} checks
-the theory in simulation and compares the method with concurrent work,
-including the audit of a language-model API (Section~\ref{sec:exp-llm}),
-Section~\ref{sec:trial} contains the trial, and Section~\ref{sec:discussion} discusses
-limitations. Proofs are in the Appendix; further applications and experiments
-are in the Supplement.
+validity. Section~\ref{sec:power} studies its power, and
+Section~\ref{sec:predictive} the predictive view and the update rules,
+summarised in Algorithm~1 (Section~\ref{sec:algorithm}).
+Section~\ref{sec:experiments} checks the theory in simulation and compares
+the method with concurrent work, including the audit of a language-model API
+(Section~\ref{sec:exp-llm}). Section~\ref{sec:trial} contains the trial, and
+Section~\ref{sec:discussion} discusses limitations. Proofs are in the
+Appendix, and further applications and experiments are in the Supplement.
 
 %======================================================================
 \section{Monte Carlo e-processes under adaptive control}\label{sec:method}
@@ -351,7 +361,13 @@ H_0:\quad Q_t(\cdot \mid \F_{t-1}, A_t) = P_t(\cdot \mid \F_{t-1}, A_t)
 \]
 the simulator reproduces the conditional behaviour of the system under every
 action that is actually taken. $H_0$ is composite in the policy, which is left
-unrestricted. A nonnegative process $(W_t)$ with $W_0 = 1$ is a \emph{test
+unrestricted. This composite null costs nothing: because each factor is fair
+conditionally on the past and on the action, one e-process is valid for every
+policy simultaneously, with no infimum over the class. The policy may depend
+on past outcomes and on the monitor's own wealth, unlike the independent
+covariates of \citet[Corollary~C.1]{cortinovis2026slice}; the price is that
+the null concerns only the actions actually taken, so the monitor cannot
+detect failures of the simulator under actions the policy never chooses. A nonnegative process $(W_t)$ with $W_0 = 1$ is a \emph{test
 supermartingale} for $H_0$ if $\E[W_t \mid \F_{t-1}] \le W_{t-1}$ under every
 distribution in $H_0$; by Ville's inequality, rejecting the first time $W_t$
 reaches $1/\alpha$ controls the type-I error at level $\alpha$ uniformly over
