@@ -37,8 +37,7 @@ Monte Carlo e-processes under adaptive actions}
 Multi-arm multi-stage trials, bandits and digital twins collect data
 adaptively: which arm is observed, and under which intervention, depends on
 what has been seen so far. We test whether a simulator reproduces such a
-system with e-processes, which remain valid under adaptive allocation and
-optional stopping. A score learned by classifying real against simulated
+system with e-processes, which allow optional stopping. A score learned by classifying real against simulated
 outcomes becomes an exact bet when normalised over fresh simulations,
 $(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$, a bet that concurrent work has
 reached for independent data. Under adaptive allocation, validity follows from
@@ -46,7 +45,7 @@ exchangeability if the simulator is run under the action taken and from the
 current state. This conditioning is also necessary: a simulator that ignores
 the action makes the expected bet tend to $1+\chi^2$, and the wealth grows
 exponentially under the null. The actions are moreover a source of power: in
-an audit of a language-model API with real model outputs, choosing the prompts
+an audit of a language-model API, choosing the prompts
 adaptively makes every score faster, those of concurrent methods included, by
 up to 61\% in the number of queries. Every score bets on a tilted version of
 the simulator, and its growth rate splits into a simulation cost, exactly
@@ -55,8 +54,8 @@ Bayesian updating on the bet, a conditional-logit likelihood in the score's
 parameter, stays within $d\log t$ of the best score in hindsight on every
 sample path. In a multi-arm multi-stage trial of insulin-dosing strategies with
 futility analyses and re-assignment of participants, the monitor controls
-false alarms and identifies the arms on which the simulator fails, while
-monitors that ignore the allocation or the participants' history do not.
+false alarms and identifies the arms on which the simulator fails; monitors
+that ignore the allocation or the participants' history do not.
 \end{abstract}
 
 %======================================================================
