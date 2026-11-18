@@ -117,9 +117,13 @@ has expectation $\int m_i = 1$ under the null given the past, so
 $\mathrm{BF}_t$ is a test martingale for every prior, and
 $\log \mathrm{BF}_t = \sum_i \log m_i(x_i) - \sum_i \log p_0(x_i \mid x_{1:i-1})$
 compares the cumulative log scores of two forecasters, the prequential form of
-the marginal likelihood \citep{dawid1984present}; for i.i.d.\ data it equals
-the best log likelihood ratio in the model minus $(d/2)\log t + O_P(1)$
-\citep{clarke1990information}.
+the marginal likelihood \citep{dawid1984present}. The price of not knowing
+$\theta$ is small: for i.i.d.\ data and a regular model with $d$ parameters,
+$\log \mathrm{BF}_t = \max_\theta \sum_{i\le t}\log\{q_\theta(x_i)/p_0(x_i)\} - (d/2)\log t + O_P(1)$
+\citep{clarke1990information}, so the Bayes factor grows almost as fast as the
+likelihood ratio at the best parameter chosen in hindsight, which grows
+linearly in $t$. Theorem~\ref{thm:simlik} gives the analogue for the Monte
+Carlo e-process, on every sample path and without independence.
 
 Equation~\eqref{eq:prequential} is the template for the rest of the paper.
 It involves three objects: the null conditional density
@@ -181,8 +185,7 @@ the null the real outcome is exchangeable with the simulated ones, so the bet
 is fair whatever the score: it compares the score of the observed labelling
 with its average over the $M+1$ ways of labelling one outcome as real, the
 mechanism of permutation tests \citep{ramdas2023game,luciano2025permutations}.
-This combination is natural, and for independent data it has been reached
-independently in recent work. For a single test it is the soft-rank e-value of
+For a single test this bet is the soft-rank e-value of
 \citet{wang2022false}, and its product over an i.i.d.\ stream is the
 Besag--Clifford e-process of \citet{dombowsky2026besag}.
 \citet{forre2026anytime} use it for simulation-based hypothesis testing,
