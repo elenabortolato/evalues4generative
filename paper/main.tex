@@ -36,32 +36,33 @@ Monte Carlo e-processes under adaptive actions}
 \begin{abstract}
 Multi-arm multi-stage trials, multi-armed bandits and digital twins collect
 data adaptively: which arm is observed, and under which intervention, depends on
-what has been seen so far. E-processes give inference that remains valid under
-such adaptivity and under optional stopping, and likelihood ratios and Bayes
-factors are their canonical, log-optimal forms. Two obstacles stand in the way:
-the likelihood is often available only through a simulator, and under adaptive
-allocation it is path-dependent; and a Bayes factor must in general be
-recomputed as data arrive. We remove both. A density ratio learned by
-classifying real against simulated outcomes becomes an exact bet when it is
-normalised over fresh simulations: the bet is the real observation's share of
-the score, $(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$. Running the simulator
-$M$ times under the action actually taken and from the current state makes the
-real observation exchangeable with the simulations, so the resulting
-e-process is exactly valid for every allocation rule and every score, and we
-show that conditioning on the action is necessary. Every score
-is a one-step predictive distribution, and the log wealth is the prequential
-likelihood ratio of these predictives against the simulator. The bet itself,
-as a function of the score's parameter, is a conditional-logit likelihood whose
-normalising constant the simulations provide; exact Bayesian updating on this
-simulation likelihood factorises over time and stays, on every sample path,
-within $d\log t$ of the best score chosen in hindsight. The growth rate
-separates a simulation cost, $M/(M+1)$ for local alternatives, from a learning
-cost, $\KL(Q\|\tilde T)$. In a multi-arm multi-stage trial of insulin-dosing
-strategies with futility analyses and re-assignment of participants, the
-monitor controls false alarms, detects departures from the in-silico trial and
-identifies the arms on which the simulator fails, while monitors that ignore
-the allocation or the participants' history do not control false alarms. An
-analysis of Italy's COVID-19 restriction zones shows the same on real data.
+what has been seen so far. We test whether a simulator reproduces such a
+system with e-processes, which remain valid under adaptive allocation and
+optional stopping. A score learned by classifying real against simulated
+outcomes becomes an exact bet when it is normalised over fresh simulations,
+$(M+1)T(X_t)/\{T(X_t)+\sum_j T(Y_{t,j})\}$, a bet that concurrent work has
+also reached for independent data. Under adaptive allocation, validity follows
+in a few lines from exchangeability, provided the simulator is run $M$ times
+under the action actually taken and from the current state. Less obviously,
+this conditioning is necessary: a simulator that ignores the action makes the
+expected bet tend to $1+\chi^2$, and the wealth grows exponentially under the
+null, at a rate of at most $\log K$ per step with $K$ arms. Every score bets
+on a tilted version of the simulator, and its growth rate splits into a
+simulation cost, exactly a fraction $M/(M+1)$ for local alternatives, and a
+learning cost, $\KL(Q\|\tilde T)$, the error of the score's forecast. The bet
+is a conditional-logit likelihood in the score's parameter, so Bayesian
+updating on it inherits the pathwise regret bounds of Bayesian mixtures:
+within $d\log t$ of the best score chosen in hindsight, with no recomputation.
+The actions are also a source of power. In an audit of a language-model API
+with real model outputs, choosing the prompts adaptively makes every score
+faster, those of concurrent methods included, by up to 61\% in the number of
+queries, while a twin that ignores the prompt raises a false alarm in every
+run. In a multi-arm multi-stage trial of insulin-dosing strategies with
+futility analyses and re-assignment of participants, the monitor controls
+false alarms, detects departures from the in-silico trial and identifies the
+arms on which the simulator fails, while monitors that ignore the allocation
+or the participants' history do not. An analysis of Italy's COVID-19
+restriction zones shows the same on real data.
 \end{abstract}
 
 %======================================================================
@@ -945,7 +946,10 @@ simulations, which the simulations normalise. The Bayes factor of
 Proposition~\ref{prop:bayes} is its limit as $M \to \infty$. Part (ii) holds on
 every path, with no assumption on the alternative: the monitor is never more
 than $d\log t$ behind the best fixed score in the class chosen in hindsight,
-the same simulations included. Part (iii) turns this into growth at the rate of
+the same simulations included. The argument is the standard one for Bayesian mixtures
+of log-concave likelihoods \citep{kakade2005online,grunwald2007minimum},
+applied to the simulation likelihood, whose log is concave in $\theta$ and
+whose gradient is bounded by $2G$. Part (iii) turns this into growth at the rate of
 the best tilt in the class, up to the simulation cost of
 Theorem~\ref{thm:growth}(iii), and Ville's inequality then gives rejection
 after about $\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps.
