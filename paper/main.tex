@@ -1523,33 +1523,36 @@ baselines' guess of the substitute is wrong.
 number of queries to an alarm, over the runs that reject within 400 queries,
 with the power when below one; 400 replications. ``In advance'': the score
 fitted in advance as in \citet{forre2026anytime}, on the 4-bit substitute;
-``average'': the average of its wealth and the learned score's. False alarms under the null: 0.0\% (SLICE), 3.5\% (fitted in
-advance), 2.5\% (fitted in advance, adaptive), 2.8\% (average), 3.5\% and
-2.0\% (learned score, adaptive and uniform); a twin that answers a random
+``average'': the average of its wealth and the learned score's. False alarms
+under the null: 0.0\% (SLICE, both designs), 3.5\% and 2.5\% (fitted in
+advance, published and adaptive), 2.8\% (average), 3.5\% and 2.0\% (learned
+score, adaptive and uniform); a twin that answers a random
 prompt instead of the chosen one raises a false alarm in every run.}
 \label{tab:llm}
 \small
-\begin{tabular}{lrrrrrr}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrrr}
 \toprule
- & \multicolumn{2}{c}{as published, uniform} & \multicolumn{3}{c}{our design, adaptive} & uniform \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-6}\cmidrule(lr){7-7}
-substitute, routing & SLICE & in advance & in advance & average & learned & learned \\
+ & \multicolumn{2}{c}{as published, uniform} & \multicolumn{4}{c}{our design, adaptive} & uniform \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-8}
+substitute, routing & SLICE & in advance & SLICE & in advance & average & learned & learned \\
 \midrule
-4-bit, all prompts & 82 & 44 & \textbf{40.5} & 50 & 220 (0.94) & 249 (0.71) \\
-4-bit, two prompts & 76 & 39 & \textbf{30} & 39 & 134 (0.99) & 227 (0.86) \\
-3-bit, all prompts & 149 (0.96) & 72 & \textbf{50} & 65.5 & 160 (0.98) & 204 (0.94) \\
-0.5B, all prompts & 110 (0.99) & 70 & \textbf{48} & 56 & 109 & 123 \\
-0.5B, two prompts & 107 & 59 & \textbf{23} & 29 & 52 & 77 \\
+4-bit, all prompts & 82 & 44 & 71.5 & \textbf{40.5} & 50 & 220 (0.94) & 249 (0.71) \\
+4-bit, two prompts & 76 & 39 & 57 & \textbf{30} & 39 & 134 (0.99) & 227 (0.86) \\
+3-bit, all prompts & 149 (0.96) & 72 & 109 (0.97) & \textbf{50} & 65.5 & 160 (0.98) & 204 (0.94) \\
+0.5B, all prompts & 110 (0.99) & 70 & 95 & \textbf{48} & 56 & 109 & 123 \\
+0.5B, two prompts & 107 & 59 & 57 & \textbf{23} & 29 & 52 & 77 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Table~\ref{tab:llm} shows three things. First, adaptive prompts help every
 score. With prompts chosen from the past and the twin run on the chosen
-prompt, the score fitted in advance needs fewer queries than in its published
-form in every scenario, from 59 to 23 when the routing depends on the prompt
-and from 70 to 48 when the substitute is not the expected one, and the
-learned score gains up to 0.23 in power over uniform prompts. The auditor
+prompt, both published scores need fewer queries than in their published
+form in every scenario: SLICE from 107 to 57 and the score fitted in advance
+from 59 to 23 when the routing depends on the prompt, and from 110 to 95 and
+from 70 to 48 when the substitute is not the expected one. The learned score
+gains up to 0.23 in power over uniform prompts. The auditor
 moves towards the colour prompt, on which the substitutes differ most from
 $P$, with up to 42\% of the queries. Second, validity requires the conditioning: the
 same design with a twin that answers a random prompt rejects the true null
@@ -2019,6 +2022,38 @@ Gaussian approximation of a posterior or directly through its predictive, as
 martingale posteriors do: in our experiments both routes are valid everywhere,
 and the Gaussian route is usually faster because its covariance damps early
 bets.
+
+The actions are a source of power, not only a threat to validity. Once the
+simulator is run under the action taken, the design may be chosen to gather
+evidence where it accumulates fastest, and Theorem~\ref{thm:valid} keeps the
+monitor valid whatever the rule. In the audit of Section~\ref{sec:exp-llm},
+choosing the prompts adaptively makes every score faster, ours and the two
+concurrent ones alike, by 8\% to 61\% in the number of queries. Methods built for
+independent data and a fixed design, such as \citet{forre2026anytime} and
+\citet{cortinovis2026slice}, gain from being placed in this design, and
+without the conditioning on the action they lose validity altogether.
+
+The concurrent methods and ours are therefore complementary rather than
+competing. SLICE answers a different question, which values of a simulator's
+parameter are compatible with the data, and its test of a single null is a
+by-product. When the departure lies inside the simulator's parametrised family
+it is the fastest method we compared (Section~\ref{sec:exp-concurrent}); when
+it does not, its power depends on where the departure projects onto the
+family, and it vanishes when the projection is the null itself, however
+accurate the network (Remark~\ref{rem:family}). It also needs the family and
+an amortised training on simulations from it, of the order of $10^7$ in
+\citet{cortinovis2026slice}. A score learned from real against simulated
+outcomes needs neither, and pays for this with a slower start when prior
+knowledge of the alternative exists: in the audit, a score fitted in advance
+on the right substitute stops after 30 to 41 queries, the learned score after
+134 to 220. The natural synthesis is to use an amortised or pretrained score
+as the centre of the prior of the online update, rather than as a separate
+bet. The monitor would then start as fast as the pretrained score and correct
+it where the guess is wrong, with the validity of Theorem~\ref{thm:valid}
+and the pathwise guarantee of Theorem~\ref{thm:simlik} relative to that
+prior. The average of the two wealths used in Section~\ref{sec:exp-llm} is a
+cruder version of this synthesis, and already within 16 queries of the faster
+of its two components.
 
 Several limitations remain. The null is a simple conditional null; simulators
 with unknown calibration parameters need composite-null constructions, such as

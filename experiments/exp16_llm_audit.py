@@ -40,6 +40,8 @@ Methods
                 SLICE does in its LLM audit); uniform prompts
   fb-pre        score log rho_k fitted in advance on R against P (Forre and
                 Brenner's pretrained score); uniform prompts
+  slice-bandit  the score of slice inside our design: prompts chosen by UCB,
+                the twin run on the chosen prompt
   fb-bandit     the pretrained score of fb-pre inside our design: prompts
                 chosen by UCB, the twin run on the chosen prompt
   combo-bandit  the average of two wealths on the same data, one with the
@@ -87,7 +89,7 @@ SCENARIOS = {
 BASELINE_SUB = "q4_k_m"          # the substitute the baselines are trained on
 UCB_C, MIN_SHARE = 1.0, 0.1   # prompt choice: UCB on log growth, each prompt >= 10%
 METHODS = ["ours-bandit", "ours-uniform", "ours-mixed", "slice", "fb-pre", "fb-bandit",
-           "combo-bandit"]
+           "combo-bandit", "slice-bandit"]
 
 
 # ------------------------------------------------------------------ features
@@ -190,7 +192,7 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
     past_lr, first = [], None
     for t in range(1, horizon + 1):
         # 1. action: chosen from the past only
-        if method in ("ours-bandit", "ours-mixed", "fb-bandit", "combo-bandit"):
+        if method in ("ours-bandit", "ours-mixed", "fb-bandit", "combo-bandit", "slice-bandit"):
             if t <= 2 * K:
                 a = (t - 1) % K
             elif n_pull.min() < MIN_SHARE * t:
@@ -219,7 +221,7 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
         else:
             if method.startswith("ours"):
                 s = learner.score(rows)
-            elif method == "slice":
+            elif method in ("slice", "slice-bandit"):
                 th = mle_fraction(np.asarray(past_lr))
                 s = np.log(np.maximum(1 - th + th * np.exp(log_rho(rho_models, rows)), 1e-300))
             else:  # fb-pre, fb-bandit
@@ -234,7 +236,7 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
         g_sum[a] += np.log(0.5 + 0.5 * e)
         if learns:
             learner.update(x, ys)
-        elif method == "slice":
+        elif method in ("slice", "slice-bandit"):
             past_lr.append(log_rho(rho_models, x)[0])
     return first, n_pull.tolist()
 

@@ -40,3 +40,9 @@ all-05b  fb-bandit     reject 1.000  median 48.0  pulls [0.261, 0.192, 0.359, 0.
 all-05b  combo-bandit  reject 1.000  median 56.0  pulls [0.263, 0.221, 0.32, 0.196]  18.0 s
 some-05b fb-bandit     reject 1.000  median 23.0  pulls [0.213, 0.188, 0.402, 0.197]  3.9 s
 some-05b combo-bandit  reject 1.000  median 29.0  pulls [0.192, 0.239, 0.37, 0.198]  10.6 s
+null     slice-bandit  reject 0.000  median None  pulls [0.25, 0.25, 0.25, 0.25]  71.8 s
+all-q4   slice-bandit  reject 1.000  median 71.5  pulls [0.254, 0.231, 0.279, 0.236]  13.8 s
+some-q4  slice-bandit  reject 1.000  median 57.0  pulls [0.226, 0.239, 0.312, 0.222]  12.1 s
+all-q3   slice-bandit  reject 0.973  median 109.0  pulls [0.247, 0.231, 0.293, 0.229]  24.6 s
+all-05b  slice-bandit  reject 0.998  median 95.0  pulls [0.263, 0.227, 0.284, 0.227]  18.6 s
+some-05b slice-bandit  reject 1.000  median 57.0  pulls [0.227, 0.22, 0.328, 0.225]  12.4 s
