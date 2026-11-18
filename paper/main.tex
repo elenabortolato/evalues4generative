@@ -95,17 +95,25 @@ martingale. For a composite alternative the Bayes factor, which averages the
 likelihood over a prior, is again a test martingale for every prior and
 maximises the prior-averaged growth. Written sequentially, it is a product of
 ratios of one-step predictive densities. With a model $q_\theta$, a prior
-$\pi_0$ and the null density $p_0$, the chain rule applied to the marginal
-likelihood $m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,\pi_0(d\theta)$
-gives
+$\pi_0$ and the null density $p_0$, the Bayes factor is by definition the
+ratio of the marginal likelihood of the alternative,
+$m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,\pi_0(d\theta)$,
+to the null density of the data. The chain rule of probability writes each as
+a telescoping product of one-step conditionals: with $m(x_{1:0}) = 1$,
+$m(x_{1:t}) = \prod_{i \le t} m(x_{1:i})/m(x_{1:i-1})$ and
+$p_0(x_{1:t}) = \prod_{i \le t} p_0(x_i \mid x_{1:i-1})$. Hence
 \begin{equation}\label{eq:prequential}
 \mathrm{BF}_t = \frac{m(x_{1:t})}{p_0(x_{1:t})}
 = \prod_{i=1}^{t} \frac{m_i(x_i)}{p_0(x_i \mid x_{1:i-1})},
 \qquad
 m_i(x) = \frac{m(x_{1:i-1}, x)}{m(x_{1:i-1})} = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta),
 \end{equation}
-where $\pi_{i-1}$ is the posterior after $i-1$ observations, so that $m_i$ is
-the posterior predictive of the $i$-th observation, computed before it is seen.
+where the last equality is Bayes' rule: dividing the integrand of
+$m(x_{1:i-1}, x)$ by $m(x_{1:i-1})$ turns the prior times the likelihood of
+the first $i-1$ observations into the posterior
+$\pi_{i-1}(d\theta) = \prod_{j<i} q_\theta(x_j \mid x_{1:j-1})\,\pi_0(d\theta)/m(x_{1:i-1})$.
+So $m_i$ is the posterior predictive of the $i$-th observation, computed
+before it is seen.
 Each factor has expectation $\int m_i = 1$ under the null, and
 $\log \mathrm{BF}_t = \sum_i \log m_i(x_i) - \sum_i \log p_0(x_i \mid x_{1:i-1})$
 compares the cumulative log scores of two forecasters, the prequential form of
