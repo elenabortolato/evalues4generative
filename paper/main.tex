@@ -279,6 +279,23 @@ Theorem~\ref{thm:simlik}. Scores learned by other means, such as a network
 trained in advance on simulations, can be used in the same design and gain
 from it (Section~\ref{sec:exp-llm}).
 
+Both properties matter when a simulator is validated. First, the alternative
+is unknown: the question is whether reality departs from the simulator, not
+in which direction, and a twin fails in the ways its designers did not
+anticipate. A score fitted in advance, or one restricted to a parametric
+family of simulators, bets on a guessed departure and can have no power
+against another; Remark~\ref{rem:family} gives an example in which an exact
+likelihood-ratio score from the simulator's own family has power 0.005,
+while scores learned from real against simulated outcomes keep their power.
+Second, under adaptive allocation the data are not independent, their law
+depends on the policy, and no model of the real system is assumed, so
+guarantees that rest on a well-specified model or on i.i.d.\ data, such as
+the M-estimation arguments behind a refitted maximiser, do not apply. A
+pathwise bound holds whatever the real system does and whatever the policy
+chose: power, measured against the best score in the class, is then
+guaranteed on every sample path, under the conditions of validity plus
+bounded features and a compact parameter set.
+
 The main application is a MAMS trial of five insulin-dosing strategies over
 three stages, with futility analyses, re-assignment of participants on dropped
 arms, and participants who carry their physiological state from one stage to
