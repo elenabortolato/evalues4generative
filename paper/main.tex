@@ -212,6 +212,14 @@ approximate posteriors keep validity at a bounded cost
 fails, with false-discovery-rate control under arbitrary allocation.
 \end{enumerate}
 
+The framework is modular. Validity holds for any score fixed before the new
+outcomes are seen and for any allocation rule that depends on the past only;
+our update rules are one way to learn the score, the one that needs no
+knowledge of the alternative and carries the pathwise guarantee of
+Theorem~\ref{thm:simlik}. Scores learned by other means, such as a network
+trained in advance on simulations, can be used in the same design and gain
+from it (Section~\ref{sec:exp-llm}).
+
 The main application is a MAMS trial of five insulin-dosing strategies over
 three stages, with futility analyses, re-assignment of participants on dropped
 arms, and participants who carry their physiological state from one stage to
