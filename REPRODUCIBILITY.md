@@ -54,17 +54,18 @@ about 10 minutes.
 
 | item | content | command | output | time |
 |---|---|---|---|---|
+| Table 1 | objects of the Bayes factor and their replacements | none (text) | | |
 | Figure 1 | workflow scheme | `python experiments/make_workflow_figure.py` (needs Chromium via Playwright) | `figures/workflow.png` | seconds |
-| Table 1 | generative-model drift | `python experiments/exp1_generative_drift.py` | `results/exp1.json` | minutes |
-| Table 2 | Thompson-sampling bandit against a twin | `python experiments/exp2_adaptive_bandit.py` | `results/exp2.json` | minutes |
+| Table 2 | generative-model drift | `python experiments/exp1_generative_drift.py` | `results/exp1.json` | minutes |
+| Table 3 | Thompson-sampling bandit against a twin | `python experiments/exp2_adaptive_bandit.py` | `results/exp2.json` | minutes |
 | Section 5.3 (budget) | simulation budget M | `python experiments/exp3_simulation_budget.py` | `results/exp3.json` | minutes |
 | Figure 2 | growth rate vs M (Theorem 2) | `python experiments/exp4_growth_rate.py` | `results/exp4.json`, `figures/exp4_growth_rate.png` | minutes |
 | Section 5.3 (regret) | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
-| Table 3 | update rules (selected rows; all rows in Table S4) | as for Table S4 below | | |
-| Table 4 | comparison with concurrent methods (Forré & Brenner; SLICE) | `python experiments/exp15_concurrent_methods.py --task drift,bandit,drift-mis,bandit-mis` | `results/exp15.json` | ~1 h in all |
-| Table 5 | auditing a language-model API with adaptive prompts | replies: `python experiments/exp16_llm_generate.py --models DIR` (needs `llama-cpp-python` and the GGUF files of Qwen2.5-1.5B-Instruct at q8_0, q4_k_m, q3_k_m and Qwen2.5-0.5B-Instruct at q4_k_m; the replies used are in `data/llm_audit/replies.json`); audit: `python experiments/exp16_llm_audit.py` | `results/exp16.json` | ~3 h for the replies on 4 CPU cores; ~30 min for the audit |
-| Table 6 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
-| Table 7 | notation | none (text) | | |
+| Table 4 | update rules (selected rows; all rows in Table S4) | as for Table S4 below | | |
+| Table 5 | comparison with concurrent methods (Forré & Brenner; SLICE) | `python experiments/exp15_concurrent_methods.py --task drift,bandit,drift-mis,bandit-mis` | `results/exp15.json` | ~1 h in all |
+| Table 6 | auditing a language-model API with adaptive prompts | replies: `python experiments/exp16_llm_generate.py --models DIR` (needs `llama-cpp-python` and the GGUF files of Qwen2.5-1.5B-Instruct at q8_0, q4_k_m, q3_k_m and Qwen2.5-0.5B-Instruct at q4_k_m; the replies used are in `data/llm_audit/replies.json`); audit: `python experiments/exp16_llm_audit.py` | `results/exp16.json` | ~3 h for the replies on 4 CPU cores; ~30 min for the audit |
+| Table 7 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
+| Table 8 | notation | none (text) | | |
 
 The experiment numbers in the file names follow the order in which the
 experiments were written, not the order of the paper.
@@ -83,7 +84,7 @@ experiments were written, not the order of the paper.
 | Table S4, forest rows | Bayesian-bootstrap forest | `python experiments/exp14_predictive_updates.py --drift forest-mixture --bandit forest-mixture` | `results/exp14.json` | ~15–20 min |
 | Table S5 | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
 | Table S6 | MAMS trial, each learner | `python experiments/exp11_mams_trial.py --learner L --scenarios null` and `... --scenarios snacking`, for L in `choice`, `mp-logistic-plugin`, `mp-logistic-resample`, `mp-choice-plugin`, `mp-choice-resample`, `forest-mixture-early` | `results/exp11_<L>_<scenario>.json` (`results/exp11_choice.json` for `choice`) | ~15–40 min per run |
-| Table S7 | comparison with concurrent methods, all variants | as for Table 4 above | `results/exp15.json` | |
+| Table S7 | comparison with concurrent methods, all variants | as for Table 5 above | `results/exp15.json` | |
 
 The COVID-19 analyses of Italy's regions and national deaths are not in the
 current version of the paper; their text is kept in `paper/removed_covid.tex`

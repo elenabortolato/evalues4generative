@@ -88,15 +88,12 @@ product of e-values that are each fair given the past is a nonnegative
 martingale, the wealth of a gambler who bets against the null
 \citep{shafer2019game,shafer2021testing}, and by Ville's inequality it exceeds
 $1/\alpha$ with probability at most $\alpha$, whatever the stopping rule
-\citep{grunwald2024safe}. The canonical e-values are likelihood ratios. For a
-simple alternative the likelihood ratio is log-optimal, and its sequential
-version, the product of one-step conditional likelihood ratios, is a test
-martingale. For a composite alternative the Bayes factor, which averages the
-likelihood over a prior, is again a test martingale for every prior and
-maximises the prior-averaged growth. Written sequentially, it is a product of
-ratios of one-step predictive densities. With a model $q_\theta$, a prior
-$\pi_0$ and the null density $p_0$, the Bayes factor is by definition the
-ratio of the marginal likelihood of the alternative,
+\citep{grunwald2024safe}. The canonical e-values are likelihood ratios, and it helps to be explicit
+about what they require. For a simple alternative with density $q$, the
+product $\prod_{i \le t} q(x_i \mid x_{1:i-1})/p_0(x_i \mid x_{1:i-1})$ is a
+test martingale under the null density $p_0$, and it is log-optimal. For a
+composite alternative with model $q_\theta$ and prior $\pi_0$, the Bayes factor
+is by definition the ratio of the marginal likelihood of the alternative,
 $m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,\pi_0(d\theta)$,
 to the null density of the data. The chain rule of probability writes each as
 a telescoping product of one-step conditionals: with $m(x_{1:0}) = 1$,
@@ -112,27 +109,62 @@ where the last equality is Bayes' rule: dividing the integrand of
 $m(x_{1:i-1}, x)$ by $m(x_{1:i-1})$ turns the prior times the likelihood of
 the first $i-1$ observations into the posterior
 $\pi_{i-1}(d\theta) = \prod_{j<i} q_\theta(x_j \mid x_{1:j-1})\,\pi_0(d\theta)/m(x_{1:i-1})$.
-So $m_i$ is the posterior predictive of the $i$-th observation, computed
-before it is seen.
-Each factor has expectation $\int m_i = 1$ under the null, and
+So $m_i$ is the posterior predictive of the $i$-th observation, a forecast
+issued before the observation is seen. Each factor in \eqref{eq:prequential}
+has expectation $\int m_i = 1$ under the null given the past, so
+$\mathrm{BF}_t$ is a test martingale for every prior, and
 $\log \mathrm{BF}_t = \sum_i \log m_i(x_i) - \sum_i \log p_0(x_i \mid x_{1:i-1})$
 compares the cumulative log scores of two forecasters, the prequential form of
-the marginal likelihood \citep{dawid1984present}; for i.i.d.\ data it equals the
-best log likelihood ratio in the model minus $(d/2)\log t + O_P(1)$
+the marginal likelihood \citep{dawid1984present}; for i.i.d.\ data it equals
+the best log likelihood ratio in the model minus $(d/2)\log t + O_P(1)$
 \citep{clarke1990information}.
 
-Two obstacles prevent the use of these canonical e-processes in the settings
-above. The first is that many models are available only as simulators, with
-latent dynamics and no tractable density: a physiological model of a patient,
-an epidemic model, a generative model. Under adaptive allocation the law of
-the data is moreover path-dependent, since it depends on the arm chosen at
-each step through a rule that is itself a function of the data. Likelihood
-ratios and marginal likelihoods are then out of reach. The second obstacle is
-computational: marginalising over the alternative's parameters prevents a
-simple update of the e-value as data arrive, and in general it must be
-recomputed from the whole history \citep{bon2024safe}. Surrogate and
-prediction-powered e-values reduce the cost at the price of an approximation to
-the base e-value \citep{csillag2025prediction}.
+Equation~\eqref{eq:prequential} is the template for the rest of the paper.
+It involves three objects: the null conditional density
+$p_0(x_i \mid x_{1:i-1})$ in the denominator; a model $q_\theta$ of the real
+system with a prior; and the forecast $m_i$ in the numerator, computed from
+them through the posterior $\pi_{i-1}$. In the settings above none of the
+three is available, and this gives two obstacles. The first is the
+denominator. The null is a simulator: it can be run under any action and from
+any state, but its density cannot be evaluated, because it has latent
+dynamics (a physiological model of a patient, an epidemic model, a generative
+model); under adaptive allocation the law of each observation moreover depends
+on the path, through the action chosen from the data. The second is the
+numerator. A model of the real system is what is being questioned, so the
+forecast must be learned from the data; and even with a model, the posterior
+predictive needs normalising constants, and marginalising over the parameters
+prevents a simple update, so the e-value must in general be recomputed from
+the whole history \citep{bon2024safe}. Surrogate and prediction-powered
+e-values reduce this cost at the price of an approximation to the base e-value
+\citep{csillag2025prediction}. What we keep from \eqref{eq:prequential} is its
+structure: a product of one-step factors, each with mean one under the null
+given the past, whose numerator is a forecast of the next observation issued
+before it is seen. Table~\ref{tab:objects} lists what replaces each object.
+
+\begin{table}[t]
+\centering
+\caption{The objects of the Bayes factor \eqref{eq:prequential}, whether
+they are available when the null is a simulator, and what replaces them in
+this paper.}
+\label{tab:objects}
+\small
+\begin{tabular}{lll}
+\toprule
+object in \eqref{eq:prequential} & available? & replaced by \\
+\midrule
+null density $p_0(x_i \mid x_{1:i-1})$ & sampling only & $M$ simulations under the action taken and \\
+ & & from the current state, which normalise the bet \\
+ & & \eqref{eq:mc} (Section~\ref{sec:method}) \\
+ratio $m_i/p_0$ & no & a score $T_i$, learned by classifying real against \\
+ & & simulated outcomes (Section~\ref{sec:scores}) \\
+forecast $m_i$ & no & the tilted null $\tilde T_i \propto T_i\, p_i$ defined by the score \\
+ & & (Section~\ref{sec:scores}) \\
+posterior $\pi_{i-1}$ over $\theta$ & no & posterior over the score's parameter under the \\
+ & & simulation likelihood (Sections~\ref{sec:simlik}--\ref{sec:blr}) \\
+Bayes factor $\mathrm{BF}_t$ & no & the Monte Carlo e-process $W_t$ \eqref{eq:wealth} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 For the first obstacle, the starting point is ratio estimation by
 classification \citep{thomas2022lfire}: a classifier trained to separate real
