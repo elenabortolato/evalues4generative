@@ -293,13 +293,9 @@ the next, checked against its in-silico twin, the UVA/Padova type~1 diabetes
 simulator accepted by the US Food and Drug Administration for preclinical
 testing \citep{kovatchev2009insilico}. Only the monitor that runs the twin from
 each participant's state under the assigned arm controls false alarms (2\% of
-trials, against 95\% for a twin that ignores the participants' history and
-100\% for the pre-trial prediction). Combining one e-process per arm by e-BH
-\citep{wang2022false}, as in the bandit multiple testing of
-\citet{xu2021unified}, identifies the arms on which the simulator fails, with
-false-discovery-rate control under arbitrary allocation, because each per-arm
-e-process is valid by Theorem~\ref{thm:valid}; in the trial, e-BH names the
-arm that matters in 99\% of trials with a false discovery rate of 0.3\%. The second application
+trials, against 95\% for a twin that ignores the participants' history), and
+one e-process per arm, combined by e-BH, identifies the arm on which the twin
+fails. The second application
 is an audit of a language-model API with real model outputs: choosing the
 prompts adaptively inside the conditioned e-process makes every score faster,
 a score fitted in advance included, and remains valid where a twin that
