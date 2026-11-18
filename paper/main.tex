@@ -2139,63 +2139,129 @@ $\KL$, $\chi^2$, $D_2$ & Kullback--Leibler, chi-squared and Rényi-2 divergences
 \section{Proofs}\label{app:proofs}
 %======================================================================
 
+Each proof starts with its idea. Throughout, we work conditionally on the
+information $\G_t$ available when the bet is placed, so that the score is a
+fixed function, and we write $\E_{Q \otimes P^M}$ for the expectation when the
+real outcome $X$ has law $Q$ and the simulator draws $Y_1, \ldots, Y_M$ are
+i.i.d.\ $P$ and independent of $X$. Two facts are used repeatedly. First,
+\emph{Proposition~\ref{prop:exact}}: when $X$ also has law $P$, the $M+1$
+outcomes are exchangeable and $\E_{P \otimes P^M}[E^{(M)}] = 1$. Second,
+\emph{change of measure}: for any function $f$,
+$\E_{Q \otimes P^M}[f / (dQ/dP)(X)] = \E_{P \otimes P^M}[f]$, because the joint
+law of $(X, Y_{1:M})$ under $Q \otimes P^M$ has density $(dQ/dP)(X)$ with respect
+to its law under $P \otimes P^M$.
+
 \paragraph{Proof of Theorem~\ref{thm:growth}.}
-(i) Under $H_0$ the pair $(X, Y_{1:M})$ has law $P \otimes P^M$, under which
-$E^{(M)}$ has expectation one. The likelihood ratio of $Q \otimes P^M$ to
-$P \otimes P^M$ is $(dQ/dP)(X)$. By Jensen's inequality,
-$\E_{Q \otimes P^M}[\log E^{(M)} - \log(dQ/dP)(X)] \le
-\log \E_{P \otimes P^M}[E^{(M)}] = 0$.
+Recall $Z = \E_P[T]$, $d\tilde T/dP = T/Z$ and $\rho = \E_Q[T]/Z$, and write
+$V = \sum_{j \le M} T(Y_j)$ and
+\[
+E^{(M)} = \frac{(M+1)\,T(X)}{T(X) + V},
+\qquad
+E^\infty = \frac{T(X)}{Z} = \frac{d\tilde T}{dP}(X),
+\]
+the factor with $M$ draws and its limit with an unlimited budget, in which the
+average of the scores is replaced by its mean $Z$. Then $g_M = \E_{Q\otimes P^M}[\log E^{(M)}]$
+and $g_\infty = \E_Q[\log E^\infty]$.
 
-(ii) By the strong law of large numbers, $M^{-1}\sum_j T(Y_j) \to Z$ almost
-surely, so $E^{(M)} \to T(X)/Z = (d\tilde T/dP)(X)$. If $|s| \le B$, the average
-$\{T(X) + V\}/(M+1)$, with $V = \sum_j T(Y_j)$, lies in $[e^{-B}, e^{B}]$, so
-$|\log E^{(M)}| \le 2B$ for every $M$ and dominated convergence gives
-$g_M \to g_\infty$. Moreover
-$\log(d\tilde T/dP) = \log(dQ/dP) - \log(dQ/d\tilde T)$; take expectations under $Q$.
+(i) \emph{Idea: no bet grows faster than the true likelihood ratio.} Since
+$\KL(Q\|P) = \E_Q[\log (dQ/dP)(X)]$, the claim is that
+$\E_{Q \otimes P^M}[\log\{E^{(M)}/(dQ/dP)(X)\}] \le 0$. The logarithm
+is concave, so by Jensen's inequality and the change of measure,
+\[
+\begin{aligned}
+\E_{Q \otimes P^M}\Big[\log\frac{E^{(M)}}{(dQ/dP)(X)}\Big]
+&\le \log \E_{Q \otimes P^M}\Big[\frac{E^{(M)}}{(dQ/dP)(X)}\Big] \\
+&= \log \E_{P \otimes P^M}\big[E^{(M)}\big] = \log 1 = 0,
+\end{aligned}
+\]
+where the last step is Proposition~\ref{prop:exact}.
 
-(iii) Let $V = \sum_j T(Y_j)$. Then
-$\log E^\infty - \log E^{(M)} = \log\{(T(X) + V)/((M+1)Z)\}$. Conditioning on $X$
-and applying Jensen's inequality over $Y_{1:M}$,
+(ii) \emph{Idea: with many simulations the denominator becomes its mean, and
+the bet becomes the ratio of the score's forecast to the simulator.} By the
+strong law of large numbers $V/M \to Z$ almost surely, so
+$E^{(M)} = \frac{M+1}{M}\, T(X)/\{T(X)/M + V/M\} \to T(X)/Z = E^\infty$. Almost
+sure convergence does not by itself give convergence of the means, so we bound
+the logarithm. If $|s| \le B$, every value of $T$ lies in $[e^{-B}, e^{B}]$,
+and so does the average $\{T(X) + V\}/(M+1)$; their ratio $E^{(M)}$ lies in
+$[e^{-2B}, e^{2B}]$, so $|\log E^{(M)}| \le 2B$ for every $M$, and dominated
+convergence gives $g_M \to g_\infty$. Finally, writing
+$d\tilde T/dP = (dQ/dP)/(dQ/d\tilde T)$ and taking logarithms,
+\[
+\log\frac{d\tilde T}{dP} = \log\frac{dQ}{dP} - \log\frac{dQ}{d\tilde T},
+\]
+whose expectations under $Q$ are $g_\infty$, $\KL(Q\|P)$ and $\KL(Q\|\tilde T)$.
+
+(iii) \emph{Idea: estimating the mean $Z$ from $M$ draws, with the real
+outcome included, costs at most $(\rho - 1)/(M+1)$.} The difference between
+the ideal and the actual factor is
+\[
+\log E^\infty - \log E^{(M)}
+= \log\frac{T(X)}{Z} - \log\frac{(M+1)T(X)}{T(X) + V}
+= \log\frac{T(X) + V}{(M+1)Z}.
+\]
+Fix $X$ and apply Jensen's inequality over the simulations, using
+$\E[V] = MZ$:
 \[
 \E\big[\log E^\infty - \log E^{(M)} \mid X\big]
 \le \log\frac{T(X) + MZ}{(M+1)Z}
 = \log\Big(1 + \frac{T(X)/Z - 1}{M+1}\Big).
 \]
-Taking the expectation under $Q$ and applying Jensen's inequality once more
-gives $g_\infty - g_M \le \log\{1 + (\rho - 1)/(M+1)\} \le (\rho-1)/(M+1)$.
-This is Theorem~3 of \citet{dombowsky2026besag} in our notation.
+Take the expectation over $X \sim Q$ and apply Jensen's inequality once more,
+using $\E_Q[T(X)/Z] = \rho$: $g_\infty - g_M \le \log\{1 + (\rho - 1)/(M+1)\}$,
+which is at most $(\rho-1)/(M+1)$ since $\log(1+x) \le x$. This is Theorem~3 of
+\citet{dombowsky2026besag} in our notation.
 
-(iv) Take $\varepsilon < 1/\|\psi\|_\infty$, so that $Q$ is a probability
-measure. Let $U_0 = X$ and $U_k = Y_k$, and let $\bar h$ and $\overline{h^2}$ be
-the averages of $h(U_k)$ and $h(U_k)^2$ over $k = 0, \ldots, M$. Since
-$\log E^{(M)} = \varepsilon h(X) - \log\big\{(M+1)^{-1}\sum_k e^{\varepsilon h(U_k)}\big\}$,
-the cumulant expansion of the logarithm of the average of $e^{\varepsilon h(U_k)}$
-gives, with a remainder bounded by $C\varepsilon^3\|h\|_\infty^3$ for an absolute
-constant $C$, uniformly in the sample,
+(iv) \emph{Idea: for a small departure, expand $\log E^{(M)}$ to second order
+in $\varepsilon$; the real outcome enters its own normalising average, and
+this is what leaves only the fraction $M/(M+1)$ of the signal.} Take
+$\varepsilon < 1/\|\psi\|_\infty$, so that $Q$ is a probability measure. Let
+$U_0 = X$ and $U_k = Y_k$ for $k \ge 1$, and let $\bar h$ and $\overline{h^2}$
+be the averages of $h(U_k)$ and $h(U_k)^2$ over $k = 0, \ldots, M$. Since
+$T = e^{\varepsilon h}$,
+\[
+\log E^{(M)} = \varepsilon h(X) - \log\Big(\frac{1}{M+1}\sum_{k=0}^M e^{\varepsilon h(U_k)}\Big).
+\]
+The logarithm of an average of exponentials expands as the average plus half
+the variance: $\log\{(M+1)^{-1}\sum_k e^{\varepsilon h(U_k)}\} = \varepsilon \bar h
++ \frac{\varepsilon^2}{2}(\overline{h^2} - \bar h^2) + R$, with
+$|R| \le C\varepsilon^3\|h\|_\infty^3$ for an absolute constant $C$, whatever the
+sample, because $h$ is bounded. Hence
 \[
 \log E^{(M)} = \varepsilon\big(h(X) - \bar h\big)
-- \frac{\varepsilon^2}{2}\big(\overline{h^2} - \bar h^2\big) + O(\varepsilon^3).
+- \frac{\varepsilon^2}{2}\big(\overline{h^2} - \bar h^2\big) - R .
 \]
-Under $Q \otimes P^M$,
-$\E[h(X) - \bar h] = \frac{M}{M+1}(\E_Q h - \E_P h)
-= \frac{M}{M+1}\,\varepsilon\, \E_P[\tilde h \psi]$. The second bracket is the
-empirical variance of the $M+1$ values, bounded by $\|h\|_\infty^2$. Under
-$P \otimes P^M$ its expectation is $\frac{M}{M+1}\mathrm{Var}_P(h)$, and since
-$dQ/dP = 1 + \varepsilon\psi$ the expectation of a function bounded by $K$ changes
-by at most $\varepsilon\|\psi\|_\infty K$ when $X \sim Q$, so its expectation is
-$\frac{M}{M+1}\mathrm{Var}_P(h) + O(\varepsilon)$. The remainder of the expansion
-has expectation $O(\varepsilon^3)$ by the uniform bound. Hence
-$g_M = \frac{M}{M+1}\varepsilon^2\big(\E_P[\tilde h \psi] - \frac12 \E_P[\tilde h^2]\big)
-+ O(\varepsilon^3)$, which equals the stated form since
+We take expectations under $Q \otimes P^M$ term by term.
+\emph{First term.} $h(X) - \bar h = \frac{M}{M+1}h(X) - \frac{1}{M+1}\sum_{j \ge 1} h(Y_j)$,
+so its mean is $\frac{M}{M+1}(\E_Q h - \E_P h)$. Since $dQ/dP = 1 + \varepsilon\psi$
+and $\E_P[\psi] = 0$, $\E_Q h - \E_P h = \varepsilon\E_P[h\psi] = \varepsilon\E_P[\tilde h\psi]$.
+\emph{Second term.} $\overline{h^2} - \bar h^2$ is the empirical variance of
+the $M+1$ values, with divisor $M+1$, and lies in $[0, \|h\|_\infty^2]$. Under
+$P \otimes P^M$ its mean is $\frac{M}{M+1}\mathrm{Var}_P(h) = \frac{M}{M+1}\E_P[\tilde h^2]$.
+Replacing the law of $X$ by $Q$ multiplies the integrand by $1 + \varepsilon\psi(X)$,
+which changes the mean of a function bounded by $K$ by at most
+$\varepsilon\|\psi\|_\infty K$; the mean is therefore
+$\frac{M}{M+1}\E_P[\tilde h^2] + O(\varepsilon)$, and the $O(\varepsilon)$ is
+multiplied by $\varepsilon^2$.
+\emph{Remainder.} $\E[R] = O(\varepsilon^3)$ by the uniform bound.
+Collecting the terms,
+\[
+g_M = \frac{M}{M+1}\,\varepsilon^2\Big(\E_P[\tilde h\psi] - \frac12\E_P[\tilde h^2]\Big) + O(\varepsilon^3),
+\]
+which is the stated form because
 $\E_P[\psi^2] - \E_P[(\psi - \tilde h)^2] = 2\E_P[\tilde h\psi] - \E_P[\tilde h^2]$.
-Finally, $\KL(Q\|P) = \E_P[(1 + \varepsilon\psi)\log(1 + \varepsilon\psi)]
-= \varepsilon\E_P[\psi] + \frac{\varepsilon^2}{2}\E_P[\psi^2] + O(\varepsilon^3)$,
-and $\E_P[\psi] = 0$.
+Finally, $\KL(Q\|P) = \E_P[(1 + \varepsilon\psi)\log(1 + \varepsilon\psi)]$, and
+$(1+x)\log(1+x) = x + x^2/2 + O(x^3)$ with $\E_P[\psi] = 0$ gives
+$\KL(Q\|P) = \frac{\varepsilon^2}{2}\E_P[\psi^2] + O(\varepsilon^3)$.
 
 \paragraph{Proof of Proposition~\ref{prop:necessary}.}
-Work conditionally on $\G_t$, so that $T$ is a fixed function, $X = X_t$ has
-law $P_a$, and $Y_1, \ldots, Y_M$ are i.i.d.\ $\bar P$ and independent of $X$.
-Let $B = \sup T$, $Z = \E_{\bar P}[T]$, which is positive because $T > 0$, and
+\emph{Idea: if the simulations come from $\bar P$ while the real outcome comes
+from $P_a$, the bet is no longer fair under the true null; its mean tends to
+$\E_{P_a}[T]/\E_{\bar P}[T]$, which some score pushes above one whenever
+$P_a \ne \bar P$, and a bet that is favourable at every step makes the wealth
+grow exponentially.} Work conditionally on $\G_t$: $T$ is a fixed function,
+the real outcome $X = X_t$ has law $P_a$ (under $H_0$ the system behaves as the
+simulator under the action taken), and $Y_1, \ldots, Y_M$ are i.i.d.\ $\bar P$
+and independent of $X$. Let $B = \sup T$, $Z = \E_{\bar P}[T] > 0$ and
 $\bar T_M = M^{-1}\sum_{j} T(Y_j)$.
 
 (i) Write
@@ -2203,166 +2269,225 @@ $\bar T_M = M^{-1}\sum_{j} T(Y_j)$.
 E_t = \frac{M+1}{M}\cdot\frac{T(X)}{T(X)/M + \bar T_M}.
 \]
 By the strong law of large numbers $\bar T_M \to Z$ almost surely, so
-$E_t \to T(X)/Z$ almost surely. Let $G_M = \{\bar T_M \ge Z/2\}$. On $G_M$,
-since $(M+1)/M \le 2$, $E_t \le 4B/Z$. Since $0 < T(Y_j) \le B$, Hoeffding's
-inequality \citep{hoeffding1963probability} gives
-$P(G_M^Z) \le \exp\{-MZ^2/(2B^2)\}$, and since $E_t \le M+1$ always, for
-$k = 1, 2$,
+$E_t \to T(X)/Z$, whose mean under $P_a$ is $\E_{P_a}[T]/Z$. To pass from
+almost sure convergence to convergence of the means of $E_t$ and $E_t^2$, we
+split on the event $G_M = \{\bar T_M \ge Z/2\}$ that the simulations' average
+is not too small, and on its complement $G_M^c$.
+\emph{On $G_M$}, since $(M+1)/M \le 2$ and $T(X) \le B$, $E_t \le 4B/Z$, so for
+$k = 1, 2$ the variables $E_t^k\mathbf 1_{G_M}$ are bounded by $(4B/Z)^k$; they
+converge almost surely to $(T(X)/Z)^k$ because $\mathbf 1_{G_M} \to 1$, and
+dominated convergence gives $\E[E_t^k \mathbf 1_{G_M}] \to \E_{P_a}[T^k]/Z^k$.
+\emph{On $G_M^c$}, the bet is at most $M+1$, because the real outcome's share
+of the total score is at most one, while $G_M^c$ is unlikely: the $T(Y_j)$ lie
+in $[0, B]$, so Hoeffding's inequality \citep{hoeffding1963probability} gives
+$P(G_M^c) = P(\bar T_M - Z < -Z/2) \le \exp\{-MZ^2/(2B^2)\}$. Hence
 \[
-\E[E_t^k \mathbf 1_{G_M^Z}] \le (M+1)^k \exp\{-MZ^2/(2B^2)\} \to 0.
+\E[E_t^k \mathbf 1_{G_M^c}] \le (M+1)^k \exp\{-MZ^2/(2B^2)\} \to 0 .
 \]
-On the other hand $\mathbf 1_{G_M} \to 1$ almost surely, so
-$E_t^k \mathbf 1_{G_M} \to (T(X)/Z)^k$ almost surely with
-$E_t^k \mathbf 1_{G_M} \le (4B/Z)^k$, and dominated convergence gives
-$\E[E_t^k \mathbf 1_{G_M}] \to \E_{P_a}[T^k]/Z^k$. Adding the two parts
-proves (i).
+Adding the two parts proves (i).
 
-(ii) If $P_a = \bar P$ the limit is one for every score. If $P_a \ne \bar P$
-there is a measurable set $A$ with $P_a(A) > \bar P(A)$: otherwise
-$P_a(A) \le \bar P(A)$ for every $A$, and applying this to $A^c$ gives
-equality. The bounded positive score $T = 1 + \mathbf 1_A$ has limit
-$\{1 + P_a(A)\}/\{1 + \bar P(A)\} > 1$. This proves the characterisation.
-
-Now let $P_a \ll \bar P$ with $R_a = dP_a/d\bar P$, so that $\int R_a\, d\bar P = 1$
-and $\E_{P_a}[R_a] = \int R_a\, dP_a = \int R_a^2\, d\bar P$. Expanding the square
-in the definition of the $\chi^2$ divergence,
+(ii) \emph{The characterisation.} If $P_a = \bar P$ the limit is one for
+every score. If $P_a \ne \bar P$, some measurable set $A$ has
+$P_a(A) > \bar P(A)$: otherwise $P_a(A) \le \bar P(A)$ for every $A$, and the
+same inequality for the complement $A^c$ gives $P_a(A) \ge \bar P(A)$, so the
+two laws would coincide. The bounded positive score $T = 1 + \mathbf 1_A$,
+which bets on $A$, has limit $\{1 + P_a(A)\}/\{1 + \bar P(A)\} > 1$.
+\emph{The identity.} Let $P_a \ll \bar P$ and $R_a = dP_a/d\bar P$, so that
+$\int R_a\, d\bar P = 1$ and, by the change of measure,
+$\E_{P_a}[R_a] = \int R_a\cdot R_a\, d\bar P = \int R_a^2\, d\bar P$. Expanding
+the square in the definition of the $\chi^2$ divergence,
 \[
 \chi^2(P_a\|\bar P) = \int (R_a - 1)^2\, d\bar P
 = \int R_a^2\, d\bar P - 2\int R_a\, d\bar P + 1
 = \int R_a^2\, d\bar P - 1,
 \]
-which gives the identity. The divergence is zero if and only if $R_a = 1$
-$\bar P$-almost surely, that is, $P_a = \bar P$. If $R_a$ is bounded and bounded
-away from zero, $T = R_a$ is an admissible score, $\E_{\bar P}[R_a] = 1$, and its
-limit in (i) is $1 + \chi^2(P_a\|\bar P)$. In general,
-$T_c = \min(R_a, c) + 1/c$ takes values in $[1/c,\, c + 1/c]$. By monotone
-convergence, $\E_{\bar P}[T_c] = \int \min(R_a, c)\, d\bar P + 1/c \to 1$ and
+which gives the identity; the divergence is zero if and only if $R_a = 1$
+$\bar P$-almost surely, that is, $P_a = \bar P$. \emph{The best score.} The
+likelihood ratio $T = R_a$ has $\E_{\bar P}[R_a] = 1$, so its limit in (i) is
+$\E_{P_a}[R_a] = 1 + \chi^2(P_a\|\bar P)$; this applies directly when $R_a$ is
+bounded and bounded away from zero, as (i) requires. In general $R_a$ may be
+unbounded or zero, and we truncate it: $T_c = \min(R_a, c) + 1/c$ takes values
+in $[1/c,\, c + 1/c]$. By monotone convergence, as $c \to \infty$,
+$\E_{\bar P}[T_c] = \int \min(R_a, c)\, d\bar P + 1/c \to 1$ and
 $\E_{P_a}[T_c] = \int \min(R_a, c)\, R_a\, d\bar P + 1/c \to \int R_a^2\, d\bar P$,
 so the limit in (i) for $T_c$ tends to $1 + \chi^2(P_a\|\bar P) \in (1, \infty]$
-as $c \to \infty$, and exceeds one for $c$ large enough.
+and exceeds one for $c$ large enough.
 
-(iii) Fix $\lambda \in \Lambda$ as in the statement and let
-$\xi_i = \log(1 - \lambda + \lambda E_i)$. Since $0 < E_i \le M+1$,
-$\xi_i \in [\log(1-\lambda),\, \log(1 + \lambda M)]$, an interval of length
-$C$, say. For $x \ge -\lambda$, Taylor's theorem with the Lagrange remainder
-gives $\log(1+x) = x - x^2/\{2(1+\zeta)^2\}$ for some $\zeta$ between $0$ and
-$x$, and $1 + \zeta \ge 1 - \lambda \ge 1/2$, so $\log(1+x) \ge x - 2x^2$.
-Taking $x = \lambda(E_i - 1) \ge -\lambda$, on $\Omega_0$ and for $i \ge t_0$,
+(iii) \emph{Idea: a bet whose mean is at least $1 + \mu$ at every step gives a
+positive expected log-growth per step, and the random fluctuations around it
+average out.} Fix $\lambda \in \Lambda$ as in the statement and let
+$\xi_i = \log(1 - \lambda + \lambda E_i)$ be the log-gain of step $i$. Since
+$0 < E_i \le M+1$, $\xi_i$ lies in $[\log(1-\lambda),\, \log(1 + \lambda M)]$,
+an interval of some length $C$.
+\emph{Expected log-gain.} For $x \ge -1/2$, Taylor's theorem with the Lagrange
+remainder gives $\log(1+x) = x - x^2/\{2(1+\zeta)^2\}$ for some $\zeta$ between
+$0$ and $x$, and $1 + \zeta \ge 1/2$, so $\log(1+x) \ge x - 2x^2$. With
+$x = \lambda(E_i - 1) \ge -\lambda \ge -1/2$, on $\Omega_0$ and for
+$i \ge t_0$,
 \[
 \E[\xi_i \mid \G_i] \ge \lambda\,\E[E_i - 1 \mid \G_i]
 - 2\lambda^2\,\E[(E_i - 1)^2 \mid \G_i]
-\ge \lambda\mu - 2\lambda^2\sigma^2 \ge \lambda\mu/2,
+\ge \lambda\mu - 2\lambda^2\sigma^2 \ge \frac{\lambda\mu}{2},
 \]
-using $\lambda \le \mu/(4\sigma^2)$. Let $\Delta_i = \xi_i - \E[\xi_i \mid \G_i]$.
-Since $\Delta_i$ is $\F_i$-measurable and $\G_i \subseteq \F_i \subseteq \G_{i+1}$,
+using $\lambda \le \mu/(4\sigma^2)$ in the last step.
+\emph{Fluctuations.} Let $\Delta_i = \xi_i - \E[\xi_i \mid \G_i]$. Since
+$\Delta_i$ is $\F_i$-measurable and $\G_i \subseteq \F_i \subseteq \G_{i+1}$,
 $(\Delta_i)$ is a martingale difference sequence for the filtration
-$(\G_{i+1})_{i \ge 0}$, with $|\Delta_i| \le C$. The Azuma--Hoeffding inequality
-\citep{azuma1967weighted} gives
-$P(|\sum_{i \le t} \Delta_i| \ge \varepsilon t) \le 2\exp\{-\varepsilon^2 t/(2C^2)\}$,
-which is summable in $t$, so by the Borel--Cantelli lemma
-$t^{-1}\sum_{i \le t} \Delta_i \to 0$ almost surely. Finally, $W_t$ is an average
-of $|\Lambda|$ nonnegative terms, one of which is $\exp(\sum_{i \le t}\xi_i)$, so
+$(\G_{i+1})_{i \ge 0}$, with $|\Delta_i| \le C$. The Azuma--Hoeffding
+inequality \citep{azuma1967weighted} gives
+$P(|\sum_{i \le t} \Delta_i| \ge \varepsilon t) \le 2\exp\{-\varepsilon^2 t/(2C^2)\}$
+for every $\varepsilon > 0$, which is summable in $t$, so by the Borel--Cantelli
+lemma $t^{-1}\sum_{i \le t} \Delta_i \to 0$ almost surely.
+\emph{Wealth.} $W_t$ is an average of $|\Lambda|$ nonnegative products, one of
+which is $\exp(\sum_{i \le t}\xi_i)$, so $W_t \ge |\Lambda|^{-1}\exp(\sum_{i\le t}\xi_i)$
+and, writing $\xi_i = \E[\xi_i \mid \G_i] + \Delta_i$,
 \[
 \frac{\log W_t}{t} \ge -\frac{\log|\Lambda|}{t}
 + \frac1t\sum_{i < t_0} \xi_i
 + \frac1t\sum_{t_0 \le i \le t} \E[\xi_i \mid \G_i]
-+ \frac1t\sum_{i \le t} \Delta_i .
++ \frac1t\sum_{t_0 \le i \le t} \Delta_i .
 \]
 On $\Omega_0$ the first two terms vanish as $t \to \infty$, the third has
-$\liminf$ at least $\lambda\mu/2$ and the last tends to zero almost surely.
+$\liminf$ at least $\lambda\mu/2$, and the last tends to zero almost surely.
 Hence $W_t \to \infty$ exponentially fast on $\Omega_0$, and $W_t$ crosses
 $1/\alpha$ there almost surely.
 
 \paragraph{Proof of Corollary~\ref{cor:falsealarm}.}
-Condition on $\G_t$ at a time when $a$ is played. The real outcome has law $P_a$,
-the simulator draws are i.i.d.\ $\bar P$ and independent of it, and
-Theorem~\ref{thm:growth} uses nothing about the hypothesis beyond these laws,
-so it applies with $Q = P_a$ and $P = \bar P$; $\rho_a < \infty$ because the
-score is bounded. This gives the first two statements of (i). Since the laws
-and the score do not change, the conditional growth rate of the $\lambda = 1$
-factor at a step where $a$ is played is $g_M(a)$, so
-$t^{-1}\sum_{i \le t}\E[\log E_i \mid \G_i] \to \sum_a \varpi_a g_M(a)$, and
-Corollary~\ref{cor:cumulative} gives the last statement of (i).
+\emph{Idea: Theorem~\ref{thm:growth} uses nothing about the hypothesis beyond
+the laws of the real outcome and of the simulations, so it applies verbatim
+with the real law $P_a$ in the role of $Q$ and the wrong simulator law $\bar P$
+in the role of $P$; under the true null, the growth it describes is the growth
+of false alarms.}
 
-(ii) Let $R_a = dP_a/d\bar P$ and $e_\lambda = 1 - \lambda + \lambda E_t$. If the
-real outcome had law $\bar P$, the $M+1$ draws would be exchangeable and
-$\E_{\bar P \otimes \bar P^M}[e_\lambda] = 1$ by
-Proposition~\ref{prop:exact}. The likelihood ratio of
-$P_a \otimes \bar P^M$ to $\bar P \otimes \bar P^M$ is $R_a(X)$, so by Jensen's
-inequality, as in the proof of Theorem~\ref{thm:growth}(i),
+(i) Condition on $\G_t$ at a time when $a$ is played. The real outcome has law
+$P_a$, the simulator draws are i.i.d.\ $\bar P$ and independent of it, and
+$\rho_a < \infty$ because the score is bounded. Theorem~\ref{thm:growth}(ii)
+and (iii) with $Q = P_a$ and $P = \bar P$ give the first two statements. Since
+the laws and the score do not change over time, the conditional growth rate
+of the $\lambda = 1$ factor is $g_M(a)$ at every step where $a$ is played, so
+$t^{-1}\sum_{i \le t}\E[\log E_i \mid \G_i] \to \sum_a \varpi_a g_M(a)$, and
+Corollary~\ref{cor:cumulative} gives the last statement.
+
+(ii) \emph{Idea: this is the ceiling of Theorem~\ref{thm:growth}(i), with the
+roles of the laws reassigned.} Let $R_a = dP_a/d\bar P$ and
+$e_\lambda = 1 - \lambda + \lambda E_t$. If the real outcome had law $\bar P$,
+the $M+1$ draws would be exchangeable and
+$\E_{\bar P \otimes \bar P^M}[e_\lambda] = 1$ by Proposition~\ref{prop:exact}.
+By Jensen's inequality and the change of measure from
+$P_a \otimes \bar P^M$ to $\bar P \otimes \bar P^M$, whose density is $R_a(X)$,
 \[
 \E_{P_a \otimes \bar P^M}\big[\log e_\lambda\big] - \KL(P_a\|\bar P)
 = \E_{P_a \otimes \bar P^M}\Big[\log\frac{e_\lambda}{R_a(X)}\Big]
 \le \log \E_{\bar P \otimes \bar P^M}\big[e_\lambda\big] = 0 .
 \]
 Jensen's inequality also gives
-$\KL(P_a\|\bar P) = \E_{P_a}[\log R_a] \le \log \E_{P_a}[R_a] = \log\{1 + \chi^2(P_a\|\bar P)\}$
-by Proposition~\ref{prop:necessary}(ii). For each $\lambda \in \Lambda$ the
-increments $\log e_\lambda$ are bounded, because $|s| \le B$ keeps $E_t$ in
-$[e^{-2B}, M+1]$, so the martingale strong law gives
+$\KL(P_a\|\bar P) = \E_{P_a}[\log R_a] \le \log \E_{P_a}[R_a] = \log\{1 + \chi^2(P_a\|\bar P)\}$,
+by the identity of Proposition~\ref{prop:necessary}(ii). For each
+$\lambda \in \Lambda$ the increments $\log e_\lambda$ are bounded, because
+$|s| \le B$ keeps $E_t$ in $[e^{-2B}, M+1]$, so the strong law for bounded
+martingale differences gives
 $\limsup_t t^{-1}\sum_{i \le t}\log e_{\lambda,i} \le \sum_a \varpi_a \KL(P_a\|\bar P)$
 almost surely; $W_t$ is at most the largest of the $|\Lambda|$ products, which
-gives the bound on $W_t$. For the likelihood-ratio score, $\tilde T_a = P_a$ and
-$g_\infty(a) = \KL(P_a\|\bar P)$ by Theorem~\ref{thm:growth}(ii).
+gives the bound on $W_t$. For the likelihood-ratio score, $\tilde T_a = P_a$
+and $g_\infty(a) = \KL(P_a\|\bar P)$ by Theorem~\ref{thm:growth}(ii).
 
-(iii) For every measurable set $A$, $\bar P(A) \ge u_a P_a(A)$, so
-$R_a \le 1/u_a$. Hence $\KL(P_a\|\bar P) = \E_{P_a}[\log R_a] \le \log(1/u_a)$ and
+(iii) If the twin is run under randomised actions, $\bar P = \sum_b u_b P_b$
+puts at least the weight $u_a$ on $P_a$: for every measurable set $A$,
+$\bar P(A) \ge u_a P_a(A)$, so $R_a \le 1/u_a$. Hence
+$\KL(P_a\|\bar P) = \E_{P_a}[\log R_a] \le \log(1/u_a)$ and
 $1 + \chi^2(P_a\|\bar P) = \E_{P_a}[R_a] \le 1/u_a$.
 
-\paragraph{Proof of Proposition~\ref{prop:bayes}.} By Fubini,
-$\E_P[T_t] = \int \E_P[dQ_\theta/dP]\,\pi_{t-1}(d\theta) = 1$, so by
-Theorem~\ref{thm:growth}(ii) $E_t^\infty = T_t(X_t)$. Writing
-$q_\theta = dQ_\theta/dP$, the posterior predictive ratio is
+\paragraph{Proof of Proposition~\ref{prop:bayes}.}
+\emph{Idea: a posterior-predictive ratio is already normalised, so with an
+unlimited budget the bet is the score itself, and the product of one-step
+posterior predictives is the marginal likelihood by the chain rule, as
+in~\eqref{eq:prequential}.} Write $q_\theta = dQ_\theta/dP$, so that
+$\E_P[q_\theta] = 1$ for every $\theta$. By Fubini's theorem,
+$\E_P[T_t] = \int \E_P[q_\theta]\,\pi_{t-1}(d\theta) = 1$, so $Z = 1$ and
+$E_t^\infty = T_t(X_t)/Z = T_t(X_t)$ by Theorem~\ref{thm:growth}(ii). The
+posterior predictive ratio is
 \[
 T_t(x) = \frac{\int q_\theta(x) \prod_{i<t} q_\theta(X_i)\,\pi_0(d\theta)}
 {\int \prod_{i<t} q_\theta(X_i)\,\pi_0(d\theta)},
 \]
-and the product over $t$
-telescopes to the marginal likelihood ratio. The Laplace expansion under
-regularity conditions is \citet{clarke1990information}. Finally
-$\E_Q[\log q_\theta] = \KL(Q\|P) - \KL(Q\|Q_\theta)$.
+so in $\prod_{i \le t} T_i(X_i)$ the numerator of each factor cancels the
+denominator of the next one, and the product telescopes to
+$\int \prod_{i \le t} q_\theta(X_i)\,\pi_0(d\theta)$. The Laplace expansion under
+regularity conditions is \citet{clarke1990information}. For the limit, the
+expansion gives
+\[
+\frac1t\log\prod_{i\le t}E_i^\infty = \sup_\theta \frac1t\sum_{i \le t}\log q_\theta(X_i) + o_P(1),
+\]
+and $\E_Q[\log q_\theta] = \E_Q[\log(dQ/dP)] - \E_Q[\log(dQ/dQ_\theta)]
+= \KL(Q\|P) - \KL(Q\|Q_\theta)$.
 
 \paragraph{Proof of Theorem~\ref{thm:simlik}.}
-(i) Write $L_t = L_{t-1} E_t$. Then
-$\int L_t\, d\pi_0 = \int L_{t-1}\,d\pi_0 \cdot \int E_t\, d\pi_{t-1}$ with
-$\pi_{t-1} = L_{t-1}\pi_0 / \int L_{t-1}\,d\pi_0$, and induction gives
-$\bar W_t = \int L_t\,d\pi_0$. The posterior $\pi_{t-1}$ is $\G_t$-measurable.
-For each fixed $\theta$, Theorem~\ref{thm:valid} gives
-$\E[E_t(\theta) \mid \G_t] = 1$ under $H_0$, so by Fubini's theorem
-$\E[\bar E_t \mid \G_t] = 1$, and $\bar W_t$ is a test martingale.
+Here $E_i(\theta)$ is the factor at step $i$ with the score $e^{\theta^\top\phi_i}$,
+$L_t(\theta) = \prod_{i \le t} E_i(\theta)$ is the simulation likelihood,
+$\pi_{t-1}$ is the posterior proportional to $L_{t-1}\pi_0$, and
+$\bar E_t = \int E_t(\theta)\,\pi_{t-1}(d\theta)$ is the posterior-predictive bet.
 
-(ii) Let $F(\theta) = \log L_t(\theta)$, a concave function, and let
-$\theta^* \in \Theta$ maximise it. Its gradient is
-$\sum_{i \le t}\{\phi_i(U_{i,0}) - \sum_k w_{ik}\phi_i(U_{i,k})\}$, of norm at
-most $2Gt$, so $F(\theta) \ge F(\theta^*) - 2Gt\|\theta - \theta^*\|$. For
-$0 < r \le 2D$, the set $\theta^* + \frac{r}{2D}(\Theta - \theta^*)$ lies in
-$\Theta$ by convexity and within distance $r$ of $\theta^*$, and its volume is
-$(r/2D)^d$ times that of $\Theta$. Hence
+(i) \emph{Idea: this is Bayes' rule written as a product, as
+in~\eqref{eq:prequential}.} Since $L_t = L_{t-1}E_t$,
 \[
-\log \bar W_t = \log \int e^{F}\, d\pi_0 \ge F(\theta^*) - 2Gtr + d \log\frac{r}{2D}.
+\int L_t\, d\pi_0 = \int L_{t-1}\,d\pi_0 \cdot \int E_t\, \frac{L_{t-1}\,d\pi_0}{\int L_{t-1}\,d\pi_0}
+= \int L_{t-1}\,d\pi_0 \cdot \bar E_t ,
 \]
-The choice $r = d/(2Gt)$, admissible when $t \ge d/(4GD)$, gives the first
-bound. If $\theta^*$ is at distance at least $r$ from the boundary of
-$\Theta$, the gradient of $F$ vanishes there and its Hessian is at least
-$-tG^2 I$, so $F(\theta) \ge F(\theta^*) - \frac{tG^2}{2}\|\theta-\theta^*\|^2$
-on the ball $B_r$ of radius $r$ around $\theta^*$. This ball lies in
-$\Theta$, and $\Theta$ lies in the ball of radius $2D$ around $\theta^*$, so
-$\pi_0(B_r) = \mathrm{vol}(B_r)/\mathrm{vol}(\Theta) \ge (r/2D)^d$. Then
-$\log \bar W_t \ge F(\theta^*) - \frac{tG^2 r^2}{2} + d\log\frac{r}{2D}$, and
-$r = \sqrt{d/(tG^2)}$ gives the second bound.
+and induction gives $\int L_t\,d\pi_0 = \prod_{i \le t} \bar E_i = \bar W_t$; each
+step multiplies by one posterior average, so no past term is recomputed. The
+posterior $\pi_{t-1}$ depends on the past only, so it is $\G_t$-measurable. For
+each fixed $\theta$, Theorem~\ref{thm:valid} gives
+$\E[E_t(\theta) \mid \G_t] = 1$ under $H_0$, and by Fubini's theorem
+$\E[\bar E_t \mid \G_t] = \int \E[E_t(\theta) \mid \G_t]\,\pi_{t-1}(d\theta) = 1$, so
+$\bar W_t$ is a test martingale.
 
-(iii) Let $B_\Theta = \max_{\theta\in\Theta}\|\theta\|$. For fixed
-$\theta \in \Theta$,
+(ii) \emph{Idea: the mixture $\int L_t\,d\pi_0$ cannot be much smaller than
+the maximum of $L_t$, because $L_t$ stays close to its maximum on a small
+neighbourhood of the maximiser, and the prior gives that neighbourhood a mass
+of order $r^d$; the bound trades the loss inside the neighbourhood against its
+mass.} Let $F(\theta) = \log L_t(\theta)$ and let $\theta^* \in \Theta$
+maximise it. Each $\log E_i(\theta)$ is $\theta^\top\phi_i(U_{i,0})$ minus a
+log-sum-exp of linear functions, hence concave, and its gradient is
+$\phi_i(U_{i,0}) - \sum_k w_{ik}\phi_i(U_{i,k})$, with weights $w_{ik} \ge 0$
+summing to one, of norm at most $2G$. So $F$ is concave with gradient of norm
+at most $2Gt$, and $F(\theta) \ge F(\theta^*) - 2Gt\|\theta - \theta^*\|$. For
+$0 < r \le 2D$, the shrunken copy $S_r = \theta^* + \frac{r}{2D}(\Theta - \theta^*)$
+lies in $\Theta$ by convexity and within distance $r$ of $\theta^*$, because
+$\Theta$ has diameter at most $2D$, and its volume is $(r/2D)^d$ times that of
+$\Theta$, so $\pi_0(S_r) = (r/2D)^d$. Restricting the integral to $S_r$,
+\[
+\log \bar W_t = \log \int e^{F}\, d\pi_0 \ge \log\big\{\pi_0(S_r)\, e^{F(\theta^*) - 2Gtr}\big\}
+= F(\theta^*) - 2Gtr + d \log\frac{r}{2D}.
+\]
+The choice $r = d/(2Gt)$, admissible when $t \ge d/(4GD)$, gives
+$-d + d\log\{d/(4GDt)\} = -d\log t - d\log(4eGD/d)$, the first bound. If
+$\theta^*$ is at distance at least $r$ from the boundary of $\Theta$, the
+gradient of $F$ vanishes there, and the Hessian of each $\log E_i$ is minus a
+weighted covariance of vectors of norm at most $G$, so that of $F$ is at least
+$-tG^2 I$; Taylor's theorem then gives
+$F(\theta) \ge F(\theta^*) - \frac{tG^2}{2}\|\theta-\theta^*\|^2$ on the ball $B_r$
+of radius $r$ around $\theta^*$. This ball lies in $\Theta$, and $\Theta$ lies
+in the ball of radius $2D$ around $\theta^*$, so
+$\pi_0(B_r) = \mathrm{vol}(B_r)/\mathrm{vol}(\Theta) \ge (r/2D)^d$. As before,
+$\log \bar W_t \ge F(\theta^*) - \frac{tG^2 r^2}{2} + d\log\frac{r}{2D}$, and
+$r = \sqrt{d/(tG^2)}$ gives $-\frac d2\log t - \frac d2\log\{eG^2(2D)^2/d\}$, the
+second bound.
+
+(iii) \emph{Idea: by (ii) the wealth is never far behind any fixed score in
+the class, and the log-wealth of a fixed score grows at its conditional growth
+rate, up to fluctuations that average out.} Let
+$B_\Theta = \max_{\theta\in\Theta}\|\theta\|$. For fixed $\theta \in \Theta$,
 $E_i(\theta) = (M+1)/\{1 + \sum_{k \ge 1} e^{\theta^\top(\phi_i(U_{i,k}) - \phi_i(U_{i,0}))}\}$
-lies in $[(M+1)/(1 + M e^{2GB_\Theta}),\, M+1]$. The differences
-$\log E_i(\theta) - g_{M,i}(\theta)$ are bounded martingale differences, so
-their average tends to zero almost surely. Part (ii) gives
+lies in $[(M+1)/(1 + M e^{2GB_\Theta}),\, M+1]$, so
+$\log E_i(\theta) - g_{M,i}(\theta)$ are bounded martingale differences and
+their average tends to zero almost surely, as in the proof of
+Proposition~\ref{prop:necessary}(iii). Part (ii) gives
 $\log \bar W_t \ge \sum_{i \le t} \log E_i(\theta) - d\log t - O(1)$ for every
-$\theta \in \Theta$, and $d\log t / t \to 0$. In the i.i.d.\ case
-$g_{M,i}(\theta) = g_M(\theta)$; taking a countable dense subset of $\Theta$
-and using the continuity of $g_M$ gives the supremum. The last inequality is
-Theorem~\ref{thm:growth}(ii)--(iii) applied to the score $e^{\theta^\top\phi}$,
-which is bounded, when $\KL(Q\|P) < \infty$.
+$\theta \in \Theta$, and $d\log t / t \to 0$, which proves the first claim. In
+the i.i.d.\ case $g_{M,i}(\theta) = g_M(\theta)$; taking a countable dense
+subset of $\Theta$ and using the continuity of $g_M$ gives the supremum. The
+last inequality is Theorem~\ref{thm:growth}(ii)--(iii) applied to the bounded
+score $e^{\theta^\top\phi}$, when $\KL(Q\|P) < \infty$.
 
 %======================================================================
 \section{Experimental details}\label{app:details}
