@@ -1578,6 +1578,29 @@ wrong the guess of the substitute. The design is
 semi-synthetic and the models are small; the replies, however, are real, and
 the auditor needs only the ability to run the advertised model.
 
+\paragraph{Computational cost.} The cost of the audit is the cost of the
+simulator. Each step needs $M = 8$ replies of $P$, which take 2 to 8 seconds
+on four CPU cores, while computing the bet and updating the score takes about
+1.3~ms with the learned score ($d = 129$ weights), 1.1~ms with the score fitted
+in advance, 1.6 to 1.8~ms with SLICE and 2.6~ms for the average of two
+wealths. The e-process itself is therefore below 0.1\% of the running time
+for every method, and what matters is the number of queries to an alarm,
+which the adaptive choice of prompts reduces by up to 61\%. The methods
+differ in their fixed and growing costs. Ours needs nothing before monitoring
+but 200 replies of the twin to standardise the features, and its update costs
+the same at every step, $O(d^3)$ for the Gaussian update as implemented,
+$O(d^2)$ with rank-one updates, so the total cost is linear in the number of
+steps. The score fitted in advance and SLICE need replies of a guessed
+substitute before monitoring, 500 per prompt here, or, for an amortised
+network, simulations across the simulator's family, $2 \times 10^5$ in
+Section~\ref{sec:exp-concurrent} and of the order of $10^7$ in
+\citet{cortinovis2026slice}. SLICE's estimate of the routing fraction and the
+refit of \citet{forre2026anytime} revisit the whole history at each update,
+so their cost per step grows with $t$, unless sufficient statistics are
+available; on the drift task the refit costs about three times our update
+(Table~\ref{tab:concurrent}). These timings are of our implementations, not
+the authors'.
+
 %======================================================================
 \section{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
 %======================================================================
