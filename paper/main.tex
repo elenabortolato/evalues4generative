@@ -2231,12 +2231,17 @@ simulator under the action taken), and $Y_1, \ldots, Y_M$ are i.i.d.\ $\bar P$
 and independent of $X$. Let $B = \sup T$, $Z = \E_{\bar P}[T] > 0$ and
 $\bar T_M = M^{-1}\sum_{j} T(Y_j)$.
 
-(i) Write
+(i) Dividing the numerator and the denominator of
+$E_t = (M+1)T(X)/\{T(X) + \sum_j T(Y_j)\}$ by $M$ gives
 \[
 E_t = \frac{M+1}{M}\cdot\frac{T(X)}{T(X)/M + \bar T_M}.
 \]
-By the strong law of large numbers $\bar T_M \to Z$ almost surely, so
-$E_t \to T(X)/Z$, whose mean under $P_a$ is $\E_{P_a}[T]/Z$. To pass from
+As $M \to \infty$, with $X$ fixed, $(M+1)/M \to 1$; $T(X)/M \to 0$, because
+$T(X) \le B$ does not depend on $M$; and $\bar T_M \to Z$ almost surely by the
+strong law of large numbers, because the $T(Y_j)$ are i.i.d.\ with mean $Z$.
+Since $Z > 0$, the map $(u, v) \mapsto T(X)/(u + v)$ is continuous at $(0, Z)$,
+so $E_t \to T(X)/Z$ almost surely, and the mean of the limit under $P_a$ is
+$\E_{P_a}[T]/Z$. To pass from
 almost sure convergence to convergence of the means of $E_t$ and $E_t^2$, we
 split on the event $G_M = \{\bar T_M \ge Z/2\}$ that the simulations' average
 is not too small, and on its complement $G_M^c$.
