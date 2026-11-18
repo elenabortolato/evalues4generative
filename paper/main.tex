@@ -146,9 +146,15 @@ Besag--Clifford e-process of \citet{dombowsky2026besag}.
 fitting the score by maximising its empirical growth, and
 \citet{cortinovis2026slice} invert it into confidence sequences for the
 parameters of a simulator, with amortised neural ratio scores. In all three
-the observations are independent and the simulator has no state;
-\citet{forre2026anytime} name data streams that depend on the past as an open
-problem, and this is the setting of adaptive designs.
+the main development assumes independent observations and a simulator without
+state. \citet{forre2026anytime} name data streams that depend on the past as
+an open problem, and \citet[Appendix~C.1.1]{cortinovis2026slice} note that the
+construction extends whenever the next observation and the simulations are
+conditionally exchangeable given the past, for instance by simulating Markov
+or state-space models from the observed history, and prove validity
+conditionally on independent covariates (their Corollary~C.1). Adaptive
+designs, in which the actions are chosen from the data, are the setting we
+develop.
 
 This paper takes the construction to that setting. The simulator is run $M$
 times \emph{under the action actually taken and from the current state}, so
@@ -1820,9 +1826,12 @@ conditions, and refit the score online on past observations; data streams that
 depend on the past are left open. \citet{cortinovis2026slice} invert the
 e-process over the parameter of a simulator into confidence sequences, with
 amortised neural ratio scores trained before monitoring and fixed, and extend
-validity to observations that depend on i.i.d.\ covariates. Relative to both,
-this paper treats actions chosen from the data and simulators with state,
-shows that conditioning on the action is necessary and quantifies the failure
+validity to observations that depend on i.i.d.\ covariates; in an appendix
+they note that the construction extends to dependent data when the
+simulations are drawn conditionally on the observed history. Relative to both,
+this paper develops that direction for actions chosen from the data and
+simulators with state, gives the conditioning required under an arbitrary
+allocation rule, shows that it is necessary and quantifies the failure
 when it is dropped, reads arbitrary scores through the tilted null with the
 local efficiency $M/(M+1)$, gives sequential Bayesian and predictive updates of
 the score with a pathwise regret bound, and applies the method to adaptive
@@ -2304,9 +2313,11 @@ appeared. The conditioned Monte Carlo e-process, the bandit and multi-arm
 multi-stage trial experiments, the simulation likelihood with
 Theorem~\ref{thm:simlik}, and the per-arm e-BH procedure are recorded in the
 version history of the code repository from 29 and 30 September 2026. Both
-preprints treat independent data; the extension to adaptive actions and state,
-the necessity of the conditioning and the use of adaptive actions as a source
-of power are specific to this paper. The comparisons with both papers in
+preprints develop the method for independent data;
+\citet[Appendix~C.1.1]{cortinovis2026slice} note the possibility of
+conditioning on the past for dependent data. The treatment of actions chosen
+from the data and of simulators with state, the necessity of the conditioning
+and the use of adaptive actions as a source of power are developed here. The comparisons with both papers in
 Sections~\ref{sec:exp-concurrent} and~\ref{sec:exp-llm}, and the remarks
 attributing shared results to them, were added after they appeared.
 
