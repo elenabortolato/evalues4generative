@@ -61,8 +61,7 @@ run. In a multi-arm multi-stage trial of insulin-dosing strategies with
 futility analyses and re-assignment of participants, the monitor controls
 false alarms, detects departures from the in-silico trial and identifies the
 arms on which the simulator fails, while monitors that ignore the allocation
-or the participants' history do not. An analysis of Italy's COVID-19
-restriction zones shows the same on real data.
+or the participants' history do not.
 \end{abstract}
 
 %======================================================================
@@ -230,13 +229,11 @@ testing \citep{kovatchev2009insilico}. Only the monitor that runs the twin from
 each participant's state under the assigned arm controls false alarms (2\% of
 trials, against 95\% for a twin that ignores the participants' history and
 100\% for the pre-trial prediction), and e-BH names the arm that matters in 99\%
-of trials with a false discovery rate of 0.3\%. The second application uses real
-data: COVID-19 transmission twins for Italy's regions in 2021, under
-restriction zones assigned by the government from the data. In an audit of a
-language-model API with real model outputs, choosing the prompts adaptively
-inside the conditioned e-process makes every score faster, a score fitted in
-advance included, and remains valid where a twin that ignores the prompt does
-not.
+of trials with a false discovery rate of 0.3\%. The second application
+is an audit of a language-model API with real model outputs: choosing the
+prompts adaptively inside the conditioned e-process makes every score faster,
+a score fitted in advance included, and remains valid where a twin that
+ignores the prompt does not.
 
 We developed the construction independently, as the direct way to make
 classifier-based ratio estimation \citep{thomas2022lfire} exact under adaptive
@@ -253,8 +250,9 @@ Section~\ref{sec:method} sets up the problem and gives the method and its
 validity, Section~\ref{sec:power} its power, and Section~\ref{sec:predictive}
 the predictive view and the update rules, summarised in Algorithm~1
 (Section~\ref{sec:algorithm}). Section~\ref{sec:experiments} checks
-the theory in simulation, Sections~\ref{sec:trial} and~\ref{sec:italy-regions}
-contain the applications, and Section~\ref{sec:discussion} discusses
+the theory in simulation and compares the method with concurrent work,
+including the audit of a language-model API (Section~\ref{sec:exp-llm}),
+Section~\ref{sec:trial} contains the trial, and Section~\ref{sec:discussion} discusses
 limitations. Proofs are in the Appendix; further applications and experiments
 are in the Supplement.
 
@@ -1093,7 +1091,7 @@ simulator draws only; set $\bar\theta_0 = 0$, $S_0 = I$ (vaguer on the intercept
 $W_0 = 1$.
 \begin{enumerate}
   \item \textbf{Action.} Observe the action $A_t$ chosen by the design from the
-        past (arm, zone, dose). --- It defines the null law $P_t$.
+        past (arm, prompt, dose). --- It defines the null law $P_t$.
   \item \textbf{Simulate.} Draw $Y_{t,1}, \ldots, Y_{t,M}$ from the simulator
         under $A_t$ from the current state, and observe $X_t$.
         --- Exchangeable with $X_t$ under $H_0$.
@@ -1195,7 +1193,7 @@ discrepancy. The score is a balanced polynomial logistic regression refitted
 every ten steps, either regularised (degree 4, ridge 1) or flexible and
 overfitting (degree 6, ridge $10^{-3}$). Table~\ref{tab:drift} shows the
 central point of the paper (rejection curves are in the Supplement,
-Section~S5). With the same
+Section~S4). With the same
 score, using the learned ratio directly as the bet gives 10\% false alarms with
 the regularised learner and 59\% with the overfitting one, while the Monte
 Carlo e-process gives 3\% with both: a worse learner costs power, not validity.
@@ -1297,7 +1295,7 @@ $P = \mathcal N(0,1)$. The mixture $\bar W_t$ is computed exactly on a grid of
 of each of four scenarios: the null, a mean shift, a scale change, and a drift
 at $t = 500$. The bound holds on every path and at every time: at $t = 2000$ the largest
 regret over all paths is 7.5, against a bound of 21.5 (Supplement,
-Section~S5). The regret grows at the interior rate
+Section~S4). The regret grows at the interior rate
 $(d/2)\log t$, with slopes between 1.01 and 1.10 against $d/2 = 1$. Under the
 null the log wealth decreases, and under the alternatives the monitor keeps
 pace with the best fixed score chosen in hindsight, including after the change
@@ -1319,7 +1317,7 @@ flexibility of the features: with degree-6 features its power is 0.97, against
 posterior-predictive bet beats the plug-in bet at the posterior mean (223
 against 265 steps), as Proposition~\ref{prop:approx} suggests. The
 predictive-first updates are valid and somewhat slower on the drift task, and
-on par on the bandit. The Supplement (Section~S5) reports all variants,
+on par on the bandit. The Supplement (Section~S4) reports all variants,
 including the ratio-scale predictive, the Bayesian-bootstrap forest and the
 degree-6 features, with a discussion of why the learners differ.
 
@@ -1765,7 +1763,7 @@ conclusions are the same but detection is slower: false alarms stay at 2\%
 flags D in 99\% of trials and B in 39\%, with no false discovery.
 The predictive-first learners and the Bayesian-bootstrap forest are valid as
 well, with false alarms in 1--5\% of trials, against 81--98\% for the stateless
-twin, and detect snacking in 99\% of trials (Supplement, Section~S5).
+twin, and detect snacking in 99\% of trials (Supplement, Section~S4).
 
 
 
@@ -1783,175 +1781,6 @@ of this monitor, are for the design to specify. A simpler single-stage,
 three-arm version with Thompson-sampling allocation, and the monitoring of a
 single patient under closed-loop control, are in the Supplement and lead to the
 same conclusions.
-
-%======================================================================
-\section{Real data: Italy's COVID-19 restriction zones}\label{sec:italy-regions}
-%======================================================================
-
-Models that guide decisions are calibrated once and then used while the world
-changes. The question this application asks is therefore not whether a simple
-epidemic model is wrong, since every such model eventually is, but \emph{when}
-a model used to set restrictions stops being adequate, \emph{where}, and
-\emph{in which direction}, while the restrictions themselves are chosen from the
-data that the model is checked against. The application has two parts.
-Synthetic series, generated from the twin under a data-driven zone policy,
-show that conditioning on the zones is what keeps the monitor valid
-(Section~\ref{sec:italy-synth}). The real data then show what the alarms say about the twin: when
-they fire, and whether cases ran above or below its predictions
-(Section~\ref{sec:italy-real}).
-
-\subsection{Zones, data and twin}\label{sec:italy}
-
-From 6~November 2020, each of Italy's 21 regions and autonomous provinces was
-placed every week, by government ordinance, in one of four zones: white (almost
-no restrictions), yellow (curfew and evening closure of restaurants), orange
-(restaurants closed and travel between municipalities restricted) or red (a
-near-lockdown). The assignment followed published rules based on incidence,
-the reproduction number and hospital indicators, so each action is an
-explicit, discrete decision taken from the data, and the actions change often:
-392 changes of colour, a median of 19 per region. Daily new positives by region
-come from the Civil Protection Department \citep{dpc2020covid}, and the daily
-colour of each region from a public compilation of the ordinances
-\citep{imcatta2022restrizioni}.
-
-The twin is a renewal model, the model behind the usual estimates of the
-reproduction number \citep{cori2013new}. Region $r$'s daily count is negative
-binomial with overdispersion $k$ and mean
-\[
-\mu_{rt} = \exp\big(a_r + \beta_{\mathrm{zone}(r,\,t-7)} + \varepsilon_{r,\mathrm{week}(t)}\big)\,
-\delta_{\mathrm{wd}(t)} \sum_{s=1}^{21} w_s\, y_{r,t-s},
-\]
-where the weights $w_s$ are a gamma generation interval (mean 6.5, standard
-deviation 4 days), $a_r$ is a regional baseline, $\beta$ are zone effects
-relative to yellow, shared across regions, acting with a seven-day lag and
-constrained so that red is at least as restrictive as orange and orange as
-yellow, $\delta$ are day-of-week factors, and
-$\varepsilon \sim \mathcal N(0, \sigma^2)$ is a shock common to the seven days
-of a simulated week. The twin is calibrated on the first weeks of the zone
-system, 13~November to 20~December 2020, by pooled maximum likelihood; $\sigma$
-is chosen so that one-week-ahead 90\% intervals cover 90\% of region-weeks in
-that window, which gives $\sigma = 0.10$. Orange multiplies the reproduction
-number by 0.88 and red by 0.79; white zones began only in 2021, so the twin
-treats them as yellow. From 21~December 2020 to 31~December 2021 each region is
-monitored every week: its twin simulates the next seven days $M = 16$ times
-from the real history and under the zone actually assigned, which is known when
-the week starts because of the seven-day lag. After an alarm the region's
-baseline is recalibrated on its last eight weeks and a new monitor starts.
-Under the twin the regions are conditionally independent given their pasts, so
-the average of the 21 regional wealth processes (frozen twin, no
-recalibration) is a test martingale for the null that the twin holds in every
-region, and e-BH applied to the regional e-values identifies the regions whose
-twin fails. The twin deliberately omits variants, vaccination, seasonality,
-testing volume and movement between regions: it is a plausible, standard model
-of the kind used to project demand during the pandemic, and the question is
-when and where it stops being adequate.
-
-\subsection{Validity where the truth is known}\label{sec:italy-synth}
-
-We first generate the 21 regional series from the twin, with zones assigned
-every week by a documented rule that mimics the official one (red, orange,
-yellow or white when the previous week's cases exceed 250, 150 or 50 per
-100\,000 inhabitants, or none of these), with the estimated zone effects and
-with stronger ones (orange $\times 0.85$, red $\times 0.70$), and a variant
-that multiplies transmission by 1.3 in every region from week 8
-(Table~\ref{tab:regions}). The zone-conditioned monitor is valid, with false
-alarms in 1.5--1.9\% of region-runs and 1\% of national runs. A twin that
-assumes every region is always yellow, and so ignores the actions, raises false
-alarms in 21--23\% of region-runs, and the national monitor built on it rejects
-a true null in every run. The plug-in bet and a $t$-test recomputed weekly
-raise false alarms in about half and a third of region-runs. The national
-monitor detects the variant in every run after a median of eight weeks.
-
-\begin{table}[t]
-\centering
-\caption{Synthetic regional series with data-driven zones (53 weeks,
-21 regions). Regional: share of region-runs with a false alarm. National: share
-of runs in which the average-of-wealths monitor rejects. Variant (estimated
-effects): detection by the national monitor and median delay in weeks.}
-\label{tab:regions}
-\begin{tabular}{lrrrrr}
-\toprule
- & \multicolumn{2}{c}{estimated effects} & \multicolumn{2}{c}{stronger effects} & variant \\
-monitor & regional & national & regional & national & national \\
-\midrule
-MC e-process, zone-conditioned twin & 0.019 & 0.01 & 0.015 & 0.01 & 1.00, 8 \\
-twin assuming ``always yellow'' & 0.210 & 1.00 & 0.225 & 1.00 & 0.87, 8 \\
-plug-in bet & 0.534 & -- & 0.508 & -- & -- \\
-$t$-test, recomputed weekly & 0.319 & -- & 0.297 & -- & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Results on the real data}\label{sec:italy-real}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{exp9_italy_regions.png}
-\caption{Italy's regional colour zones, December 2020 to December 2021. Top:
-the zone assigned to each region (cells) and the monitor's alarms (triangles),
-after each of which the region's twin is recalibrated. Bottom: the national
-monitor, the average of the 21 regional wealths for the frozen twin, with the
-threshold $\log 20$.}
-\label{fig:regions}
-\end{figure}
-
-Figure~\ref{fig:regions} shows the analysis of the real data. The national
-monitor rejects the twin on 14~March 2021, and by the end of 2021 e-BH rejects
-it in all 21 regions. There are 96 regional alarms, a median of five per
-region, and only Trento never alarms. The e-process tests the twin in both
-directions, and the direction of each alarm is informative
-(Table~\ref{tab:directions}): the alarms follow the waves of 2021, and within
-each period almost all point the same way. From January to early April, 10 of
-13 alarms fire because cases grew faster than the twin predicted \emph{given
-the zone actually assigned}, for example in Bolzano on 24~January, already red
-and at 580 cases per 100\,000 a week, and in Umbria, Campania, Lazio, Piedmont
-and Liguria in February and March; the national alarm of 14~March belongs to
-this period. The twin was calibrated before the Alpha variant spread, and
-conditioning on the zone rules out relaxed restrictions as the explanation,
-which makes this the clearest evidence in the application. All 27 alarms of
-mid-April to early July fire because cases were \emph{below} the twin while
-zones were being relaxed: the twin has neither vaccination nor seasonality, and
-these alarms are correct but not warnings. Twelve regions alarm in the week
-ending 25~July 2021 and seven more by 8~August, all in white zones and all
-above the twin, which had just been recalibrated on the low levels of June,
-during the Delta wave. From late August to October, 19 of 20 alarms are below
-the twin as the summer wave receded faster than predicted, and in November and
-December 16 of 17 are above it again. The monitor therefore identifies, with a
-guarantee that holds although the zones were chosen from the data, two ways in
-which the twin fails: the effect of a restriction learned in one wave does not
-transfer to the next when the virus changes, and drivers outside the twin
-dominate once restrictions stop varying, since 63 of the 96 alarms fire in
-white zones, which the twin had to treat as yellow. A monitor that bets only on
-counts above the twin, through a score that gives no credit to
-overprediction, is equally valid and would keep the alarms of the Alpha, Delta
-and autumn waves as early warnings. The results above use the Gaussian logistic learner; the other learners are
-valid on the synthetic series, and on the real data the plug-in predictives
-agree with it on the national alarm and on e-BH (Supplement, Section~S5). An analysis of national daily
-deaths from spring 2020 under the national stringency index, in the
-Supplement, gives an
-early warning of the second wave on 22~September 2020, four weeks before deaths
-surged.
-
-\begin{table}[t]
-\centering
-\caption{The 96 regional alarms of 2021 by period. Above: observed cases above
-the twin's simulations in the alarm week. Incidence: median weekly cases per
-100\,000 in the alarm week.}
-\label{tab:directions}
-\begin{tabular}{lrrrrl}
-\toprule
-period & alarms & above & incidence & in white & likely driver \\
-\midrule
-January -- early April & 13 & 10 & 173 & 0 & Alpha variant, third wave \\
-mid-April -- early July & 27 & 0 & 19 & 8 & vaccination, season \\
-mid-July -- mid-August & 19 & 19 & 47 & 19 & Delta, reopening \\
-late August -- October & 20 & 1 & 43 & 19 & end of the summer wave \\
-November -- December & 17 & 16 & 103 & 17 & autumn Delta wave, Omicron \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-
 
 %======================================================================
 \section{Related work}\label{sec:related}
@@ -2116,15 +1945,10 @@ Code, results and figures are in the repository \texttt{evalues4generative};
 all runs are seeded.
 
 \section*{Data availability}
-The real-data applications use public data only. Italy's national and
-regional COVID-19 series are from the Dipartimento della Protezione Civile
-\citep{dpc2020covid}, the national stringency index is from the Oxford
-COVID-19 Government Response Tracker \citep{hale2021global}, both under the
-CC-BY-4.0 licence, and the regional restriction tiers are from a public
-compilation of the government ordinances \citep{imcatta2022restrizioni}. The
-processed files used in the paper, with the date of download and the exact
-source files, are in the \texttt{data} folder of the code repository. All
-other data are simulated by the code below.
+No external data are used. The replies of the language models in
+Section~\ref{sec:exp-llm} were generated with the code below from the publicly
+released Qwen2.5 models and are in the \texttt{data} folder of the code
+repository; all other data are simulated by the code below.
 
 \section*{Code availability}
 All methods, experiments, tables and figures are implemented in Python and
@@ -2164,7 +1988,7 @@ denotes sequential Monte Carlo estimates.}
 symbol & meaning & where \\
 \midrule
 $t$, $\F_t$, $\G_t = \F_{t-1} \vee \sigma(A_t)$ & time; information after step $t$; information when the bet at $t$ is placed & Sec.~\ref{sec:setting} \\
-$A_t$, $a$ & action chosen by the design (arm, dose, zone) & Sec.~\ref{sec:setting} \\
+$A_t$, $a$ & action chosen by the design (arm, dose, prompt) & Sec.~\ref{sec:setting} \\
 $X_t$ & real outcome at time $t$ & Sec.~\ref{sec:setting} \\
 $Y_{t,1}, \ldots, Y_{t,M}$; $M$ & simulator draws under $A_t$ from the current state; their number & \eqref{eq:mc} \\
 $U_{t,0}, \ldots, U_{t,M}$ & pooled outcomes $(X_t, Y_{t,1}, \ldots, Y_{t,M})$ & Sec.~\ref{sec:simlik} \\
@@ -2464,7 +2288,7 @@ and the bet is the average of $E_t(\theta)$ over the nodes.
 \paragraph{Seeds and cost.} Replication $i$ uses seed $i$ under the null and
 $10^6 + i$ under the alternative, for every method, so methods are compared on
 identical real data. On four cores, the drift experiment takes about one minute
-per 400 replications, the MAMS trial about nine minutes per 100 replications of
-one scenario, and the regional COVID-19 analysis about seven minutes.
+per 400 replications, and the MAMS trial about nine minutes per 100 replications of
+one scenario.
 
 \end{document}

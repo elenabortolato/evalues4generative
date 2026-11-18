@@ -37,8 +37,8 @@ Monte Carlo e-processes under adaptive actions''}
 \begin{document}
 \maketitle
 
-This supplement contains four analyses referred to in the main text and, in
-Section~S5, additional results for Sections~5 to~7. Theorem,
+This supplement contains three analyses referred to in the main text and, in
+Section~S4, additional results for Sections~5 and~6. Theorem,
 section, equation and table numbers without an S refer to the main text.
 
 \section{Monitoring one patient under closed-loop control}\label{sec:t1d-patient}
@@ -161,8 +161,8 @@ $t$-test, recomputed every epoch & 0.350 & 0.78, 7.5 h & 0.78, 8.5 h & 0.23, 20 
         the action inflates the bet when the actions taken change the law of
         the outcome, $\chi^2(P_a\|\bar P) > 0$, and it is nearly harmless when
         they do not. The bandit
-        (Section~5.2) and the Italian colour zones
-        (Section~7) are cases where it does.
+        (Section~5.2) and the language-model audit
+        (Section~5.6) are cases where it does.
 \end{itemize}
 
 \paragraph{Limitations.} The patient is itself
@@ -315,147 +315,6 @@ allocation is chosen from the outcomes, the null is only available as a
 simulator, and a monitor that ignores the allocation is invalid.
 
 %======================================================================
-\section{National COVID-19 deaths from spring 2020}\label{sec:italy-national}
-
-\paragraph{Data and twin.} Daily deaths are the differences of the Civil
-Protection cumulative count \citep{dpc2020covid}; one negative reporting
-correction (24~June 2020) is set to zero. They are available from February
-2020, and they depend much less on testing than case counts. The policy is
-the national stringency index of the Oxford COVID-19 Government Response
-Tracker \citep{hale2021global}, which covers the first lockdown of March 2020,
-the reopening of May 2020 and the autumn measures.
-
-The twin is the renewal model of Section~7.1 of the main text for
-a single national series, without zones or weekly shocks: daily deaths are
-negative binomial with mean $R_t\,\delta_{\mathrm{wd}(t)}\sum_{s=1}^{21} w_s y_{t-s}$
-and $\log R_t = a + b\,(\mathrm{stringency}_{t-21}/100 - \tfrac12)$, with a
-21-day lag because deaths follow infections by about three weeks, longer than
-the seven-day block, so that the policy driving a week is known when the week
-starts. Calibrated on 1~April to 26~May 2020, the twin has a baseline
-reproduction number of 0.78 at the mean stringency of 88 and overdispersion
-37.
-
-The policy effect $b$ is poorly identified: estimated freely, it ranges from
-$-0.4$ to $-3$ (the lower bound) depending on the 2020 window, as spontaneous
-behaviour change and immunity are confounded with the measures. We therefore
-fix $b = -1$, a 59\% reduction in $R$ between no restrictions and stringency
-90, which is moderate compared with the lockdown effects estimated by
-\citet{flaxman2020estimating}. We report $b \in \{-0.5, -1, -2\}$, a range
-bracketed by the free estimates. The remaining parameters are fitted on
-1~April to 26~May 2020, and monitoring runs from 27~May 2020 to 31~December
-2021. After each alarm the twin is recalibrated on the last eight weeks.
-
-\paragraph{Validity where the truth is known.} We generate series from the
-calibrated twin over the same 83 weeks, with the policy set every week by a
-tier rule on deaths: stringency 80, 60 or 40 when the previous week's deaths
-exceed 1500, exceed 500, or neither. A second scenario adds a variant that
-multiplies transmission by 1.4 from week 10.
-
-\begin{table}[t]
-\centering
-\caption{Synthetic national series of deaths from the twin calibrated on
-spring 2020, with a data-driven tier policy (83 weeks; 200 null and 100
-variant replications).}
-\label{tab:italy}
-\begin{tabular}{lrrrr}
-\toprule
- & null & \multicolumn{3}{c}{variant from week 10} \\
-monitor & false alarms & alarm before change & detected & median delay (weeks) \\
-\midrule
-MC e-process, BLR score & 0.015 & 0.00 & 1.00 & 4 \\
-plug-in bet & 0.035 & 0.01 & 0.99 & 3 \\
-twin with policy held fixed & 1.000 & 1.00 & 0.00 & -- \\
-$t$-test, recomputed weekly & 0.405 & 0.19 & 0.81 & 5 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table~\ref{tab:italy} repeats the regional lesson with a continuous policy.
-The monitor keeps false alarms at 1.5\% and detects the variant in every run,
-after a median of four weeks. The twin that holds the policy at its
-calibration level rejects a true null in every run, and the recomputed
-$t$-test raises false alarms in 41\% of runs.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{exp8b_italy_deaths.png}
-\caption{Italy, May 2020 to December 2021. Top: observed daily deaths (black)
-and the twin's 90\% predictive band for each coming week (blue); orange lines
-mark alarms, after which the twin is recalibrated on the last eight weeks.
-Bottom: the monitor's log wealth, restarted at each recalibration, with the
-threshold $\log 20$.}
-\label{fig:italy}
-\end{figure}
-
-\paragraph{Results on the real data.} Figure~\ref{fig:italy} shows ten alarms
-between May 2020 and December 2021. Four fire because deaths were above the
-twin and six because they were below it (average standardised deviation over
-the last three weeks before the alarm):
-\begin{itemize}
-  \item \textbf{below}, 30~June 2020: deaths fell faster after the reopening
-        than the spring twin predicted;
-  \item \textbf{above}, 22~September and 3~November 2020: the start and the
-        growth of the second wave;
-  \item \textbf{below}, 15~December 2020 and 5~January 2021: after the peak of
-        the second wave;
-  \item \textbf{below}, then \textbf{above}, 2 and 23~March 2021: the end of
-        the winter decline and the third wave;
-  \item \textbf{below}, 18~May and 8~June 2021: the decline of late spring,
-        with vaccination;
-  \item \textbf{above}, 17~August 2021: the summer rise.
-\end{itemize}
-
-\paragraph{An early warning: September 2020.} After the first alarm the twin
-is recalibrated on June 2020, when deaths were falling. With stringency almost
-constant (63--68), it predicts a further decline. Weekly deaths instead reach
-a minimum of about 40 in late August and then rise: 64, 69, 97 and 128 in the
-four weeks from 31~August, each in the upper part of the twin's range. The log
-wealth goes from $-0.6$ on 1~September to 0.85, 1.23 and 3.26 on 22~September,
-when it crosses $\log 20$. Weekly deaths then reached 795 in the week of
-19~October and 2568 in the week of 2~November. The alarm therefore precedes
-the October surge in deaths by four weeks, and the national decrees of October
-and the regional zones of 6~November by three to six weeks. Because the policy
-was held at the value in force, the alarm says that transmission was higher
-than the restrictions explain. Two qualifications apply: deaths lag infections,
-so a twin of cases or admissions would probably alarm earlier; and the
-comparison with the decrees is one of timing, not a counterfactual, since
-decision makers also followed cases. The monitor is also robust to an outlier
-in this segment: the 158 deaths reported on 15~August 2020 against 5--10 on
-the neighbouring days, a batch of late reports, lower the wealth (from $-0.30$
-to $-0.46$) instead of raising an alarm, because a bounded bet loses at most
-its stake.
-
-\paragraph{A correction, not a forecast: December 2020.} The alarm of
-15~December is the opposite case. The twin recalibrated after the November
-alarm expected continued growth, but deaths fell below its 90\% band in the
-weeks from 7 to 21~December (for example 4279 against a lower limit of 4318 in
-the week of 14~December). A plausible reading is that the November measures,
-including the regional zones, which the national stringency index barely
-records, reduced transmission more than the twin allowed. The alarm is
-therefore not an anticipation of the national red days of Christmas 2020; it
-says that the twin overpredicted.
-
-Each recalibrated twin lasts a median of six weeks. The first alarm falls
-between 16~June and 14~July 2020 for $b \in \{-0.5, -1, -2\}$, with 10 to 12
-alarms over the period. An analysis of national ICU admissions from December
-2020 to December 2022 with a seven-day lag leads to the same conclusions
-(repository, Experiment~8).
-
-\paragraph{Caveats.}
-\begin{itemize}
-  \item \textbf{An alarm says that the twin is wrong, not why.} Candidate
-        reasons include variants, vaccination, seasonality, and changes in
-        testing and reporting.
-  \item \textbf{The twins' likelihoods happen to be tractable,} which keeps the
-        examples transparent. The monitor uses only simulation, so the same
-        analysis applies unchanged to agent-based or compartmental models with
-        latent states.
-  \item \textbf{Recalibration and restart form a sequence of tests of
-        different twins.} Each alarm is valid for the twin active at the time,
-        not a simultaneous statement about all periods.
-\end{itemize}
-
-%======================================================================
 \section{Comparison with the Besag--Clifford e-process}\label{sec:exp-bc}
 
 On the drift task the null is i.i.d., so the Besag--Clifford e-process of
@@ -525,11 +384,11 @@ conditioning on the action rejects a true null in every run
 
 %======================================================================
 
-\section{Additional results for Sections 5 to 7}\label{sec:more}
+\section{Additional results for Sections 5 and 6}\label{sec:more}
 
 This section collects material moved out of the main text: the rejection
 curves of the drift experiment, all variants of the update rules, the regret
-check of Theorem~3, the trial and the regional analysis with each learner, and
+check of Theorem~3, the trial with each learner, and
 all variants of the comparison with concurrent methods.
 
 \subsection{Drift experiment: rejection curves}
@@ -700,43 +559,6 @@ predictive, logistic, resampling & 0.04 & 0.81 & 0.99 (47) & 0.99 & 0.47 \\
 predictive, simulation likelihood, plug-in & 0.04 & 0.98 & 0.99 (49) & 0.99 & 0.38 \\
 predictive, simulation likelihood, resampling & 0.01 & 0.97 & 0.99 (51) & 0.99 & 0.37 \\
 Bayesian-bootstrap forest & 0.02 & 0.98 & 0.99 (59) & 0.98 & 0.31 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{The regional analysis with each learner}
-
-The real-data results above use the Gaussian logistic learner.
-Table~\ref{tab:regions-learners} repeats the analysis with the four
-predictive-first learners. All are valid on the synthetic series and detect
-the variant nationally after 6--7 weeks, against 8 for the Gaussian learner. On
-the real data the plug-in predictives agree with it on the national alarm (14
-March 2021, or two weeks earlier) and on e-BH, which rejects the twin in all 21
-regions; the resampled predictives are more cautious, with about half as many
-regional alarms and a national alarm in April or June, and with the logistic
-loss e-BH rejects no region at the end of 2021. The Bayesian-bootstrap forest,
-refitted every five weeks from the fifth, is valid but slow, with a national
-delay of 15 weeks: each region's forest learns from at most 53 weekly points.
-
-\begin{table}[t]
-\centering
-\caption{The regional analysis with each learner. Synthetic (estimated
-effects): regional and national false-alarm rates under the null, and median
-national delay in weeks under the variant. Real data: number of regional
-alarms, date of the national alarm, and number of regions rejected by e-BH at
-the end of 2021.}
-\label{tab:regions-learners}
-\begin{tabular}{lrrrrrr}
-\toprule
- & \multicolumn{3}{c}{synthetic} & \multicolumn{3}{c}{real data} \\
-learner & regional & national & delay & alarms & national alarm & e-BH \\
-\midrule
-Gaussian BLR, logistic & 0.019 & 0.01 & 8 & 96 & 14 Mar 2021 & 21 \\
-predictive, logistic, plug-in & 0.014 & 0.00 & 6 & 118 & 28 Feb 2021 & 21 \\
-predictive, logistic, resampling & 0.013 & 0.02 & 6 & 52 & 4 Apr 2021 & 0 \\
-predictive, simulation likelihood, plug-in & 0.003 & 0.01 & 6 & 86 & 14 Mar 2021 & 21 \\
-predictive, simulation likelihood, resampling & 0.005 & 0.01 & 7 & 45 & 6 Jun 2021 & 20 \\
-Bayesian-bootstrap forest & 0.002 & 0.00 & 15 & 32 & 1 Aug 2021 & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}

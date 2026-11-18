@@ -60,13 +60,11 @@ about 10 minutes.
 | Section 5.3 (budget) | simulation budget M | `python experiments/exp3_simulation_budget.py` | `results/exp3.json` | minutes |
 | Figure 2 | growth rate vs M (Theorem 2) | `python experiments/exp4_growth_rate.py` | `results/exp4.json`, `figures/exp4_growth_rate.png` | minutes |
 | Section 5.3 (regret) | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
-| Table 3 | update rules (selected rows; all rows in Table S5) | as for Table S5 below | | |
+| Table 3 | update rules (selected rows; all rows in Table S4) | as for Table S4 below | | |
 | Table 4 | comparison with concurrent methods (Forré & Brenner; SLICE) | `python experiments/exp15_concurrent_methods.py --task drift,bandit,drift-mis,bandit-mis` | `results/exp15.json` | ~1 h in all |
 | Table 5 | auditing a language-model API with adaptive prompts | replies: `python experiments/exp16_llm_generate.py --models DIR` (needs `llama-cpp-python` and the GGUF files of Qwen2.5-1.5B-Instruct at q8_0, q4_k_m, q3_k_m and Qwen2.5-0.5B-Instruct at q4_k_m; the replies used are in `data/llm_audit/replies.json`); audit: `python experiments/exp16_llm_audit.py` | `results/exp16.json` | ~3 h for the replies on 4 CPU cores; ~30 min for the audit |
 | Table 6 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
-| Table 7, Figure 3 | Italian regions, synthetic and real data | `python experiments/exp9_italy_regions.py` then `python experiments/exp9_figure.py` | `results/exp9.json`, `figures/exp9_italy_regions.png` | ~10–30 min |
-| Table 8 | direction of the 2021 regional alarms | `python experiments/alarm_directions.py` (after `exp8b` and `exp9`) | `results/alarm_directions.json` | seconds |
-| Table 9 | notation | none (text) | | |
+| Table 7 | notation | none (text) | | |
 
 The experiment numbers in the file names follow the order in which the
 experiments were written, not the order of the paper.
@@ -77,25 +75,28 @@ experiments were written, not the order of the paper.
 |---|---|---|---|---|
 | Section S1: table and figure | artificial pancreas, one patient against its twin (UVA/Padova parameters via `simglucose`) | `python experiments/exp7_artificial_pancreas.py` then `python experiments/exp7_figure.py` | `results/exp7.json`, `figures/exp7_artificial_pancreas.png` | ~10–30 min |
 | Section S2: table | three-arm response-adaptive trial | `python experiments/exp10_adaptive_trial.py` | `results/exp10.json` | ~10–30 min |
-| Section S3: table and figure | national deaths, Italy, May 2020 to December 2021 | `python experiments/exp8b_italy_deaths_2020_2021.py` | `results/exp8b.json`, `figures/exp8b_italy_deaths.png` | minutes |
-| Section S4: table | comparison with the Besag–Clifford e-process | `python experiments/exp6_compare_besag_clifford.py` | `results/exp6.json` | ~10–30 min |
-| Figure S3 | drift experiment, rejection curves | `python experiments/exp1_generative_drift.py` then `python experiments/make_figures.py` | `figures/exp1_generative_drift.png` | minutes |
-| Table S5, BLR rows | Bayesian learning rule, logistic loss | `python experiments/exp5_bayesian_learning_rule.py` and `python experiments/exp5b_predictive_scales.py` | `results/exp5.json`, `results/exp5b.json` | minutes each |
-| Table S5, simulation-likelihood rows | BLR on the simulation likelihood | `python experiments/exp13_choice_blr.py` | `results/exp13.json` | ~10–30 min |
-| Table S5, predictive-update rows | martingale-posterior predictive updates | `python experiments/exp14_predictive_updates.py` | `results/exp14.json` | ~1–17 min per learner |
-| Table S5, forest rows | Bayesian-bootstrap forest | `python experiments/exp14_predictive_updates.py --drift forest-mixture --bandit forest-mixture` | `results/exp14.json` | ~15–20 min |
-| Table S6 | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
-| Table S7 | MAMS trial, each learner | `python experiments/exp11_mams_trial.py --learner L --scenarios null` and `... --scenarios snacking`, for L in `choice`, `mp-logistic-plugin`, `mp-logistic-resample`, `mp-choice-plugin`, `mp-choice-resample`, `forest-mixture-early` | `results/exp11_<L>_<scenario>.json` (`results/exp11_choice.json` for `choice`) | ~15–40 min per run |
-| Table S8 | Italian regions, each learner | `python experiments/exp9_italy_regions.py --learner L`, for L in `mp-logistic-plugin`, `mp-logistic-resample`, `mp-choice-plugin`, `mp-choice-resample`, `forest-mixture-early` | `results/exp9_<L>.json` | ~10–30 min per learner |
-| Table S9 | comparison with concurrent methods, all variants | as for Table 4 above | `results/exp15.json` | |
+| Section S3: table | comparison with the Besag–Clifford e-process | `python experiments/exp6_compare_besag_clifford.py` | `results/exp6.json` | ~10–30 min |
+| Figure S2 | drift experiment, rejection curves | `python experiments/exp1_generative_drift.py` then `python experiments/make_figures.py` | `figures/exp1_generative_drift.png` | minutes |
+| Table S4, BLR rows | Bayesian learning rule, logistic loss | `python experiments/exp5_bayesian_learning_rule.py` and `python experiments/exp5b_predictive_scales.py` | `results/exp5.json`, `results/exp5b.json` | minutes each |
+| Table S4, simulation-likelihood rows | BLR on the simulation likelihood | `python experiments/exp13_choice_blr.py` | `results/exp13.json` | ~10–30 min |
+| Table S4, predictive-update rows | martingale-posterior predictive updates | `python experiments/exp14_predictive_updates.py` | `results/exp14.json` | ~1–17 min per learner |
+| Table S4, forest rows | Bayesian-bootstrap forest | `python experiments/exp14_predictive_updates.py --drift forest-mixture --bandit forest-mixture` | `results/exp14.json` | ~15–20 min |
+| Table S5 | regret of the posterior-predictive e-process (Theorem 3) | `python experiments/exp12_regret.py` | `results/exp12.json` | ~10–20 min |
+| Table S6 | MAMS trial, each learner | `python experiments/exp11_mams_trial.py --learner L --scenarios null` and `... --scenarios snacking`, for L in `choice`, `mp-logistic-plugin`, `mp-logistic-resample`, `mp-choice-plugin`, `mp-choice-resample`, `forest-mixture-early` | `results/exp11_<L>_<scenario>.json` (`results/exp11_choice.json` for `choice`) | ~15–40 min per run |
+| Table S7 | comparison with concurrent methods, all variants | as for Table 4 above | `results/exp15.json` | |
 
-`experiments/exp8_italy_covid.py` (national cases, `figures/exp8_italy_covid.png`)
-is an earlier version of the national analysis. It is kept for reference and
-is not used in the paper.
+The COVID-19 analyses of Italy's regions and national deaths are not in the
+current version of the paper; their text is kept in `paper/removed_covid.tex`
+and their scripts (`exp8_italy_covid.py`, `exp8b_italy_deaths_2020_2021.py`,
+`exp9_italy_regions.py`, `exp9_figure.py`, `alarm_directions.py`) and results
+remain in the repository.
 
 ## 5. Data
 
-The real-data applications use only public data, under CC-BY-4.0:
+The paper uses no external data. The replies of the language models
+(Section 5.6) are generated by `experiments/exp16_llm_generate.py` and stored in
+`data/llm_audit/replies.json`. The COVID-19 analyses kept outside the paper use
+only public data, under CC-BY-4.0:
 - Dipartimento della Protezione Civile, national and regional COVID-19 series;
 - the Oxford COVID-19 Government Response Tracker, national stringency index;
 - a public compilation of the regional restriction tiers.
