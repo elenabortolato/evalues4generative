@@ -252,8 +252,9 @@ at a point estimate, it factorises over time and is updated in one step per
 observation, and, by the regret bounds for Bayesian mixtures, the wealth stays
 on every sample path within $d\log t$ of the best score in the class chosen in
 hindsight, $(d/2)\log t$ for an interior optimum (Theorem~\ref{thm:simlik}).
-The concurrent papers bet at a point estimate, with guarantees that are
-asymptotic at best. As $M$ grows the log wealth is the prequential likelihood
+A bet at a point estimate, such as the
+maximiser of the empirical growth, ignores the uncertainty about the score's
+parameter, and its guarantees are asymptotic at best. As $M$ grows the log wealth is the prequential likelihood
 ratio of the score's forecasts against the simulator, which places the method
 in the predictive approach to inference \citep{dawid1984present,fong2023martingale};
 approximate posteriors, such as one step of the Bayesian learning rule per
