@@ -47,9 +47,9 @@ the action makes the expected bet tend to $1+\chi^2$, and the wealth grows
 exponentially under the null. The actions are moreover a source of power: in
 an audit of a language-model API, choosing the prompts
 adaptively makes every score faster, those of concurrent methods included, by
-up to 61\% in the number of queries. Every score bets on a tilted version of
-the simulator, and its growth rate splits into a simulation cost, exactly
-$M/(M+1)$ for local alternatives, and a learning cost, $\KL(Q\|\tilde T)$.
+up to 61\% in the number of queries. The growth rate of any score splits into
+a simulation cost, exactly $M/(M+1)$ for local alternatives, and a learning
+cost, $\KL(Q\|\tilde T)$, where $\tilde T$ is the score's forecast.
 Bayesian updating on the bet, a conditional-logit likelihood in the score's
 parameter, stays within $d\log t$ of the best score in hindsight on every
 sample path. In a multi-arm multi-stage trial of insulin-dosing strategies with
