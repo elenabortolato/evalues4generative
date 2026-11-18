@@ -145,33 +145,7 @@ e-values reduce this cost at the price of an approximation to the base e-value
 \citep{csillag2025prediction}. What we keep from \eqref{eq:prequential} is its
 structure: a product of one-step factors, each with mean one under the null
 given the past, whose numerator is a forecast of the next observation issued
-before it is seen. Table~\ref{tab:objects} lists what replaces each object.
-
-\sbox{\widetab}{\begin{tabular}{lll}
-\toprule
-object in \eqref{eq:prequential} & available? & replaced by \\
-\midrule
-null density $p_0(x_i \mid x_{1:i-1})$ & sampling only & $M$ simulations under the action taken and \\
- & & from the current state, which normalise the bet \\
- & & \eqref{eq:mc} (Section~\ref{sec:method}) \\
-ratio $m_i/p_0$ & no & a score $T_i$, learned by classifying real against \\
- & & simulated outcomes (Section~\ref{sec:scores}) \\
-forecast $m_i$ & no & the tilted null $\tilde T_i \propto T_i\, p_i$ defined by the score \\
- & & (Section~\ref{sec:scores}) \\
-posterior $\pi_{i-1}$ over $\theta$ & no & posterior over the score's parameter under the \\
- & & simulation likelihood (Sections~\ref{sec:simlik}--\ref{sec:blr}) \\
-Bayes factor $\mathrm{BF}_t$ & no & the Monte Carlo e-process $W_t$ \eqref{eq:wealth} \\
-\bottomrule
-\end{tabular}}%
-\begin{table}[t]
-\centering
-\caption{The objects of the Bayes factor \eqref{eq:prequential}, whether
-they are available when the null is a simulator, and what replaces them in
-this paper.}
-\label{tab:objects}
-\small
-\begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
-\end{table}
+before it is seen.
 
 For the first obstacle, the starting point is ratio estimation by
 classification \citep{thomas2022lfire}: a classifier trained to separate real
@@ -424,7 +398,6 @@ $\E[E_t \mid \G_t] = 1$, so $\E[1 - \lambda + \lambda E_t \mid \F_{t-1}] = 1$
 for each $\lambda$. Each product is a nonnegative martingale with initial
 value one, and so is their average. Ville's inequality concludes.
 \end{proof}
-
 
 For an i.i.d.\ null without actions, Theorem~\ref{thm:valid} reduces to the
 Besag--Clifford e-process of \citet[Proposition~6]{dombowsky2026besag}. The
@@ -1313,8 +1286,6 @@ flexible & MC e-process & 0.028 & 0.838 & 320 \\
 \end{tabular}
 \end{table}
 
-
-
 \subsection{Adaptive allocation}\label{sec:exp-bandit}
 
 Three arms are allocated by Thompson sampling on the real outcomes, and a
@@ -1392,8 +1363,6 @@ $(d/2)\log t$, with slopes between 1.01 and 1.10 against $d/2 = 1$. Under the
 null the log wealth decreases, and under the alternatives the monitor keeps
 pace with the best fixed score chosen in hindsight, including after the change
 point, where that score is itself a compromise between the two regimes.
-
-
 
 \subsection{Update rules}\label{sec:exp-blr}
 
@@ -1859,9 +1828,6 @@ flags D in 99\% of trials and B in 39\%, with no false discovery.
 The predictive-first learners and the Bayesian-bootstrap forest are valid as
 well, with false alarms in 1--5\% of trials, against 81--98\% for the stateless
 twin, and detect snacking in 99\% of trials (Supplement, Section~S4).
-
-
-
 
 Two caveats matter in practice. The twin is re-initialised at the participant's
 true physiological state, which is observable in silico but would have to be
