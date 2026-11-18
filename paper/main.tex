@@ -239,14 +239,8 @@ ignores the prompt does not.
 
 We developed the construction independently, as the direct way to make
 classifier-based ratio estimation \citep{thomas2022lfire} exact under adaptive
-allocation. The manuscript was in preparation when \citet{forre2026anytime}
-and \citet{cortinovis2026slice} appeared on arXiv in October 2026: the
-conditioned Monte Carlo e-process, the bandit and multi-arm multi-stage trial
-experiments, the simulation likelihood with Theorem~\ref{thm:simlik}, and the
-per-arm e-BH procedure are recorded in the version history of the code
-repository from 29 and 30 September 2026. The comparisons with both papers in
-Sections~\ref{sec:exp-concurrent} and~\ref{sec:exp-llm} were added
-afterwards. Where our results coincide with earlier or concurrent work we say
+allocation. Appendix~\ref{app:timeline} records the timing relative to the
+concurrent papers. Where our results coincide with earlier or concurrent work we say
 so where they are used: the one-step e-value and its product for independent
 data \citep{wang2022false,dombowsky2026besag,forre2026anytime,cortinovis2026slice};
 the optimality of the likelihood-ratio score and the finite-$M$ bound of
@@ -2299,5 +2293,21 @@ $10^6 + i$ under the alternative, for every method, so methods are compared on
 identical real data. On four cores, the drift experiment takes about one minute
 per 400 replications, and the MAMS trial about nine minutes per 100 replications of
 one scenario.
+
+%======================================================================
+\section{Timing relative to concurrent work}\label{app:timeline}
+%======================================================================
+
+The manuscript was in preparation when \citet{forre2026anytime} (arXiv,
+6~October 2026) and \citet{cortinovis2026slice} (arXiv, October 2026)
+appeared. The conditioned Monte Carlo e-process, the bandit and multi-arm
+multi-stage trial experiments, the simulation likelihood with
+Theorem~\ref{thm:simlik}, and the per-arm e-BH procedure are recorded in the
+version history of the code repository from 29 and 30 September 2026. Both
+preprints treat independent data; the extension to adaptive actions and state,
+the necessity of the conditioning and the use of adaptive actions as a source
+of power are specific to this paper. The comparisons with both papers in
+Sections~\ref{sec:exp-concurrent} and~\ref{sec:exp-llm}, and the remarks
+attributing shared results to them, were added after they appeared.
 
 \end{document}
