@@ -463,21 +463,6 @@ total variation, eventually raises a false alarm. Moreover $\chi^2$ can be
 large when the total variation is small, if the real system produces rare
 outcomes that the simulator almost never does.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{workflow.png}
-\caption{One step of the procedure. The design chooses the action from the
-past (1); the real system and the simulator are run under that action and
-from the current state (2a, 2b); the current score, fixed before $X_t$ is
-seen, turns the $M+1$ outcomes into the bet $E_t$ (3--4), which updates the
-wealth (5); the null is rejected when the wealth reaches $1/\alpha$, and
-otherwise the learner updates the score with the new outcomes (6) and the
-next step begins. Validity rests on the shaded block alone; the learner
-affects only power. Algorithm~1 (Section~\ref{sec:algorithm}) gives the
-formulas of each step.}
-\label{fig:workflow}
-\end{figure}
-
 %======================================================================
 \section{Power: the growth rate}\label{sec:power}
 %======================================================================
@@ -1135,6 +1120,21 @@ The pieces of this section fit together as follows, for the default score, the
 logistic Bayesian learning rule with the probability-scale predictive; the
 steps are numbered as in Figure~\ref{fig:workflow}. Each step is followed by
 the role it plays.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{workflow.png}
+\caption{One step of the procedure. The design chooses the action from the
+past (1); the real system and the simulator are run under that action and
+from the current state (2a, 2b); the current score, fixed before $X_t$ is
+seen, turns the $M+1$ outcomes into the bet $E_t$ (3--4), which updates the
+wealth (5); the null is rejected when the wealth reaches $1/\alpha$, and
+otherwise the learner updates the score with the new outcomes (6) and the
+next step begins. Validity rests on the shaded block alone; the learner
+affects only power. Algorithm~1 (Section~\ref{sec:algorithm}) gives the
+formulas of each step.}
+\label{fig:workflow}
+\end{figure}
 
 \paragraph{Algorithm 1 (Monte Carlo e-process with a predictive score).}
 \textbf{Input:} a simulator that can be run under any action from any state; a
