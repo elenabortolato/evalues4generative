@@ -541,6 +541,11 @@ perfect score the efficiency at $M = 1$ is lower, while an overconfident score
 does better with a finite budget than with an infinite one, because
 $E^{(M)} \le M+1$ truncates its bets (Section~\ref{sec:exp-budget}).
 
+Theorem~\ref{thm:growth} describes one factor. Over the whole sequence, the
+log-wealth is at least the sum of the conditional growth rates of its factors,
+up to fluctuations that average out, so the test rejects once that sum exceeds
+$\log(1/\alpha)$.
+
 \begin{corollary}[Cumulative growth]\label{cor:cumulative}
 For $\lambda \in \Lambda$ let
 $g_{M,i}(\lambda) = \E[\log(1 - \lambda + \lambda E_i) \mid \G_i]$ be the
@@ -577,27 +582,22 @@ Proposition~\ref{prop:necessary}) shows that their average tends to zero
 almost surely.
 \end{proof}
 
-Part (i) removes any assumption on the learner: the hedged terms of the
-wealth have bounded increments for every score, so their growth is governed
-by the conditional rates however the score is formed. The two rates are
-related by concavity of the logarithm,
-$\log(1 - \lambda + \lambda E) \ge \lambda \log E$, so
-$g_{M,i}(\lambda) \ge \lambda\, g_{M,i}$: betting a fraction $\lambda$ keeps
-at least a fraction $\lambda$ of the full growth rate, and more when the full
-bet is too aggressive. Part (ii) needs bounded scores. Any predictable score
-can be clipped to $[-B, B]$ without affecting validity
-(Theorem~\ref{thm:valid}), and all our learners clip at $B = 30$, so (ii)
-holds for them as implemented. Ridge penalisation alone does not provide such
-a bound: with a fixed prior the penalised estimate is only guaranteed to satisfy
-$\|\hat\theta_t\| = O(\sqrt{t})$ (compare the objective with its value at
-$\theta = 0$), and unbounded features, such as polynomials of Gaussian outcomes,
-make the score unbounded for any fixed coefficient.
+Part (i) needs no assumption on the scores: for $\lambda < 1$ each increment
+$\log(1-\lambda+\lambda E_i)$ lies in $[\log(1-\lambda), \log(1+\lambda M)]$,
+whatever the learner. Since $1-\lambda+\lambda E$ is a weighted average of 1
+and $E$, concavity of the logarithm gives $\log(1-\lambda+\lambda E) \ge \lambda\log E$,
+so $g_{M,i}(\lambda) \ge \lambda\, g_{M,i}$: betting a fraction $\lambda$ keeps
+at least a fraction $\lambda$ of the growth rate. Part (ii) needs
+$|s_t| \le B$, which gives $\log E_i \ge -2B$; clipping the score keeps
+validity (Theorem~\ref{thm:valid}), and our learners clip at $B = 30$. A ridge
+penalty alone does not bound the score: the estimate can grow like
+$\sqrt t$, and polynomial features are unbounded.
 
-The same theory gives the rate at which an action-ignoring twin produces a
-false alarm. In the setting of Proposition~\ref{prop:necessary} the real
-outcome has law $P_a$ and the simulator law is $\bar P$, so the factor is the
-one Theorem~\ref{thm:growth} analyses with $Q = P_a$ and $P = \bar P$: under the
-true null, the test behaves as if it were testing $P_a$ against $\bar P$.
+The same theory gives the rate of false alarms of a twin that ignores the
+action. Theorem~\ref{thm:growth} depends only on the laws of the real outcome
+and of the simulations, which for such a twin are $P_a$ and $\bar P$ even
+under the true null; the monitor therefore grows as if it were testing $P_a$
+against $\bar P$.
 
 \begin{corollary}[False-alarm rate of an action-ignoring twin]\label{cor:falsealarm}
 In the setting of Proposition~\ref{prop:necessary}, suppose that the laws
