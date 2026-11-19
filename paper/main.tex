@@ -647,7 +647,12 @@ recomputation.
 Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
 $p_t$ for the density of the simulator's next outcome under that action, and
 $Q_t$, with density $q_t$, for the unknown law of the real next outcome. A score is a positive
-function $T_t$ chosen from the past.
+function $T_t$ chosen from the past. The subsection makes four points: a score
+is a forecast of the next real outcome; the best forecast is the truth, whose
+score is the ratio $q_t/p_t$, which a classifier can estimate; an estimated
+ratio is a fair bet only after the Monte Carlo normalisation; and, once
+normalised, the wealth measures how much better the forecasts are than the
+simulator.
 
 \paragraph{From scores to predictives.} Every score defines a probability
 density for the next real outcome, its \emph{tilted null},
@@ -671,8 +676,9 @@ $\tilde T_t = \mathcal N(\theta, 1)$, a forecast that the real outcome is shifte
 by $\theta$, and the quadratic score $T_t(x) = e^{-\gamma x^2/2}$ gives
 $\tilde T_t = \mathcal N(0, 1/(1+\gamma))$, a forecast that it is less dispersed.
 
-\paragraph{Only the ratio is needed.} The score is $q/p_t$, a ratio of two
-densities, neither of which needs to be evaluated. A classifier separating
+\paragraph{Only the ratio is needed.} The best forecast is the truth,
+$\tilde T_t = Q_t$, whose score is $T_t = q_t/p_t$: a ratio of two densities,
+neither of which needs to be evaluated. A classifier separating
 real outcomes (label 1) from simulator draws (label 0) estimates it: if the two
 classes have prior weights $r$ and $1-r$, Bayes' theorem gives
 \[
@@ -685,8 +691,8 @@ so the classifier's logit is the log ratio up to an additive constant, which is
 zero with balanced class weights \citep{thomas2022lfire} and in any case
 cancels in \eqref{eq:mc}.
 
-\paragraph{Why the Monte Carlo normalisation is needed.} Using the estimated
-odds directly as the bet, $E^{\mathrm{plug}}_t = T_t(X_t)$ (the \emph{plug-in}),
+\paragraph{Why the Monte Carlo normalisation is needed.} An estimated ratio
+is not yet a fair bet. Using the estimated odds directly as the bet, $E^{\mathrm{plug}}_t = T_t(X_t)$ (the \emph{plug-in}),
 has conditional mean $\E_{P_t}[T_t] = Z_t$ under the null, which is one only if
 the estimated ratio integrates exactly to one against the simulator. A learned
 ratio does not. If the estimated log ratio is the true one plus noise,
@@ -709,7 +715,8 @@ of this normalised bet on past observations; the update rules of
 Sections~\ref{sec:simlik} and~\ref{sec:blr} replace that refit by one step per
 observation, with a pathwise guarantee for the exact rule.
 
-\paragraph{The wealth is a prequential likelihood ratio.} As $M \to \infty$,
+\paragraph{The wealth is a prequential likelihood ratio.} Once normalised, the
+wealth measures the quality of the forecasts. As $M \to \infty$,
 $\widehat Z_t \to Z_t$ by the law of large numbers, so
 $E_t \to T_t(X_t)/Z_t = \tilde T_t(X_t)/p_t(X_t)$ by \eqref{eq:tilt}. With the
 betting fraction $\lambda = 1$, the log wealth therefore tends to
@@ -724,7 +731,7 @@ the outcome it is scored on. This is the prequential likelihood ratio of
 learned forecaster has predicted the real outcomes $1/\alpha$ times better than
 the simulator did. Under the truth $Q$ the expected increment is
 \[
-\E_Q\Big[\log\frac{f_i}{p_i}(X_i)\Big]
+\E_Q\Big[\log\frac{\tilde T_i}{p_i}(X_i)\Big]
 = \KL(Q\|P_i) - \KL(Q\|\tilde T_i),
 \]
 the information against the simulator minus the forecaster's own error, which
@@ -732,7 +739,8 @@ is Theorem~\ref{thm:growth}(ii); a finite $M$ multiplies it by about
 $M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). Validity comes from exchangeability;
 power is a matter of prediction.
 
-\paragraph{Predictive updating.} This is the point of view of the predictive
+\paragraph{Predictive updating.} The method therefore needs a rule that
+improves the forecast as data arrive. This is the point of view of the predictive
 approach to Bayesian inference. In a Bayesian model with likelihood $q_\theta$
 and prior $\pi_0$, the forecasts are the one-step posterior predictives
 \[
@@ -748,7 +756,7 @@ predictives as the primitive. One specifies an update rule
 m_{t+1} = \mathcal U_t(m_t, X_t),
 \]
 and recovers posterior uncertainty by \emph{predictive resampling}: draw
-$X_{t+1} \sim m_{t+1}$, update, draw $X_{t+2} \sim q_{t+2}$, and so on; any
+$X_{t+1} \sim m_{t+1}$, update, draw $X_{t+2} \sim m_{t+2}$, and so on; any
 quantity computed from the limiting predictive is then a draw from the
 \emph{martingale posterior}. The imputation converges when the predictives form
 a martingale,
