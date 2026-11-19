@@ -2192,17 +2192,23 @@ $Z/2$, gives $P(G_M^c) = P(\bar T_M - Z < -Z/2) \le e^{-MZ^2/(2B^2)}$. Hence
 $\E[E_t^k\mathbf 1_{G_M^c}] \le (M+1)^k P(G_M^c) \le (M+1)^k e^{-MZ^2/(2B^2)} \to 0$,
 an exponential decay beating a polynomial growth.
 
-(ii) If $P_a \ne \bar P$, some $A$ has $P_a(A) > \bar P(A)$ (otherwise the
-inequality for $A$ and $A^c$ forces equality), and $T = 1 + \mathbf 1_A$ has
-limit $\{1 + P_a(A)\}/\{1 + \bar P(A)\} > 1$. With $R_a = dP_a/d\bar P$,
-$\E_{P_a}[R_a] = \int R_a^2\, d\bar P$ and
+(ii) By (i), a score $T$ has limit $\E_{P_a}[T]/\E_{\bar P}[T]$, which is one
+for every $T$ if $P_a = \bar P$. If $P_a \ne \bar P$, some $A$ has
+$P_a(A) > \bar P(A)$ (if $P_a(A) \le \bar P(A)$ for all $A$, the same for $A^c$
+gives $\ge$, hence equality), and $T = 1 + \mathbf 1_A$ has limit
+$\{1 + P_a(A)\}/\{1 + \bar P(A)\} > 1$. Let $R_a = dP_a/d\bar P$, so
+$\int R_a\, d\bar P = 1$ and, by the change of measure,
+$\E_{P_a}[R_a] = \int R_a^2\, d\bar P$. Expanding the square,
 \[
-\chi^2(P_a\|\bar P) = \int (R_a - 1)^2\, d\bar P = \int R_a^2\, d\bar P - 1 .
+\chi^2(P_a\|\bar P) = \int (R_a - 1)^2\, d\bar P = \int R_a^2\, d\bar P - 2 + 1 .
 \]
-If $R_a$ is bounded and bounded away from zero, $T = R_a$ has limit
-$1 + \chi^2$. Otherwise $T_c = \min(R_a, c) + 1/c \in [1/c, c + 1/c]$, and by
-monotone convergence $\E_{\bar P}[T_c] \to 1$ and $\E_{P_a}[T_c] \to \int R_a^2\, d\bar P$,
-so the limit for $T_c$ tends to $1 + \chi^2$.
+If $R_a$ is bounded and bounded away from zero, $T = R_a$ is admissible in (i)
+and has limit $\E_{P_a}[R_a]/\E_{\bar P}[R_a] = 1 + \chi^2$. Otherwise we
+truncate: $T_c = \min(R_a, c) + 1/c \in [1/c, c + 1/c]$. As $c \to \infty$,
+$\min(R_a, c) \uparrow R_a$, so by monotone convergence
+$\E_{\bar P}[T_c] \to \int R_a\, d\bar P = 1$ and
+$\E_{P_a}[T_c] = \int \min(R_a, c) R_a\, d\bar P + 1/c \to \int R_a^2\, d\bar P$,
+and the limit for $T_c$ tends to $1 + \chi^2$.
 
 (iii) Let $\xi_i = \log(1 - \lambda + \lambda E_i)$, which lies in an interval of
 length $C$ since $0 < E_i \le M+1$. As $\log(1+x) \ge x - 2x^2$ for $x \ge -1/2$
