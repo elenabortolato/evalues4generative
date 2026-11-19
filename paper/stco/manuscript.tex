@@ -455,6 +455,17 @@ be fair against every score. Part (iii) only says that the wealth grows; how fas
 it grows is given exactly by the growth-rate theory of the next section
 (Corollary~\ref{cor:falsealarm}).
 
+The contrast with a single Monte Carlo test is instructive. There, simulations
+drawn from a law within total variation $\varepsilon$ of the right one inflate
+the level by at most $\varepsilon$ \citep[Theorem~2]{barber2026montecarlo}. In
+a sequential e-process the bias of every factor compounds: the expected bet is
+governed by the $\chi^2$ divergence and the growth of the wealth by the
+Kullback--Leibler divergence (Corollary~\ref{cor:falsealarm}), and
+$2\,\mathrm{TV}^2 \le \KL \le \log(1+\chi^2)$, so any departure, however small in
+total variation, eventually raises a false alarm. Moreover $\chi^2$ can be
+large when the total variation is small, if the real system produces rare
+outcomes that the simulator almost never does.
+
 The same argument applies to the history. A twin re-initialised at a resting
 state rather than at the participant's current state samples from a law that
 ignores the effect of earlier treatment, and after an adaptive re-assignment
