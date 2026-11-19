@@ -1977,21 +1977,14 @@ prior. The average of the two wealths used in Section~\ref{sec:exp-llm} is a
 cruder version of this synthesis, and already within 16 queries of the faster
 of its two components.
 
-The predictive reading also applies to the concurrent methods, and suggests a
-further line of work. The score of \citet{cortinovis2026slice} for a candidate
-$\theta_0$, $p_{\hat\theta_{t-1}}/p_{\theta_0}$, has tilted null
-$P_{\hat\theta_{t-1}}$: it bets with the plug-in forecast of the simulator's
-family at the current estimate. Their confidence sequence therefore collects
-the parameters whose prequential log score the plug-in forecaster has not
-beaten by more than $\log(1/\alpha)$, a likelihood-free version of the
-running-estimate confidence sequences of universal inference
-\citep{wasserman2020universal}. This reading explains both their speed inside
-the family and their loss of power outside it (Remark~\ref{rem:family}), where
-the best forecast in the family can coincide with the null. Replacing the
-plug-in by the posterior predictive $\int p_\theta\,\pi_{t-1}(d\theta)$ keeps
-validity, and would give confidence sequences for simulator parameters with a
-pathwise regret bound in the spirit of Theorem~\ref{thm:simlik}; we leave
-this to future work.
+Since the score of \citet{cortinovis2026slice} bets with the plug-in forecast
+$P_{\hat\theta_{t-1}}$ (Remark~\ref{rem:family}), their confidence sequences
+are a likelihood-free version of the running-estimate confidence sequences of
+universal inference \citep{wasserman2020universal}. Replacing the plug-in by
+the posterior predictive $\int p_\theta\,\pi_{t-1}(d\theta)$ keeps validity, and
+would give confidence sequences for simulator parameters with a pathwise
+regret bound in the spirit of Theorem~\ref{thm:simlik}; we leave this to
+future work.
 
 Several limitations remain. The null is a simple conditional null; simulators
 with unknown calibration parameters need composite-null constructions, such as
