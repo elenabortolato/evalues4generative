@@ -448,12 +448,7 @@ The proof is in Appendix~\ref{app:proofs}. The hypothesis of (iii) is what
 keeps choosing an action with $P_a \ne \bar P$, as Thompson sampling does once
 it has settled on the best arm: for $M$ large enough the conditional mean of
 the factor is a constant larger than one, and its second moment is bounded by
-(i). The identity in (ii) is not new: it is the definition of the
-$\chi^2$ divergence written as the second moment of a likelihood ratio
-\citep[Section~2.4]{tsybakov2009introduction}, equivalently
-$\log \E_{P_a}[dP_a/d\bar P] = D_2(P_a\|\bar P)$, the R\'enyi divergence of
-order two \citep{vanerven2014renyi}. What the proposition adds is that this
-quantity is the exact limit of the expected Monte Carlo bet when the simulator
+(i). What the proposition adds is that $1 + \chi^2(P_a\|\bar P)$ is the exact limit of the expected Monte Carlo bet when the simulator
 ignores the action, and that the condition $P_a = \bar P$ is not only
 sufficient for fairness (Theorem~\ref{thm:valid}) but necessary for the bet to
 be fair against every score. Part (iii) only says that the wealth grows; how fast
