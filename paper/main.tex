@@ -2177,9 +2177,12 @@ least $\bar T_M \ge Z/2$, $T(X) \le B$ and $(M+1)/M \le 2$, so
 $E_t \le 2B/(Z/2) = 4B/Z$. Since $\bar T_M \to Z > Z/2$,
 $\mathbf 1_{G_M} \to 1$ almost surely, so $E_t^k\mathbf 1_{G_M} \to (T(X)/Z)^k$
 with $0 \le E_t^k\mathbf 1_{G_M} \le (4B/Z)^k$, and dominated convergence gives
-$\E[E_t^k\mathbf 1_{G_M}] \to \E_{P_a}[T^k]/Z^k$, $k = 1, 2$. On $G_M^c$, $E_t \le M+1$, and Hoeffding's inequality
-\citep{hoeffding1963probability} gives $P(G_M^c) \le e^{-MZ^2/(2B^2)}$, so
-$\E[E_t^k\mathbf 1_{G_M^c}] \le (M+1)^k e^{-MZ^2/(2B^2)} \to 0$.
+$\E[E_t^k\mathbf 1_{G_M}] \to \E_{P_a}[T^k]/Z^k$, $k = 1, 2$. On $G_M^c$, $E_t \le M+1$, since the real outcome's
+share of the total score is at most one; and Hoeffding's inequality
+\citep{hoeffding1963probability} for the $T(Y_j) \in [0, B]$, with deviation
+$Z/2$, gives $P(G_M^c) = P(\bar T_M - Z < -Z/2) \le e^{-MZ^2/(2B^2)}$. Hence
+$\E[E_t^k\mathbf 1_{G_M^c}] \le (M+1)^k P(G_M^c) \le (M+1)^k e^{-MZ^2/(2B^2)} \to 0$,
+an exponential decay beating a polynomial growth.
 
 (ii) If $P_a \ne \bar P$, some $A$ has $P_a(A) > \bar P(A)$ (otherwise the
 inequality for $A$ and $A^c$ forces equality), and $T = 1 + \mathbf 1_A$ has
