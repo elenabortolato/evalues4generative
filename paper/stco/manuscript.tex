@@ -2206,25 +2206,37 @@ If $R_a$ is bounded and bounded away from zero, $T = R_a$ is admissible in (i)
 and has limit $\E_{P_a}[R_a]/\E_{\bar P}[R_a] = 1 + \chi^2$. Otherwise we
 truncate: $T_c = \min(R_a, c) + 1/c \in [1/c, c + 1/c]$. As $c \to \infty$,
 $\min(R_a, c) \uparrow R_a$, so by monotone convergence
-$\E_{\bar P}[T_c] \to \int R_a\, d\bar P = 1$ and
-$\E_{P_a}[T_c] = \int \min(R_a, c) R_a\, d\bar P + 1/c \to \int R_a^2\, d\bar P$,
+\[
+\E_{\bar P}[T_c] \to \int R_a\, d\bar P = 1,
+\qquad
+\E_{P_a}[T_c] = \int \min(R_a, c) R_a\, d\bar P + \frac1c \to \int R_a^2\, d\bar P,
+\]
 and the limit for $T_c$ tends to $1 + \chi^2$.
 
-(iii) Let $\xi_i = \log(1 - \lambda + \lambda E_i)$, which lies in an interval of
-length $C$ since $0 < E_i \le M+1$. As $\log(1+x) \ge x - 2x^2$ for $x \ge -1/2$
-(Taylor), with $x = \lambda(E_i - 1)$, on $\Omega_0$ and for $i \ge t_0$,
+(iii) Let $\xi_i = \log(1 - \lambda + \lambda E_i)$, the log-gain of step $i$;
+since $0 < E_i \le M+1$, it lies in $[\log(1-\lambda), \log(1+\lambda M)]$, of
+length $C$ say. For $x \ge -1/2$, Taylor's theorem gives
+$\log(1+x) = x - x^2/\{2(1+\zeta)^2\}$ with $1+\zeta \ge 1/2$, so
+$\log(1+x) \ge x - 2x^2$. With $x = \lambda(E_i - 1) \ge -\lambda \ge -1/2$, on
+$\Omega_0$ and for $i \ge t_0$,
 \[
-\E[\xi_i \mid \G_i] \ge \lambda\mu - 2\lambda^2\sigma^2 \ge \lambda\mu/2 .
+\E[\xi_i \mid \G_i] \ge \lambda\,\E[E_i - 1 \mid \G_i] - 2\lambda^2\,\E[(E_i-1)^2 \mid \G_i]
+\ge \lambda\mu - 2\lambda^2\sigma^2 \ge \lambda\mu/2,
 \]
-$\Delta_i = \xi_i - \E[\xi_i \mid \G_i]$ are martingale differences for
-$(\G_{i+1})$ with $|\Delta_i| \le C$, so Azuma--Hoeffding
-\citep{azuma1967weighted} and Borel--Cantelli give $t^{-1}\sum_{i \le t}\Delta_i \to 0$
-almost surely. Since $W_t \ge |\Lambda|^{-1}\exp(\sum_{i \le t}\xi_i)$,
+the last step by $\lambda \le \mu/(4\sigma^2)$. The fluctuations
+$\Delta_i = \xi_i - \E[\xi_i \mid \G_i]$ have $\E[\Delta_i \mid \G_i] = 0$ and are
+$\G_{i+1}$-measurable, so they are martingale differences, with
+$|\Delta_i| \le C$. Azuma--Hoeffding \citep{azuma1967weighted} gives
+$P(|\sum_{i \le t}\Delta_i| \ge \varepsilon t) \le 2e^{-\varepsilon^2 t/(2C^2)}$,
+summable in $t$, so by Borel--Cantelli $t^{-1}\sum_{i \le t}\Delta_i \to 0$
+almost surely. Finally $W_t$ averages $|\Lambda|$ products, one of which is
+$\exp(\sum_{i \le t}\xi_i)$, so $W_t \ge |\Lambda|^{-1}\exp(\sum_{i \le t}\xi_i)$ and
 \[
 \frac{\log W_t}{t} \ge -\frac{\log|\Lambda|}{t} + \frac1t\sum_{i < t_0} \xi_i
-+ \frac1t\sum_{t_0 \le i \le t} \big(\E[\xi_i \mid \G_i] + \Delta_i\big),
++ \frac1t\sum_{t_0 \le i \le t} \E[\xi_i \mid \G_i] + \frac1t\sum_{t_0 \le i \le t}\Delta_i .
 \]
-whose $\liminf$ on $\Omega_0$ is at least $\lambda\mu/2$.
+On $\Omega_0$ the first two terms tend to zero, the third has $\liminf$ at
+least $\lambda\mu/2$ and the last tends to zero.
 
 \paragraph{Proof of Corollary~\ref{cor:falsealarm}.}
 (i) When $a$ is played, $X \sim P_a$ and the draws are i.i.d.\ $\bar P$, so
