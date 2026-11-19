@@ -465,12 +465,10 @@ rejects the true null with probability at least $P(\Omega_0)$.
 \end{enumerate}
 \end{proposition}
 
-The proof is in Appendix~\ref{app:proofs}. The hypothesis of (iii) is what
-(i) and (ii) deliver when the laws and the score do not change and the policy
-keeps choosing an action with $P_a \ne \bar P$, as Thompson sampling does once
-it has settled on the best arm: for $M$ large enough the conditional mean of
-the factor is a constant larger than one, and its second moment is bounded by
-(i). What the proposition adds is that $1 + \chi^2(P_a\|\bar P)$ is the exact limit of the expected Monte Carlo bet when the simulator
+The proof is in Appendix~\ref{app:proofs}. The hypothesis of (iii) holds, for
+example, when the policy keeps choosing one action $a$ with $P_a \ne \bar P$,
+as a bandit does once it has settled on the best arm: by (i) and (ii), each
+bet then has mean larger than one. What the proposition adds is that $1 + \chi^2(P_a\|\bar P)$ is the exact limit of the expected Monte Carlo bet when the simulator
 ignores the action, and that the condition $P_a = \bar P$ is not only
 sufficient for fairness (Theorem~\ref{thm:valid}) but necessary for the bet to
 be fair against every score.
