@@ -371,6 +371,28 @@ The ratios $T(U_k)/\sum_{k'} T(U_{k'})$ sum to one and, by exchangeability,
 have equal expectations, each equal to $1/(M+1)$.
 \end{proof}
 
+\paragraph{Why the normalisation is needed.} A score is typically an estimate
+of the ratio $q_t/p_t$ of the densities of the real outcome and of the
+simulator, learned by a classifier (Section~\ref{sec:scores}). Using it
+directly as the bet, $E^{\mathrm{plug}}_t = T_t(X_t)$ (the \emph{plug-in}), has
+conditional mean $Z_t = \E_{P_t}[T_t]$ under the null, which is one only if
+the estimated ratio integrates exactly to one against the simulator. A learned
+ratio does not. If the estimated log ratio is the true one plus noise,
+$\log T_t = \log(q_t/p_t) + \varepsilon$ with $\E[\varepsilon] = 0$, then
+$\E[Z_t] = \E[e^{\varepsilon}] > 1$ by Jensen's inequality even when $q_t = p_t$:
+noise in the learner alone makes the plug-in bets favourable on average under
+the null, and their product grows. This is why an overfitted learner gives so
+many false alarms (Section~\ref{sec:exp-drift}). The factor \eqref{eq:mc}
+replaces the unknown $Z_t$ by its average over the real outcome and the $M$
+simulations,
+\[
+E_t = \frac{T_t(X_t)}{\widehat Z_t},
+\qquad
+\widehat Z_t = \frac{1}{M+1}\Big\{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})\Big\},
+\]
+and Proposition~\ref{prop:exact} shows that this self-normalisation makes the
+conditional mean exactly one under the null, whatever $Z_t$ is.
+
 The factor is bounded, $0 < E_t \le M+1$. To hedge the fraction of wealth that
 is bet, we average the processes $\prod_i (1 - \lambda + \lambda E_i)$ over a
 finite grid $\Lambda \subset (0, 1]$,
@@ -640,20 +662,24 @@ have the same law, and with $K$ arms it can never exceed $\log K$ per step.
 
 Theorem~\ref{thm:growth} says what a good score is: one whose tilted null is
 close to the truth. This section shows that choosing such a score is a problem
-of sequential prediction, and gives update rules that solve it without
-recomputation.
+of sequential prediction, and builds update rules for it.
+Section~\ref{sec:scores} reads a score as a forecast of the next real outcome;
+Section~\ref{sec:rules} lists what a rule that updates the forecast must do;
+Section~\ref{sec:exactbayes} shows that Bayes' rule on the tilted family is
+optimal but cannot be computed from simulations; Section~\ref{sec:simlik}
+makes it computable with the simulation likelihood; Section~\ref{sec:blr}
+gives rules that cost a fixed amount per step; and Section~\ref{sec:algorithm}
+assembles the method.
 
-\subsection{The score as a one-step predictive}\label{sec:scores}
+\subsection{Scores are forecasts}\label{sec:scores}
 
 Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
 $p_t$ for the density of the simulator's next outcome under that action, and
 $Q_t$, with density $q_t$, for the unknown law of the real next outcome. A score is a positive
-function $T_t$ chosen from the past. The subsection makes four points: a score
-is a forecast of the next real outcome; the best forecast is the truth, whose
-score is the ratio $q_t/p_t$, which a classifier can estimate; an estimated
-ratio is a fair bet only after the Monte Carlo normalisation; and, once
-normalised, the wealth measures how much better the forecasts are than the
-simulator.
+function $T_t$ chosen from the past. Every score is a forecast of the next
+real outcome; the best forecast is the truth, whose score is the ratio $q_t/p_t$, which a classifier can estimate;
+with the Monte Carlo normalisation, the wealth then measures how much better
+the forecasts are than the simulator.
 
 \paragraph{From scores to predictives.} Every score defines a probability
 density for the next real outcome, its \emph{tilted null},
@@ -692,32 +718,9 @@ so the classifier's logit is the log ratio up to an additive constant, which is
 zero with balanced class weights \citep{thomas2022lfire} and in any case
 cancels in \eqref{eq:mc}.
 
-\paragraph{Why the Monte Carlo normalisation is needed.} An estimated ratio
-is not yet a fair bet. Using the estimated odds directly as the bet, $E^{\mathrm{plug}}_t = T_t(X_t)$ (the \emph{plug-in}),
-has conditional mean $\E_{P_t}[T_t] = Z_t$ under the null, which is one only if
-the estimated ratio integrates exactly to one against the simulator. A learned
-ratio does not. If the estimated log ratio is the true one plus noise,
-$\log T_t = \log(q/p_t) + \varepsilon$ with $\E[\varepsilon] = 0$, then
-$\E[Z_t] = \E[e^{\varepsilon}] > 1$ by Jensen's inequality even when $q = p_t$:
-noise in the learner alone makes the plug-in bets favourable on average under
-the null, and their product grows. This is why an overfitted learner gives so
-many false alarms (Section~\ref{sec:exp-drift}). The factor \eqref{eq:mc}
-replaces the unknown $Z_t$ by its average over the real outcome and the $M$
-simulations,
-\[
-E_t = \frac{T_t(X_t)}{\widehat Z_t},
-\qquad
-\widehat Z_t = \frac{1}{M+1}\Big\{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})\Big\},
-\]
-and Proposition~\ref{prop:exact} shows that this self-normalisation makes the
-conditional mean exactly one under the null, whatever $Z_t$ is. For independent
-data, \citet{forre2026anytime} fit the score by maximising the empirical growth
-of this normalised bet on past observations; the update rules of
-Sections~\ref{sec:simlik} and~\ref{sec:blr} replace that refit by one step per
-observation, with a pathwise guarantee for the exact rule.
-
-\paragraph{The wealth is a prequential likelihood ratio.} Once normalised, the
-wealth measures the quality of the forecasts. As $M \to \infty$,
+\paragraph{The wealth is a prequential likelihood ratio.} With the
+normalisation of \eqref{eq:mc}, the wealth measures the quality of the
+forecasts. As $M \to \infty$,
 $\widehat Z_t \to Z_t$ by the law of large numbers, so
 $E_t \to T_t(X_t)/Z_t = \tilde T_t(X_t)/p_t(X_t)$ by \eqref{eq:tilt}. With the
 betting fraction $\lambda = 1$, the log wealth therefore tends to
@@ -740,8 +743,10 @@ is Theorem~\ref{thm:growth}(ii); a finite $M$ multiplies it by about
 $M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). Validity comes from exchangeability;
 power is a matter of prediction.
 
-\paragraph{Predictive updating.} The method therefore needs a rule that
-improves the forecast as data arrive. This is the point of view of the predictive
+\subsection{What an update rule must do}\label{sec:rules}
+
+The method needs a rule that improves the forecast as data arrive. This is the
+point of view of the predictive
 approach to Bayesian inference. In a Bayesian model with likelihood $q_\theta$
 and prior $\pi_0$, the forecasts are the one-step posterior predictives
 \[
@@ -791,7 +796,7 @@ Monte Carlo normalisation of \eqref{eq:mc} inside the likelihood, and
 Section~\ref{sec:blr} gives one-step approximations that meet the first
 requirement at a fixed cost per observation.
 
-\subsection{The Bayesian update rule}\label{sec:exactbayes}
+\subsection{Exact Bayes on the tilted family}\label{sec:exactbayes}
 
 By \eqref{eq:prequential-wealth}, the monitor is paid the log score of its
 forecasts $\tilde T_t$. Which forecast should it issue? If the real outcomes
@@ -853,53 +858,15 @@ Appendix~\ref{app:proofs}.
 With posterior predictive scores the learning penalty is paid once,
 $(d/2)\log t$ in total, whereas a plug-in estimate bets everything on one tilt
 and can lose all its growth.
+The factorisation of a Bayes factor into one-step posterior predictives has
+several classical forms, prequential, minimum description length, sequential
+Monte Carlo and cross-validation, which are recalled in Section~S5 of the
+Supplement.
 
-Computing a Bayes factor as a product of one-step posterior predictives, as in
-\eqref{eq:prequential}, is classical, and it appears in several equivalent
-forms. In Dawid's prequential form \citep{dawid1984present}, the log marginal
-likelihood is the cumulative log score of the forecasts $m_i$, each issued
-before $x_i$ is seen,
-\[
-\log m(x_{1:t}) = \sum_{i=1}^{t} \log m_i(x_i),
-\qquad
-m_i(x) = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta).
-\]
-In minimum description length, $-\log m(x_{1:t}) = \sum_i \{-\log m_i(x_i)\}$
-is the length of the Bayes universal code, the sum of the lengths of the
-predictive codes \citep{rissanen1984universal,grunwald2007minimum}, and its
-regret against the best code in the model is
-\[
--\log m(x_{1:t}) - \inf_\theta \Big\{-\sum_{i \le t}\log q_\theta(x_i \mid x_{1:i-1})\Big\}
-= \frac d2 \log t + O_P(1)
-\]
-for i.i.d.\ data under regularity conditions \citep{clarke1990information}.
-In sequential Monte Carlo, the evidence is estimated by the same product: with
-particles $\theta^{(k)}$ and normalised weights $\omega_{i-1}^{(k)}$ approximating
-$\pi_{i-1}$,
-\[
-\tilde m_i(x_i) = \sum_{k} \omega_{i-1}^{(k)}\, q_{\theta^{(k)}}(x_i \mid x_{1:i-1}),
-\qquad
-\tilde m(x_{1:t}) = \prod_{i=1}^{t} \tilde m_i(x_i),
-\]
-and the particles are reweighted by $q_{\theta^{(k)}}(x_i \mid x_{1:i-1})$ and
-resampled as each observation arrives \citep{kong1994sequential,chopin2002sequential}.
-Finally, for exchangeable models, averaging the chain rule over all orderings of
-the observations gives
-\[
-\log m(x_{1:t}) = \sum_{k=0}^{t-1} \binom{t}{k}^{-1} \sum_{|S| = k}
-\frac{1}{t-k} \sum_{j \notin S} \log m(x_j \mid x_S),
-\]
-where $m(\cdot \mid x_S)$ is the posterior predictive given the observations in
-$S$: the log marginal likelihood is the sum, over training-set sizes, of
-exhaustive leave-$(t-k)$-out cross-validation scores \citep{fong2020marginal}.
-All these forms need the predictive density $m_i$, and hence the normalising
-constant of the model. Section~\ref{sec:simlik} gives the analogue of the
-product for a model that can only be sampled, and the averages over posterior
-nodes used to compute it in Section~\ref{sec:blr} are of the same form as the
-sequential Monte Carlo estimate $\tilde m_i$. Proposition~\ref{prop:bayes} is, however, only a
+Proposition~\ref{prop:bayes} is, however, only a
 benchmark: Bayes' rule for the tilt needs $Z(\theta)$ at every
 step and for every $\theta$. This is the normalising constant of
-\eqref{eq:tilt} that the plug-in bet cannot know (Section~\ref{sec:scores}),
+\eqref{eq:tilt} that the plug-in bet cannot know (Section~\ref{sec:method}),
 an integral against a law that can only be sampled, and it is exactly what the
 Monte Carlo factor estimates from the $M+1$ outcomes. The next section uses
 that estimate inside the likelihood.
@@ -932,7 +899,10 @@ $\ell_i = -\log E_i$, is a prequential posterior in the sense of
 simulator-based forecasting models with a one-step-ahead loss estimated from
 simulations; the particular loss $-\log E_t(\theta)$, with learning rate one,
 is what makes the posterior mixture of the bets an e-process
-(Theorem~\ref{thm:simlik}(i)).
+(Theorem~\ref{thm:simlik}(i)). For independent data, \citet{forre2026anytime}
+fit the score by maximising the empirical growth $\sum_i \log E_i(\theta)$ on
+past observations; Bayesian updating replaces that refit by one posterior step
+per observation.
 
 \begin{theorem}[Predictive updating on the simulation likelihood]\label{thm:simlik}
 Suppose the conditions of Theorem~\ref{thm:valid} hold for each fixed $\theta$
@@ -987,9 +957,15 @@ the best tilt in the class, up to the simulation cost of
 Theorem~\ref{thm:growth}(iii), and Ville's inequality then gives rejection
 after about $\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps.
 
-\subsection{Approximate posteriors and the Bayesian learning rule}\label{sec:blr}
+\subsection{Practical update rules}\label{sec:blr}
 
-The integral in $\bar E_t$ is over $\theta$ only, and any $\G_t$-measurable
+Exact Bayesian updating needs the posterior $\pi_{t-1}$ at every step. Three
+kinds of rule cost a fixed amount per step instead: a Gaussian approximation
+of a posterior, a predictive-first rule that updates the forecast directly, and
+a nonparametric rule. All give valid bets; they differ in where uncertainty
+comes from and in the guarantees they carry (Table~\ref{tab:rules}).
+
+\paragraph{Approximate posteriors.} The integral in $\bar E_t$ is over $\theta$ only, and any $\G_t$-measurable
 distribution $\nu_{t-1}$ on $\theta$, an approximate posterior, in
 place of $\pi_{t-1}$ still gives a valid bet
 $E^{\nu}_t = \int E_t(\theta)\,\nu_{t-1}(d\theta)$, because $E_t(\theta)$ is fair
@@ -1056,7 +1032,7 @@ shrink where the posterior is uncertain. Features are standardised with
 simulator draws only, before any real data are seen, so that the score stays
 predictable.
 
-The same two classifiers can also be updated without a posterior over their
+\paragraph{Predictive-first updates.} The same two classifiers can also be updated without a posterior over their
 weights, by updating their predictive directly, as martingale posteriors do
 \citep{fong2023martingale}. The learner then carries the predictive itself,
 $\sigma(z^\top\theta_t)$ for the logistic loss or the softmax
@@ -1079,11 +1055,14 @@ average of the factor over $N$ \emph{predictive-resampling} paths, obtained by
 running \eqref{eq:mp} forward from $(\theta_{t-1}, I_{t-1})$ on past batches
 whose labels are drawn from the predictive; this is the martingale posterior's
 uncertainty, truncated at $h_{\max}$ steps ($N = 16$, $h_{\max} = \min(t, 200)$, refreshed every
-ten steps). The two routes differ in where uncertainty comes from: a Gaussian
+ten steps). For the logistic loss, \eqref{eq:mp} is the Newton step of
+\eqref{eq:blr} taken at the point $\theta_{t-1}$ rather than averaged over a
+Gaussian posterior, and the forecast is the current predictive odds with no
+shrinkage. The two routes differ in where uncertainty comes from: a Gaussian
 approximation of a posterior, or simulation from the predictive. Both give valid
 bets.
 
-The predictive rule need not be parametric. The simplest rule of
+\paragraph{A nonparametric rule.} The predictive rule need not be parametric. The simplest rule of
 \citet{fong2023martingale} is the empirical predictive, under which the next
 observation is a copy of a past one, $\mathbb P_{n+1} = (n\mathbb P_n + \delta_{x_{n+1}})/(n+1)$;
 predictive resampling with it is a P\'olya urn, and its martingale posterior is
@@ -1102,7 +1081,7 @@ each tree is fitted on the past only, so the mixture is exactly fair, and the
 first inequality of Proposition~\ref{prop:approx} applies. The trees are
 refitted every few steps ($N = 16$, depth at most 6, $a = 3$).
 
-Under a Gaussian posterior the logit could also be scored on the
+\paragraph{Other choices.} Under a Gaussian posterior the logit could also be scored on the
 ratio scale, $\log\E_\nu[e^{z^\top\theta}] = \bar\eta + v/2$, which is the predictive
 of Propositions~\ref{prop:bayesopt} and~\ref{prop:bayes} when the posterior is
 exact; its uncertainty premium $v/2$ over-bets where the approximation is least
@@ -1110,6 +1089,27 @@ reliable, and it is the worst score in every experiment below. If the system
 may drift, replacing $S_{t-1}$ by $\gamma S_{t-1}$, $\gamma < 1$, before each
 update keeps the monitor responsive, and like every choice of score leaves
 validity untouched.
+
+\sbox{\widetab}{\begin{tabular}{lll}
+\toprule
+rule & uncertainty from & guarantee beyond validity \\
+\midrule
+Bayes on the simulation likelihood & exact posterior & pathwise regret (Theorem~\ref{thm:simlik}) \\
+BLR on the simulation likelihood & Gaussian approximation & Theorem~\ref{thm:simlik} up to Proposition~\ref{prop:approx} \\
+BLR on the logistic loss (default) & Gaussian approximation & none \\
+predictive-first \eqref{eq:mp} & predictive resampling & none \\
+Bayesian-bootstrap forest & Dirichlet weights & none \\
+\bottomrule
+\end{tabular}}%
+\begin{table}[t]
+\centering
+\caption{Update rules for the score (Sections~\ref{sec:simlik}
+and~\ref{sec:blr}). All give exactly valid bets; they differ in the source of
+uncertainty about the score and in the guarantee they carry beyond validity.}
+\label{tab:rules}
+\small
+\begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
+\end{table}
 
 \subsection{The method in full}\label{sec:algorithm}
 
@@ -1191,32 +1191,10 @@ $\bar E_t = N^{-1}\sum_b E_t(\theta_b)$ over posterior nodes $\theta_b$, and ste
 by \eqref{eq:blr} with $\ell_t = -\log E_t(\theta)$; Theorem~\ref{thm:simlik} and
 Proposition~\ref{prop:approx} then apply.
 
-\textbf{Predictive-first version.} The score can also be updated without any
-posterior over $\theta$, by carrying and updating the classifier's predictive
-itself, $c_t(x) = \sigma(z(x)^\top\theta_t)$, as martingale posteriors do.
-Steps 3 and 6 then become
-\[
-\text{3'.}\quad s_{t-1}(x) = z(x)^\top\theta_{t-1} = \log\frac{c_{t-1}(x)}{1 - c_{t-1}(x)},
-\]
-\[
-\text{6'.}\quad
-I_t = I_{t-1} + \sum_{k=0}^{M} w_k\, p_k(1-p_k)\, z_k z_k^\top, \qquad
-\theta_t = \theta_{t-1} + I_t^{-1}\sum_{k=0}^{M} w_k\,(y_k - p_k)\, z_k,
-\]
-with $p_k = c_{t-1}(U_{t,k})$ and $I_0 = S_0$: Fisher scoring on the
-predictive's own log-likelihood \eqref{eq:mp}, under which $\theta_t$ is a martingale.
-The forecast is then $\tilde T_t \propto p_t\, c_{t-1}/(1-c_{t-1})$, the
-current predictive odds with no shrinkage. To carry uncertainty without a
-posterior, step 4 averages the factor over $N$ predictive-resampling paths
-$\theta^{(b)}$, obtained by running 6' forward from $(\theta_{t-1}, I_{t-1})$ on
-past batches whose labels are drawn from the predictive,
-$\bar E_t = N^{-1}\sum_b E_t(\theta^{(b)})$. For the logistic loss, 6' is the
-Newton step of 6 taken at the point $\theta_{t-1}$ rather than averaged over a
-Gaussian posterior: the two versions differ only in where uncertainty comes
-from, a Gaussian approximation ($\kappa$ in step 3) or simulation from the
-predictive (the paths in step 4). With a random forest under the empirical
-predictive, step 3 uses the trees' leaf log-odds, step 4 averages the factor
-over the trees, and step 6 adds the step to the data and refits the
+\textbf{Predictive-first version.} Steps 3 and 6 are replaced by the rule
+\eqref{eq:mp} of Section~\ref{sec:blr}, and step 4 by the average of the factor
+over predictive-resampling paths; with a random forest, step 3 uses the trees'
+leaf log-odds, step 4 averages the factor over the trees, and step 6 refits the
 Bayesian-bootstrap trees every few steps. In a multi-arm design, one copy of the
 algorithm per arm, betting only on that arm's observations, is combined by e-BH
 at the end (Section~\ref{sec:trial}).
@@ -2090,9 +2068,9 @@ $\Theta$, $D$, $G$; $L_t(\theta)$ & parameter set, its diameter, feature bound; 
 $\bar\theta_t$, $S_t$; $\Sigma_t$ & mean and precision of $\nu_t$; covariance of an approximate posterior & \eqref{eq:blr} \\
 $\bar\eta$, $v$, $\kappa$ & predictive mean and variance of the logit $z^\top\theta$; $(1 + \pi v/8)^{-1/2}$ & Sec.~\ref{sec:blr} \\
 $\ell_t$, $\nabla_t$, $J_t$; $I_t$ & per-step loss, its gradient and Fisher information; accumulated information & \eqref{eq:mp} \\
-$c_t(x)$ & classifier probability $\sigma(z(x)^\top\theta_t)$ (predictive-first rule) & Sec.~\ref{sec:algorithm} \\
+$c_t(x)$ & classifier probability $\sigma(z(x)^\top\theta_t)$ (predictive-first rule) & Sec.~\ref{sec:blr} \\
 $w_k$ & weights of the outcomes: one for $X_t$, $1/M$ for each $Y_{t,j}$ & Sec.~\ref{sec:algorithm} \\
-$\mathcal U_t$ & update rule of the predictive & Sec.~\ref{sec:scores} \\
+$\mathcal U_t$ & update rule of the predictive & Sec.~\ref{sec:rules} \\
 $N$; $h_{\max}$ & number of trees, posterior nodes or resampling paths; truncation & Sec.~\ref{sec:blr} \\
 \midrule
 $\KL$, $\chi^2$, $D_2$ & Kullback--Leibler, chi-squared and Rényi-2 divergences & Sec.~\ref{sec:power} \\

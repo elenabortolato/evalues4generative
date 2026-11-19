@@ -37,8 +37,9 @@ Monte Carlo e-processes under adaptive actions''}
 \begin{document}
 \maketitle
 
-This supplement contains three analyses referred to in the main text and, in
-Section~S4, additional results for Sections~5 and~6. Theorem,
+This supplement contains three analyses referred to in the main text, in
+Section~S4 additional results for Sections~5 and~6, and in Section~S5 the
+classical forms of the predictive factorisation used in Section~4. Theorem,
 section, equation and table numbers without an S refer to the main text.
 
 \section{Monitoring one patient under closed-loop control}\label{sec:t1d-patient}
@@ -629,6 +630,54 @@ Python loop. The network was trained once per task, in 26 seconds. Out of the
 family on the bandit, SLICE keeps some power because the noisier arm makes the
 estimated shift fluctuate, and the ratio of the skewed family responds to the
 fluctuation; it does not estimate the change of scale.
+
+%======================================================================
+\section{Classical forms of the predictive factorisation}\label{sec:factorisation}
+%======================================================================
+
+Computing a Bayes factor as a product of one-step posterior predictives, as in
+equation (1) of the main text, is classical, and it appears in several equivalent
+forms. In Dawid's prequential form \citep{dawid1984present}, the log marginal
+likelihood is the cumulative log score of the forecasts $m_i$, each issued
+before $x_i$ is seen,
+\[
+\log m(x_{1:t}) = \sum_{i=1}^{t} \log m_i(x_i),
+\qquad
+m_i(x) = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta).
+\]
+In minimum description length, $-\log m(x_{1:t}) = \sum_i \{-\log m_i(x_i)\}$
+is the length of the Bayes universal code, the sum of the lengths of the
+predictive codes \citep{rissanen1984universal,grunwald2007minimum}, and its
+regret against the best code in the model is
+\[
+-\log m(x_{1:t}) - \inf_\theta \Big\{-\sum_{i \le t}\log q_\theta(x_i \mid x_{1:i-1})\Big\}
+= \frac d2 \log t + O_P(1)
+\]
+for i.i.d.\ data under regularity conditions \citep{clarke1990information}.
+In sequential Monte Carlo, the evidence is estimated by the same product: with
+particles $\theta^{(k)}$ and normalised weights $\omega_{i-1}^{(k)}$ approximating
+$\pi_{i-1}$,
+\[
+\tilde m_i(x_i) = \sum_{k} \omega_{i-1}^{(k)}\, q_{\theta^{(k)}}(x_i \mid x_{1:i-1}),
+\qquad
+\tilde m(x_{1:t}) = \prod_{i=1}^{t} \tilde m_i(x_i),
+\]
+and the particles are reweighted by $q_{\theta^{(k)}}(x_i \mid x_{1:i-1})$ and
+resampled as each observation arrives \citep{kong1994sequential,chopin2002sequential}.
+Finally, for exchangeable models, averaging the chain rule over all orderings of
+the observations gives
+\[
+\log m(x_{1:t}) = \sum_{k=0}^{t-1} \binom{t}{k}^{-1} \sum_{|S| = k}
+\frac{1}{t-k} \sum_{j \notin S} \log m(x_j \mid x_S),
+\]
+where $m(\cdot \mid x_S)$ is the posterior predictive given the observations in
+$S$: the log marginal likelihood is the sum, over training-set sizes, of
+exhaustive leave-$(t-k)$-out cross-validation scores \citep{fong2020marginal}.
+All these forms need the predictive density $m_i$, and hence the normalising
+constant of the model. Section~4.4 of the main text gives the analogue of the
+product for a model that can only be sampled, and the averages over posterior
+nodes used to compute it in Section~4.5 are of the same form as the
+sequential Monte Carlo estimate $\tilde m_i$.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

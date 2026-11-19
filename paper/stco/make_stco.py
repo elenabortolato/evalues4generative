@@ -94,7 +94,7 @@ declare.
 """
 
 
-WIDE = ["tab:objects", "tab:concurrent", "tab:llm", "tab:trial", "tab:notation"]
+WIDE = ["tab:rules", "tab:objects", "tab:concurrent", "tab:llm", "tab:trial", "tab:notation"]
 
 
 def shrink_wide_tables(tex: str) -> str:
