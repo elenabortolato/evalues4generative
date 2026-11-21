@@ -174,7 +174,7 @@ def fig_exp4():
         ax.set_title(title, color=INK)
         ax.set_ylim(0.3, 1.1)
     axes[0].set_ylabel(r"growth rate $g_M / g_\infty$")
-    styles = {"t": ("M/(M+1), Theorem 1(iv)", REF, "--"),
+    styles = {"t": ("M/(M+1), Theorem 2(iv)", REF, "--"),
               "a": ("perfect score", SLOT[0], "-"),
               "b": ("under-confident score (θ = δ/2)", SLOT[1], "-"),
               "c": ("over-confident score (θ = 1.5δ)", SLOT[2], "-")}

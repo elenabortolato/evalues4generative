@@ -40,7 +40,7 @@ BOXES = [
      [r"reject $H_0$: the simulator", "is wrong under the actions taken"]),
     ("learn", 595, 290, 280, 170, GREEN, "6. Learn (after the bet)",
      [r"update $s_{t-1} \to s_t$ with $(A_t, X_t, Y_{t,1:M})$",
-      "BLR, simulation likelihood, martingale predictive, forest",
+      "exact Bayes, Bayesian learning rule, predictive-first, forest",
       "<i>power: log score of the forecasts</i>", "<i>(Theorems 2&ndash;3)</i>"]),
 ]
 
