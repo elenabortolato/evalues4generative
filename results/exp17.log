@@ -1,0 +1,4 @@
+refitted point estimate                    false alarms 0.020  power 0.995  median 202.0  (59s)
+BLR, logistic                              false alarms 0.022  power 0.985  median 214.5  (46s)
+BLR, simulation likelihood                 false alarms 0.018  power 0.958  median 228.5  (42s)
+predictive update, simulation likelihood   false alarms 0.028  power 0.897  median 234.0  (201s)

@@ -1346,14 +1346,13 @@ point, where that score is itself a compromise between the two regimes.
 Table~\ref{tab:blr} compares, on the drift task and the bandit with identical
 data, the refitted point estimate with three of the update rules of
 Section~\ref{sec:predictive}, updated at every step with no burn-in. All are
-valid, with false alarms between 1.0\% and 3.3\%, whereas using the logistic
+valid, with false alarms between 1.3\% and 3.0\%, whereas using the logistic
 posterior odds directly as the bet gives between 14\% and 74\%. The logistic
 Bayesian learning rule with the probability-scale predictive $\kappa\bar\eta$
 is the fastest on both tasks and makes the method insensitive to the
 flexibility of the features: with degree-6 features its power is 0.97, against
 0.84 for the refitted estimate. On the simulation likelihood, the
-posterior-predictive bet beats the plug-in bet at the posterior mean (223
-against 265 steps), as Proposition~\ref{prop:approx} suggests. The
+posterior-predictive bet beats the plug-in bet at the posterior mean (Supplement, Section~S4), as Proposition~\ref{prop:approx} suggests. The
 predictive-first updates are valid and somewhat slower on the drift task, and
 on par on the bandit. The Supplement (Section~S4) reports all variants,
 including the ratio-scale predictive, the Bayesian-bootstrap forest and the
@@ -1372,10 +1371,10 @@ predictive-resampling paths. All variants are in the Supplement.}
 \toprule
 task & score & false alarms & power & median stop \\
 \midrule
-drift & refitted point estimate & 0.030 & 0.990 & 198 \\
- & BLR, logistic & 0.018 & 0.983 & 209 \\
- & BLR, simulation likelihood & 0.013 & 0.968 & 223 \\
- & predictive update, simulation likelihood & 0.010 & 0.920 & 234 \\
+drift & refitted point estimate & 0.020 & 0.995 & 202 \\
+ & BLR, logistic & 0.022 & 0.985 & 214.5 \\
+ & BLR, simulation likelihood & 0.018 & 0.958 & 228.5 \\
+ & predictive update, simulation likelihood & 0.028 & 0.897 & 234 \\
 bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
  & BLR, logistic & 0.030 & 1.000 & 38 \\
  & predictive update, simulation likelihood & 0.013 & 1.000 & 57 \\
@@ -1434,11 +1433,11 @@ alternative. All variants are in the Supplement.}
  & \multicolumn{2}{c}{drift} & \multicolumn{2}{c}{bandit} & false & time \\
 score & in family & out of family & in family & out of family & alarms & (s) \\
 \midrule
-ours, BLR logistic & 0.98 (209) & 0.70 (344) & 1.00 (38) & 1.00 (112) & 1.8--2.0\% & 0.3 / 0.2 \\
-ours, simulation likelihood & 0.97 (223) & 0.85 (258) & 1.00 (55) & 0.99 (157) & 1.0--1.3\% & 0.3 / 0.15 \\
-F\&B, refitted on the past & 0.99 (200) & 0.89 (250) & 1.00 (61) & 0.99 (167) & 1.5--2.0\% & 1.0 / 0.65 \\
-F\&B, fitted in advance & 1.00 (61) & 0.01 & -- & -- & 2.5\% & -- \\
-SLICE, neural ratio, $G = 1$ & 1.00 (71) & 0.01 & 1.00 (35) & 0.56 (258) & 0.7--3.3\% & 0.45 / 0.4 \\
+ours, BLR logistic & 0.99 (214.5) & 0.73 (321.5) & 1.00 (38) & 1.00 (112) & 2.0--2.2\% & 0.3 / 0.2 \\
+ours, simulation likelihood & 0.96 (228.5) & 0.87 (228) & 1.00 (55) & 0.99 (157) & 1.0--1.8\% & 0.3 / 0.15 \\
+F\&B, refitted on the past & 0.99 (210) & 0.91 (228) & 1.00 (61) & 0.99 (167) & 1.5--1.8\% & 1.0 / 0.65 \\
+F\&B, fitted in advance & 1.00 (57.5) & 0.01 & -- & -- & 4.8\% & -- \\
+SLICE, neural ratio, $G = 1$ & 1.00 (66.5) & 0.01 & 1.00 (35) & 0.56 (258) & 1.5--3.3\% & 0.45 / 0.4 \\
 F\&B, twin on random arms & -- & -- & \multicolumn{2}{c}{false alarms 100\%} & -- & -- \\
 \bottomrule
 \end{tabular}
@@ -1449,9 +1448,9 @@ is necessary for every score: run as published, with the twin on random arms,
 the refitted score of \citet{forre2026anytime} rejects the true null in every
 bandit run, and with simulations under the chosen arm it is valid. Second,
 scores that know where the departure lies are fastest: when the alternative is
-inside the family, SLICE stops after 71 steps on the drift and 35 on the bandit,
-and a score fitted in advance on the true alternative after 61, against about
-200 for scores learned from the data. Third, this knowledge is also their
+inside the family, SLICE stops after 67 steps on the drift and 35 on the bandit,
+and a score fitted in advance on the true alternative after 58, against about
+210 for scores learned from the data. Third, this knowledge is also their
 weakness: out of the family, SLICE has power 0.01 on the drift and 0.56 on the
 bandit, and a score fitted on the expected alternative has power 0.01, while
 every score learned from real against simulated outcomes keeps its power.
@@ -1501,16 +1500,16 @@ power of 0.56 comes only from its early fluctuations. Our scores
 $z(x)^\top\theta$ are learned from real against simulated outcomes rather than
 within a family of simulators, and their features contain $x_1^2$ and the
 squared outcome of each arm, so a change of scale moves $\tilde T_t$ towards
-$Q$; their power is 0.70 to 0.85 on the drift and 1.00 on the bandit.
+$Q$; their power is 0.73 to 0.87 on the drift and 1.00 on the bandit.
 
 Our network is trained as a binary classifier of joint against shuffled
 pairs (NRE-A), whereas \citet{cortinovis2026slice} use the contrastive
 estimator NRE-C \citep{miller2022contrastive}. Both estimate
 $\log p_\theta(y)/m(y)$, NRE-C up to a function of $y$ alone, which cancels in
 $s_t$. The choice can affect the power inside the family, where our network is
-already close to the exact ratio (71 against 75 steps on the drift, 35 against
+already close to the exact ratio (67 against 69 steps on the drift, 35 against
 35 on the bandit), but not outside it, where the exact ratio itself has power
-0.005 on the drift.
+0.01 on the drift.
 \end{remark}
 
 The difference between the two scores learned from the data is also a
@@ -1991,7 +1990,7 @@ density ratio, and its regret bound is not known to be optimal; the
 approximate one-step update used in practice is covered only through
 Proposition~\ref{prop:approx}, and in our experiments the logistic learner,
 which has no such guarantee, is more powerful than the simulation-likelihood
-learner that has one: by 7\% in stopping time on the drift task and by about
+learner that has one: by about 6\% in stopping time on the drift task and by about
 60\% in the trial, because the latter's bets are too cautious. Closing this gap,
 for instance with a tempered or sharper posterior that keeps the guarantee, is
 the most useful next step. Theorem~\ref{thm:simlik} and
@@ -2325,7 +2324,10 @@ $[-30, 30]$.
 \paragraph{Simulation-likelihood BLR.} Prior $\mathcal N(0, \tau I)$ on the
 standardised coefficients (no intercept, which cancels in $E_t(\theta)$), with
 $\tau = 1$ or $\tau = 0.03$; the latter was chosen on 24 alternative runs of the
-drift task, which are among the 400 reported. Expectations under the Gaussian
+drift task. The drift results in Tables~\ref{tab:blr} and~\ref{tab:concurrent}
+use 400 fresh replications, disjoint from these (seeds $5\cdot10^6+i$ under the
+null and $6\cdot10^6+i$ under the alternative); the variants in the Supplement
+use the original seeds. Expectations under the Gaussian
 posterior use 32 fixed antithetic nodes $m + L\xi_s$ with $LL^\top = S^{-1}$,
 and the bet is the average of $E_t(\theta)$ over the nodes.
 

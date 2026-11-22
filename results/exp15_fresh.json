@@ -1,0 +1,170 @@
+{
+ "drift": {
+  "ours-blr": {
+   "null": {
+    "rate": 0.0225,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.985,
+    "median": 214.5
+   },
+   "online_seconds": 43.1
+  },
+  "ours-simlik": {
+   "null": {
+    "rate": 0.0175,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9575,
+    "median": 228.5
+   },
+   "online_seconds": 40.7
+  },
+  "fb-online": {
+   "null": {
+    "rate": 0.0175,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9875,
+    "median": 210.0
+   },
+   "online_seconds": 144.4
+  },
+  "fb-online-tau1": {
+   "null": {
+    "rate": 0.02,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9975,
+    "median": 188.0
+   },
+   "online_seconds": 158.5
+  },
+  "fb-pre-true": {
+   "null": {
+    "rate": 0.0475,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 57.5
+   },
+   "online_seconds": 83.2
+  },
+  "fb-pre-wrong": {
+   "null": {
+    "rate": 0.0275,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.0,
+    "median": null
+   },
+   "online_seconds": 83.0
+  },
+  "slice-exact": {
+   "null": {
+    "rate": 0.01,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 69.0
+   },
+   "online_seconds": 14.2
+  },
+  "slice-nre": {
+   "offline_cost": {
+    "simulations": 200000,
+    "seconds": 24.7,
+    "epochs": 12
+   },
+   "null": {
+    "rate": 0.015,
+    "median": null
+   },
+   "alt": {
+    "rate": 1.0,
+    "median": 66.5
+   },
+   "online_seconds": 66.1
+  }
+ },
+ "drift-mis": {
+  "ours-blr": {
+   "null": {
+    "rate": 0.0225,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.7325,
+    "median": 321.5
+   },
+   "online_seconds": 43.7
+  },
+  "ours-simlik": {
+   "null": {
+    "rate": 0.0175,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.87,
+    "median": 228.0
+   },
+   "online_seconds": 39.7
+  },
+  "fb-online": {
+   "null": {
+    "rate": 0.0175,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.9075,
+    "median": 228.0
+   },
+   "online_seconds": 146.1
+  },
+  "fb-pre-true": {
+   "null": {
+    "rate": 0.0475,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.0075,
+    "median": null
+   },
+   "online_seconds": 85.2
+  },
+  "slice-exact": {
+   "null": {
+    "rate": 0.01,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.01,
+    "median": null
+   },
+   "online_seconds": 14.2
+  },
+  "slice-nre": {
+   "offline_cost": {
+    "simulations": 200000,
+    "seconds": 24.7,
+    "epochs": 12
+   },
+   "null": {
+    "rate": 0.015,
+    "median": null
+   },
+   "alt": {
+    "rate": 0.005,
+    "median": null
+   },
+   "online_seconds": 66.8
+  }
+ }
+}

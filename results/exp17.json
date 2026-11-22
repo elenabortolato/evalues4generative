@@ -1,0 +1,56 @@
+{
+ "seeds": {
+  "null": [
+   5000000,
+   5000399
+  ],
+  "alt": [
+   6000000,
+   6000399
+  ]
+ },
+ "refitted point estimate": {
+  "learner": "regularised",
+  "null": {
+   "reject": 0.02,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.995,
+   "median_stop": 202.0
+  }
+ },
+ "BLR, logistic": {
+  "learner": "blr-deg4-predictive",
+  "null": {
+   "reject": 0.0225,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.985,
+   "median_stop": 214.5
+  }
+ },
+ "BLR, simulation likelihood": {
+  "learner": "choice-deg4-mixture-p003",
+  "null": {
+   "reject": 0.0175,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.9575,
+   "median_stop": 228.5
+  }
+ },
+ "predictive update, simulation likelihood": {
+  "learner": "mp-choice-resample",
+  "null": {
+   "reject": 0.0275,
+   "median_stop": null
+  },
+  "alt": {
+   "reject": 0.8975,
+   "median_stop": 234.0
+  }
+ }
+}

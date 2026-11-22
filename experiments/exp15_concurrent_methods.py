@@ -235,8 +235,12 @@ def main():
     ap.add_argument("--alpha", type=float, default=0.05)
     ap.add_argument("--task", default="drift,bandit")
     ap.add_argument("--methods", default="")
+    ap.add_argument("--seed-offset", type=int, default=0,
+                    help="added to every seed; a nonzero offset gives replications "
+                         "disjoint from those used to choose tuning constants")
+    ap.add_argument("--out", default=str(ROOT / "results" / "exp15.json"))
     args = ap.parse_args()
-    out_path = ROOT / "results" / "exp15.json"
+    out_path = Path(args.out)
     res = json.loads(out_path.read_text()) if out_path.exists() else {}
     for task in args.task.split(","):
         default = {"drift": DRIFT, "bandit": BANDIT, "drift-mis": DRIFT_MIS,
@@ -255,7 +259,8 @@ def main():
             if name == "slice-nre":
                 row["offline_cost"] = NETS[base].cost
             t0 = time.time()
-            for label, alt, offset in [("null", False, 0), ("alt", True, 10**6)]:
+            for label, alt, offset in [("null", False, args.seed_offset),
+                                       ("alt", True, args.seed_offset + 10**6)]:
                 job = partial(run, alt=alt, horizon=horizon, m=args.m, alpha=args.alpha, name=name)
                 with ProcessPoolExecutor() as ex:
                     times = list(ex.map(job, [offset + i for i in range(args.reps)], chunksize=8))
