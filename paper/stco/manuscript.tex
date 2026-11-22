@@ -107,22 +107,46 @@ $p_0(x_{1:t}) = \prod_{i \le t} p_0(x_i \mid x_{1:i-1})$. Hence
 m_i(x) = \frac{m(x_{1:i-1}, x)}{m(x_{1:i-1})} = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta),
 \end{gathered}
 \end{equation}
-where the last equality is Bayes' rule: dividing the integrand of
-$m(x_{1:i-1}, x)$ by $m(x_{1:i-1})$ turns the prior times the likelihood of
-the first $i-1$ observations into the posterior
+where the last equality is Bayes' rule. Writing numerator and denominator as
+integrals over $\theta$,
+\[
+m_i(x) = \frac{\int q_\theta(x \mid x_{1:i-1})
+  \prod_{j<i} q_\theta(x_j \mid x_{1:j-1})\,\pi_0(d\theta)}{m(x_{1:i-1})}
+= \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta),
+\]
+since prior times likelihood of the first $i-1$ observations, divided by their
+marginal likelihood, is the posterior
 $\pi_{i-1}(d\theta) = \prod_{j<i} q_\theta(x_j \mid x_{1:j-1})\,\pi_0(d\theta)/m(x_{1:i-1})$.
-So $m_i$ is the posterior predictive of the $i$-th observation, a forecast
-issued before the observation is seen. Each factor in \eqref{eq:prequential}
-has expectation $\int m_i = 1$ under the null given the past, so
-$\mathrm{BF}_t$ is a test martingale for every prior, and
-$\log \mathrm{BF}_t = \sum_i \log m_i(x_i) - \sum_i \log p_0(x_i \mid x_{1:i-1})$
-compares the cumulative log scores of two forecasters, the prequential form of
-the marginal likelihood \citep{dawid1984present}. The price of not knowing
-$\theta$ is small: for i.i.d.\ data and a regular model with $d$ parameters,
-$\log \mathrm{BF}_t = \max_\theta \sum_{i\le t}\log\{q_\theta(x_i)/p_0(x_i)\} - (d/2)\log t + O_P(1)$
-\citep{clarke1990information}, so the Bayes factor grows almost as fast as the
-likelihood ratio at the best parameter chosen in hindsight, which grows
-linearly in $t$.
+Thus $m_i$ is the posterior predictive of $x_i$: the forecast of the next
+observation made by averaging the model over what has been learned so far,
+before $x_i$ is seen. For a coin with $q_\theta = \mathrm{Bernoulli}(\theta)$
+and a uniform prior, $m_i(\text{heads}) = (k+1)/(i+1)$ after $k$ heads in
+$i-1$ tosses, Laplace's rule of succession.
+
+Three consequences follow. First, validity does not depend on the prior: under
+the null, each factor of \eqref{eq:prequential} has conditional expectation
+\[
+\E_{p_0}\!\left[\frac{m_i(X_i)}{p_0(X_i \mid x_{1:i-1})} \,\middle|\, x_{1:i-1}\right]
+= \int m_i(x)\,dx = 1,
+\]
+because $m_i$ is a density, so $\mathrm{BF}_t$ is a test martingale for every
+$\pi_0$; the prior affects only power. Second, taking logarithms,
+\[
+\log \mathrm{BF}_t = \sum_{i \le t} \log m_i(x_i) - \sum_{i \le t} \log p_0(x_i \mid x_{1:i-1})
+\]
+is the difference between the cumulative log scores of two forecasters, a
+learner and the null; this is the prequential form of the marginal likelihood
+\citep{dawid1984present}, and the null is rejected when the learner forecasts
+the data better. Third, learning $\theta$ while betting costs little. Compare
+$\mathrm{BF}_t$ with the likelihood ratio of an oracle that bets with the best
+parameter in hindsight: when the null is false, the oracle's log ratio grows
+linearly in $t$, and for i.i.d.\ data and a regular model with $d$ parameters
+the Bayes factor falls short of it only by a logarithmic term
+\citep{clarke1990information},
+\[
+\log \mathrm{BF}_t = \max_\theta \sum_{i \le t} \log\frac{q_\theta(x_i)}{p_0(x_i)}
+- \frac d2 \log t + O_P(1).
+\]
 
 Equation~\eqref{eq:prequential} is the template for the rest of the paper.
 It involves three objects: the null conditional density
