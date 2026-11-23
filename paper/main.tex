@@ -1868,6 +1868,17 @@ martingale posteriors do: in our experiments both routes are valid everywhere,
 and the Gaussian route is usually faster because its covariance damps early
 bets.
 
+The tilted null also makes a rejection informative. When the monitor rejects,
+the posterior over the score's parameter describes the tilts of the simulator
+that have forecast reality better than the simulator itself, so the features
+with large posterior coefficients indicate the direction of the departure:
+a shift in the mean, an excess of variance, a particular arm. This reading is
+descriptive rather than inferential, since the posterior is not a test of each
+feature and correlated features can forecast equally well; a formal statement
+about a given aspect of the simulator needs its own e-process, as the per-arm
+e-processes combined by e-BH provide in the trial
+(Section~\ref{sec:trial}).
+
 The actions are a source of power, not only a threat to validity. Once the
 simulator is run under the action taken, the design may be chosen to gather
 evidence where it accumulates fastest, and Theorem~\ref{thm:valid} keeps the
