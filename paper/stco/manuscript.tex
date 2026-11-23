@@ -244,8 +244,7 @@ action that is actually taken. $H_0$ is composite in the policy, which is left
 unrestricted. This composite null costs nothing: because each factor is fair
 conditionally on the past and on the action, one e-process is valid for every
 policy simultaneously, with no infimum over the class. The policy may depend
-on past outcomes and on the monitor's own wealth, unlike the independent
-covariates of \citet[Corollary~C.1]{cortinovis2026slice}; the price is that
+on past outcomes and on the monitor's own wealth; the price is that
 the null concerns only the actions actually taken, so the monitor cannot
 detect failures of the simulator under actions the policy never chooses. A nonnegative process $(W_t)$ with $W_0 = 1$ is a \emph{test
 supermartingale} for $H_0$ if $\E[W_t \mid \F_{t-1}] \le W_{t-1}$ under every
@@ -277,27 +276,20 @@ The ratios $T(U_k)/\sum_{k'} T(U_{k'})$ sum to one and, by exchangeability,
 have equal expectations, each equal to $1/(M+1)$.
 \end{proof}
 
-\paragraph{Why the normalisation is needed.} A score is typically an estimate
-of the ratio $q_t/p_t$ of the densities of the real outcome and of the
-simulator, learned by a classifier (Section~\ref{sec:scores}). Using it
-directly as the bet, $E^{\mathrm{plug}}_t = T_t(X_t)$ (the \emph{plug-in}), has
-conditional mean $Z_t = \E_{P_t}[T_t]$ under the null, which is one only if
-the estimated ratio integrates exactly to one against the simulator. A learned
-ratio does not. If the estimated log ratio is the true one plus noise,
-$\log T_t = \log(q_t/p_t) + \varepsilon$ with $\E[\varepsilon] = 0$, then
-$\E[Z_t] = \E[e^{\varepsilon}] > 1$ by Jensen's inequality even when $q_t = p_t$:
-noise in the learner alone makes the plug-in bets favourable on average under
-the null, and their product grows. This is why an overfitted learner gives so
-many false alarms (Section~\ref{sec:exp-drift}). The factor \eqref{eq:mc}
-replaces the unknown $Z_t$ by its average over the real outcome and the $M$
-simulations,
-\[
-E_t = \frac{T_t(X_t)}{\widehat Z_t},
-\qquad
-\widehat Z_t = \frac{1}{M+1}\Big\{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})\Big\},
-\]
-and Proposition~\ref{prop:exact} shows that this self-normalisation makes the
-conditional mean exactly one under the null, whatever $Z_t$ is.
+A score is typically a classifier's estimate of the ratio $q_t/p_t$ of the
+densities of the real outcome and of the simulator (Section~\ref{sec:scores}).
+Used directly as the bet, $T_t(X_t)$ (the \emph{plug-in} bet) has conditional
+mean $Z_t = \E_{P_t}[T_t]$ under the null, which equals one only if the
+estimated ratio integrates exactly to one against the simulator. A learned
+ratio does not. If $\log T_t = \log(q_t/p_t) + \varepsilon$ with
+$\E[\varepsilon] = 0$, then $\E[Z_t] = \E[e^{\varepsilon}] > 1$ by Jensen's
+inequality even when $q_t = p_t$, so estimation noise alone makes the plug-in
+bets favourable under the null; this is why an overfitted learner gives many
+false alarms (Section~\ref{sec:exp-drift}). The factor \eqref{eq:mc} replaces
+$Z_t$ by its estimate
+$\widehat Z_t = \{T_t(X_t) + \sum_{j=1}^{M} T_t(Y_{t,j})\}/(M+1)$, and
+Proposition~\ref{prop:exact} shows that this self-normalisation makes the
+conditional mean exactly one, whatever $Z_t$ is.
 
 The factor is bounded, $0 < E_t \le M+1$. To hedge the fraction of wealth that
 is bet, we average the processes $\prod_i (1 - \lambda + \lambda E_i)$ over a
@@ -345,39 +337,46 @@ that does not depend on $A_t$ (for instance the twin run under uniformly
 random actions) and are independent of $X_t$. Let $T > 0$ be a bounded
 $\G_t$-measurable score.
 \begin{enumerate}
-\item[(i)] As $M \to \infty$,
+\item[(i)] \emph{The limit of the expected bet.} As $M \to \infty$,
 \[
-\E[E_t \mid \G_t] \to \frac{\E_{P_a}[T]}{\E_{\bar P}[T]}
+\E[E_t \mid \G_t] \to \rho = \frac{\E_{P_a}[T]}{\E_{\bar P}[T]}
 \quad\text{and}\quad
 \E[E_t^2 \mid \G_t] \to \frac{\E_{P_a}[T^2]}{(\E_{\bar P}[T])^2}.
 \]
-\item[(ii)] The limit in (i) equals one for every bounded score if and only if
-$P_a = \bar P$. If $P_a \ll \bar P$ and $R_a = dP_a/d\bar P$, then
+\item[(ii)] \emph{Favourable scores exist whenever $P_a \ne \bar P$.} The
+limit $\rho$ equals one for every bounded score if and only if $P_a = \bar P$.
+If $P_a \ll \bar P$ and $R_a = dP_a/d\bar P$, the likelihood-ratio score
+gives
 \[
-\E_{P_a}\Big[\frac{dP_a}{d\bar P}\Big] = \int R_a^2\, d\bar P
-= 1 + \chi^2(P_a \,\|\, \bar P),
+\E_{P_a}[R_a] = \int R_a^2\, d\bar P = 1 + \chi^2(P_a \,\|\, \bar P):
 \]
-the truncated scores $T_c = \min(R_a, c) + 1/c$ have limits that tend to
-$1 + \chi^2(P_a\|\bar P) \in (1, \infty]$ as $c \to \infty$ when
-$P_a \ne \bar P$, and if $R_a$ is bounded and bounded away from zero the score
-$T = R_a$ has limit exactly $1 + \chi^2(P_a\|\bar P)$.
-\item[(iii)] Suppose that on an event $\Omega_0$ there is a finite time $t_0$
-such that, for all $t \ge t_0$, $\E[E_t \mid \G_t] \ge 1 + \mu$ and
-$\E[(E_t - 1)^2 \mid \G_t] \le \sigma^2$ for constants $\mu, \sigma > 0$. If
-$\Lambda$ contains some $\lambda \le \min\{1/2,\, \mu/(4\sigma^2)\}$, then on
-$\Omega_0$, almost surely,
-$\liminf_{t} t^{-1} \log W_t \ge \lambda\mu/2 > 0$. In particular the test
-rejects the true null with probability at least $P(\Omega_0)$.
+$T = R_a$ has $\rho = 1 + \chi^2(P_a\|\bar P)$ when $R_a$ is bounded and
+bounded away from zero, and in general the truncated scores
+$T_c = \min(R_a, c) + 1/c$ have $\rho \to 1 + \chi^2(P_a\|\bar P) \in (1,\infty]$
+as $c \to \infty$.
+\item[(iii)] \emph{Hence false alarms.} Suppose that $P_a$ and $\bar P$ do not
+change over time and that, on an event $\Omega_0$, from some finite time on
+the policy plays $a$ with a fixed score $T$ taking values in $[b, B]$,
+$0 < b \le B$, whose limit in (i) is $\rho > 1$; by (ii) such a score exists
+whenever $P_a \ne \bar P$. Then there is $M_0$ such that, for every
+$M \ge M_0$, if $\Lambda$ contains some
+$\lambda \le \min\{1/2,\, (\rho - 1)b^2/(8B^2)\}$, on $\Omega_0$, almost
+surely,
+\[
+\liminf_{t\to\infty} \frac{\log W_t}{t} \ge \frac{\lambda(\rho - 1)}{4} > 0 .
+\]
+In particular the test rejects the true null with probability at least
+$P(\Omega_0)$.
 \end{enumerate}
 \end{proposition}
 
-The proof is in Appendix~\ref{app:proofs}. The hypothesis of (iii) holds, for
-example, when the policy keeps choosing one action $a$ with $P_a \ne \bar P$,
-as a bandit does once it has settled on the best arm: by (i) and (ii), each
-bet then has mean larger than one. What the proposition adds is that $1 + \chi^2(P_a\|\bar P)$ is the exact limit of the expected Monte Carlo bet when the simulator
-ignores the action, and that the condition $P_a = \bar P$ is not only
+The proof is in Appendix~\ref{app:proofs}. The event $\Omega_0$ occurs, for
+example, when a bandit settles on the best arm: each bet then has mean larger
+than one, by (i) and (ii), and the wealth grows exponentially, by (iii). The
+proposition also shows that the condition $P_a = \bar P$ is not only
 sufficient for fairness (Theorem~\ref{thm:valid}) but necessary for the bet to
-be fair against every score.
+be fair against every score, and that $1 + \chi^2(P_a\|\bar P)$ is the exact
+limit of the expected bet of the likelihood-ratio score.
 
 The contrast with a single Monte Carlo test is instructive. There, simulations
 drawn from a law within total variation $\varepsilon$ of the right one inflate
@@ -2142,7 +2141,17 @@ $\min(R_a, c) \uparrow R_a$, so by monotone convergence
 \]
 and the limit for $T_c$ tends to $1 + \chi^2$.
 
-(iii) Let $\xi_i = \log(1 - \lambda + \lambda E_i)$, the log-gain of step $i$;
+(iii) Set $\mu = (\rho - 1)/2$. Given $\G_t$, the conditional law of $E_t$
+depends only on $P_a$, $\bar P$ and $T$, which do not change, so by (i) there
+is $M_0$ such that $\E[E_t \mid \G_t] \ge 1 + \mu$ for every $M \ge M_0$ at
+every step at which $a$ is played with $T$. Since $T \in [b, B]$, the
+numerator of \eqref{eq:mc} is at most $(M+1)B$ and the denominator at least
+$(M+1)b$, so $b/B \le E_t \le B/b$ and
+$\E[(E_t - 1)^2 \mid \G_t] \le \sigma^2 = (B/b)^2$; then
+$\mu/(4\sigma^2) = (\rho-1)b^2/(8B^2)$. It remains to show that a persistent
+drift of this kind makes the wealth grow. Let $t_0$ be the time from which,
+on $\Omega_0$, these bounds hold, and let
+$\xi_i = \log(1 - \lambda + \lambda E_i)$, the log-gain of step $i$;
 since $0 < E_i \le M+1$, it lies in $[\log(1-\lambda), \log(1+\lambda M)]$, of
 length $C$ say. For $x \ge -1/2$, Taylor's theorem gives
 $\log(1+x) = x - x^2/\{2(1+\zeta)^2\}$ with $1+\zeta \ge 1/2$, so
@@ -2166,7 +2175,7 @@ $\exp(\sum_{i \le t}\xi_i)$, so $W_t \ge |\Lambda|^{-1}\exp(\sum_{i \le t}\xi_i)
 + \frac1t\sum_{t_0 \le i \le t} \E[\xi_i \mid \G_i] + \frac1t\sum_{t_0 \le i \le t}\Delta_i .
 \]
 On $\Omega_0$ the first two terms tend to zero, the third has $\liminf$ at
-least $\lambda\mu/2$ and the last tends to zero.
+least $\lambda\mu/2 = \lambda(\rho-1)/4$ and the last tends to zero.
 
 \paragraph{Proof of Corollary~\ref{cor:falsealarm}.}
 (i) When $a$ is played, $X \sim P_a$, the draws are i.i.d.\ $\bar P$ and the
@@ -2232,7 +2241,7 @@ lies in $[(M+1)/(1 + M e^{2GB_\Theta}),\, M+1]$, so
 \[
 t^{-1}\textstyle\sum_{i\le t}\{\log E_i(\theta) - g_{M,i}(\theta)\} \to 0
 \]
-almost surely, as in
+almost surely, as in the proof of
 Proposition~\ref{prop:necessary}(iii). By (ii),
 $\log \bar W_t \ge \sum_{i \le t} \log E_i(\theta) - d\log t - O(1)$. In the
 i.i.d.\ case a countable dense subset of $\Theta$ and the continuity of $g_M$
