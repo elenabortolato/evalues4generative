@@ -1,0 +1,172 @@
+% Proposed alternative Introduction (version 2), shorter and in a plainer style.
+% Not yet input in main.tex. Part A replaces the whole Introduction.
+% Part B (the Bayes factor as a product of forecasts) moves to the start of
+% Section 4.1 "Scores are forecasts", so that \eqref{eq:prequential} keeps working.
+
+%======================================================================
+% PART A. Introduction
+%======================================================================
+\section{Introduction}\label{sec:intro}
+
+A digital twin is useful only as long as it behaves like the system it
+copies. Checking this is hard when the system is being steered while we
+watch. Consider a multi-arm multi-stage (MAMS) trial of insulin-dosing
+strategies \citep{whitehead1997design,magirr2012generalized}. At each interim
+analysis some arms are dropped and their participants move to other arms,
+taking their glucose history with them. An in-silico simulator of type~1
+diabetes exists and is accepted by the US Food and Drug Administration for
+preclinical testing \citep{kovatchev2009insilico}. We would like to check,
+while the trial runs, whether the real participants still behave like
+simulated ones, and to raise an alarm as soon as they do not, with a
+guaranteed false-alarm rate.
+
+The same question comes up with multi-armed bandits
+\citep{lattimore2020bandit}, response-adaptive clinical designs
+\citep{trippa2012bayesian,villar2015multi}, and AI systems that act in
+environments shaped by their own past decisions. Three features make it
+difficult. The data are dependent, because what is observed next depends on
+what has been seen. The null model is a simulator, which we can run but whose
+likelihood we cannot write down. And we want to look at the evidence after
+every observation. Fixed-sample tests lose their guarantees under repeated
+looks, and the corrections developed for adaptive trials
+\citep{bowden2017unbiased,magirr2012generalized} assume a pre-specified
+adaptation rule. Bayesian updating copes with adaptive sampling but does not,
+by itself, control the type~I error under optional stopping.
+
+E-values were designed for this situation
+\citep{vovk2021evalues,ramdas2023game,grunwald2024safe}. An e-process is the
+running wealth of a gambler who places one fair bet against the null per
+observation. By Ville's inequality, the probability that this wealth ever
+exceeds $1/\alpha$ is at most $\alpha$, so the experimenter can look after
+every observation and stop whenever she likes. The best known e-process is
+the Bayes factor. Written one observation at a time, it multiplies the
+posterior predictive density of each new observation and divides by its null
+density. Each factor has mean one under the null for every prior, and the
+product rewards whoever forecasts the data better, the learner or the null
+\citep{dawid1984present}. Learning the parameters along the way costs only a
+term of order $\log t$ \citep{clarke1990information}.
+
+We cannot use the Bayes factor here, for two reasons. The null density is not
+available, since the simulator has latent dynamics and, under adaptive
+allocation, its law changes with the path. Nor is there a trusted model of the
+real system to forecast with, since that is precisely what is in question.
+Our approach keeps the shape of the Bayes factor, one fair bet per
+observation placed before the observation is seen, and replaces both of its
+ingredients.
+
+To replace the null density we start from a classifier. A classifier trained
+to tell real outcomes from simulated ones estimates the ratio of their
+densities from samples alone \citep{thomas2022lfire}. Such an estimate is not
+a fair bet, but a Monte Carlo test turns it into one
+\citep{besag1989generalized}. At each step we run the simulator $M$ times,
+score the $M$ simulated outcomes together with the real one, and bet on the
+real outcome's share of the total score, multiplied by $M+1$. If the simulator
+is right, the real outcome is just one more draw among $M+1$ exchangeable
+ones, and the bet is fair for any score. In an adaptive design the only
+delicate point is how to simulate. We run the simulator under the action
+actually taken and from the current state of the unit. This is enough for
+validity under any allocation rule, and it cannot be dropped: a simulator run
+without regard to the action produces false alarms with probability one.
+
+To replace the forecast we look at the bet from a different angle. As a
+function of the parameters of the score, the bet is a likelihood of a familiar
+kind. In a conditional-logit model, one item is chosen from a set with
+probability proportional to its score; here the set is the real outcome
+together with its $M$ simulations, and the item chosen is the real one. Seen
+as a likelihood, the bet can be updated by Bayes' rule, one observation at a
+time, and the next bet can be placed with the posterior predictive, exactly as
+in the Bayes factor. Standard regret bounds for Bayesian mixtures
+\citep{kakade2005online} then guarantee that, on every sample path, the wealth
+stays within a $d\log t$ term of what the best score in the class would have
+earned in hindsight.
+
+Our contributions are the following.
+\begin{enumerate}
+\item \emph{Validity under adaptive actions, and why the conditioning is
+needed.} The Monte Carlo e-process is a test martingale for every allocation
+rule (Theorem~\ref{thm:valid}). Without conditioning on the action, the
+expected bet under the null tends to $1+\chi^2$ for the likelihood-ratio score
+and false alarms grow exponentially, at a rate of at most $\log K$ per step
+with $K$ arms (Proposition~\ref{prop:necessary},
+Corollary~\ref{cor:falsealarm}).
+\item \emph{Bayesian updating of the score.} Reading the bet as a likelihood
+gives exact posterior-predictive bets, updated in one step per observation,
+with a regret bound that holds on every sample path
+(Theorem~\ref{thm:simlik}). A cheaper approximate posterior keeps validity
+exact and loses a bounded amount of power (Proposition~\ref{prop:approx}).
+\item \emph{Adaptive actions as a source of power.} Since validity holds for
+any allocation rule, the actions can be chosen to collect evidence quickly. In
+an audit of a language-model API, choosing the prompts adaptively reduces the
+number of queries by up to 61\%, for our scores and for those of concurrent
+methods (Section~\ref{sec:exp-llm}).
+\item \emph{The power of an arbitrary score.} A score implicitly bets that
+reality looks like the simulator reweighted by the score, a tilted version of
+the null. Its growth rate is the Kullback--Leibler information against the
+simulator minus the distance from reality to this tilted null, and $M$
+simulations keep a fraction $M/(M+1)$ of it for local alternatives
+(Theorem~\ref{thm:growth}).
+\end{enumerate}
+
+The pieces are independent of each other. Any score fixed before the new
+outcome is seen gives a valid test, so a network trained in advance can be
+used in the same adaptive design. Our update rules are what we recommend when
+nothing is known about the alternative, which is the usual situation when a
+simulator is validated: a twin tends to fail in ways its designers did not
+anticipate, and a score tuned to a guessed departure has no power against
+another.
+
+In the insulin trial, with five strategies over three stages, only the monitor
+that runs the twin from each participant's state under the assigned arm
+controls false alarms (2\% of trials, against 95\% for a twin that ignores the
+participants' history). One e-process per arm, combined by e-BH
+\citep{xu2021unified}, identifies the arm on which the twin fails.
+
+Three recent papers use the same Monte Carlo bet for independent data
+\citep{dombowsky2026besag,forre2026anytime,cortinovis2026slice}; for a single
+test it is the soft-rank e-value of \citet{wang2022false}. We developed our
+construction independently (Appendix~\ref{app:timeline}). Their main
+developments assume independent observations and a simulator without state.
+\citet{forre2026anytime} list dependent data as an open problem, and
+\citet[Appendix~C.1.1]{cortinovis2026slice} note that the construction extends
+under conditional exchangeability and prove validity given independent
+covariates. They also learn the score differently: \citet{forre2026anytime}
+refit it by maximising its empirical growth, and \citet{cortinovis2026slice}
+train a neural ratio estimator before the data arrive. Section~\ref{sec:related}
+lists in detail which of our results coincide with theirs.
+
+Section~\ref{sec:method} gives the method and its validity,
+Section~\ref{sec:power} its power, and Section~\ref{sec:predictive} the
+predictive view and the update rules (Algorithm~1). Section~\ref{sec:experiments}
+contains simulations, the comparison with concurrent methods and the
+language-model audit, and Section~\ref{sec:trial} the trial.
+Section~\ref{sec:discussion} discusses limitations.
+
+%======================================================================
+% PART B. Opening of Section 4.1 "Scores are forecasts"
+% (the Bayes factor material moved from the Introduction)
+%======================================================================
+% Insert right after \subsection{Scores are forecasts}\label{sec:scores}
+
+The Bayes factor is the model for what follows. For a composite alternative
+with model $q_\theta$ and prior $\pi_0$, it is the ratio of the marginal
+likelihood $m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,
+\pi_0(d\theta)$ to the null density. By the chain rule,
+\begin{equation}\label{eq:prequential}
+\mathrm{BF}_t = \prod_{i=1}^{t} \frac{m_i(x_i)}{p_0(x_i \mid x_{1:i-1})},
+\qquad
+m_i(x) = \int q_\theta(x \mid x_{1:i-1})\,\pi_{i-1}(d\theta),
+\end{equation}
+where $\pi_{i-1}$ is the posterior after $i-1$ observations, so $m_i$ is the
+posterior predictive of $x_i$. (For a coin with a uniform prior,
+$m_i(\text{heads}) = (k+1)/(i+1)$ after $k$ heads in $i-1$ tosses.) Each
+factor has conditional mean $\int m_i = 1$ under the null, whatever the prior;
+$\log \mathrm{BF}_t$ is the difference between the cumulative log scores of
+the learner and of the null \citep{dawid1984present}; and for i.i.d.\ data
+and a regular model with $d$ parameters
+\[
+\log \mathrm{BF}_t = \max_\theta \sum_{i \le t} \log\frac{q_\theta(x_i)}{p_0(x_i)}
+- \frac d2 \log t + O_P(1)
+\]
+\citep{clarke1990information}. The Monte Carlo e-process has the same
+structure, with the simulations in place of $p_0$ and the score in place of
+$q_\theta$; the rest of this section makes the correspondence precise.
