@@ -32,5 +32,4 @@ Explain in plain words *before* using the technical name, at first use:
   problem matters to you, and the closing of the contributions.
 
 ## Proposed alternative
-- `paper/intro_v2.tex`: shorter Introduction (Part A) + Bayes-factor block
-  for Section 4.1 (Part B). Not yet input in `main.tex`.
+- The shorter Introduction is now in `main.tex` (commit of 23 Nov); its Bayes-factor block opens Section 4.1.
