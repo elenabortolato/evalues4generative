@@ -38,7 +38,7 @@ E-values were designed for this situation
 running wealth of a gambler who places one fair bet against the null per
 observation. By Ville's inequality, the probability that this wealth ever
 exceeds $1/\alpha$ is at most $\alpha$, so the experimenter can look after
-every observation and stop whenever she likes. The best known e-process is
+every observation and stop at any time. The best known e-process is
 the Bayes factor. Written one observation at a time, it multiplies the
 posterior predictive density of each new observation and divides by its null
 density. Each factor has mean one under the null for every prior, and the
@@ -107,9 +107,10 @@ simulations keep a fraction $M/(M+1)$ of it for local alternatives
 (Theorem~\ref{thm:growth}).
 \end{enumerate}
 
-The pieces are independent of each other. Any score fixed before the new
-outcome is seen gives a valid test, so a network trained in advance can be
-used in the same adaptive design. Our update rules are what we recommend when
+Validity and power are separate questions in this construction. Validity
+comes from how the simulator is run, not from the score, so any score fixed
+before the new outcome is seen gives a valid test, and a network trained in
+advance can be used in the same adaptive design. Our update rules are what we recommend when
 nothing is known about the alternative, which is the usual situation when a
 simulator is validated: a twin tends to fail in ways its designers did not
 anticipate, and a score tuned to a guessed departure has no power against
