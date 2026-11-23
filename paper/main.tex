@@ -394,14 +394,21 @@ outcomes that the simulator almost never does.
 
 The time needed to reach $1/\alpha$ is governed
 by the growth rate $\E[\log E_t \mid \G_t]$ \citep{grunwald2024safe}. Fix a
-time, condition on $\G_t$ and drop the index. Let $P$ be the simulator law and
-$Q$ the true law of the next outcome, with $Q \ll P$; let $T = e^{s}$ and
-$Z = \E_P[T] < \infty$, and define the \emph{tilted null} $\tilde T$ by
-$d\tilde T/dP = T/Z$, the exponential tilt of the simulator law by the score.
-It is the alternative on which the score implicitly bets, and a perfect score
-has $\tilde T = Q$. It is the \emph{forecast} of the score: not an estimate
-of $Q$ but a deterministic function of the score, and we use the same symbol
-$\tilde T$ for the law and its density. Write $\rho = \E_Q[T]/Z$. Let $X \sim Q$
+time, condition on $\G_t$ and drop the index. Let $P$ be the simulator
+law and $Q$ the true law of the next outcome, with $Q \ll P$; let $T = e^{s}$
+and let $Z = \E_P[T] < \infty$ be the normalising constant of
+Section~\ref{sec:method}. The score defines a law for the next outcome, its
+\emph{tilted null},
+\begin{equation}\label{eq:tilt}
+\frac{d\tilde T}{dP} = \frac{T}{Z},
+\end{equation}
+the simulator law reweighted by the score, with density $Tp/Z$ when $P$ has
+density $p$; we use the same symbol for the law and its density. It is the
+score's forecast of $Q$, and a perfect score has $\tilde T = Q$
+(Section~\ref{sec:scores} develops this reading). Write
+$\rho = \E_Q[T]/Z$, the limit of the expected bet as $M \to \infty$
+(Proposition~\ref{prop:necessary}(i), with $Q$ and $P$ in place of $P_a$
+and $\bar P$). Let $X \sim Q$
 and, independently, $Y_1, \ldots, Y_M$ i.i.d.\ $P$, and let
 $E^{(M)} = (M+1)T(X)/\{T(X) + \sum_{j} T(Y_j)\}$ be the factor \eqref{eq:mc}
 computed from them. The \emph{growth rate} with $M$ simulator draws is
@@ -602,21 +609,21 @@ $q_\theta$; the rest of this section makes the correspondence precise.
 
 Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
 $p_t$ for the density of the simulator's next outcome under that action, and
-$Q_t$, with density $q_t$, for the unknown law of the real next outcome. A score is a positive
-function $T_t$ chosen from the past. Every score is a forecast of the next
-real outcome; the best forecast is the truth, whose score is the ratio $q_t/p_t$, which a classifier can estimate;
-with the Monte Carlo normalisation, the wealth then measures how much better
-the forecasts are than the simulator.
-
-\paragraph{From scores to predictives.} Every score defines a probability
-density for the next real outcome, its \emph{tilted null},
-\begin{equation}\label{eq:tilt}
+$Q_t$, with density $q_t$, for the unknown law of the real next outcome. A
+score $T_t$ is chosen from the past and, by \eqref{eq:tilt}, defines a
+probability density for the next real outcome, its tilted null
+\[
 \tilde T_t(x) = \frac{T_t(x)\,p_t(x)}{Z_t},
 \qquad
-Z_t = \E_{P_t}[T_t] = \int T_t(x)\,p_t(x)\,dx,
-\end{equation}
-which integrates to one by construction. It is the simulator's density
-reweighted by the score: the score raises the predicted density where
+Z_t = \E_{P_t}[T_t] = \int T_t(x)\,p_t(x)\,dx .
+\]
+Every score is therefore a forecast of the next real outcome. The best
+forecast is the truth, whose score is the ratio $q_t/p_t$, which a classifier
+can estimate; with the Monte Carlo normalisation, the wealth measures how much
+better the forecasts are than the simulator.
+
+\paragraph{From scores to predictives.} The tilted null is the simulator's
+density reweighted by the score: the score raises the predicted density where
 $T_t > Z_t$ and lowers it where $T_t < Z_t$. Conversely, for any predictive density of
 the next real outcome computed from the past, the score equal to its ratio to
 $p_t$ has $Z_t = 1$ and that density as its tilted null. The factor
