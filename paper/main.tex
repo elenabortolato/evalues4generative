@@ -571,22 +571,16 @@ have the same law, and with $K$ arms it can never exceed $\log K$ per step.
 %======================================================================
 
 Theorem~\ref{thm:growth} says what a good score is: one whose tilted null is
-close to the truth. This section shows that choosing such a score is a problem
-of sequential prediction, and builds update rules for it.
-Section~\ref{sec:scores} reads a score as a forecast of the next real outcome;
-Section~\ref{sec:rules} lists what a rule that updates the forecast must do;
-Section~\ref{sec:exactbayes} shows that Bayes' rule on the tilted family is
-optimal but cannot be computed from simulations; Section~\ref{sec:simlik}
-makes it computable with the simulation likelihood; Section~\ref{sec:blr}
-gives rules that cost a fixed amount per step; and Section~\ref{sec:algorithm}
-assembles the method.
+close to the truth. Choosing such a score is therefore a problem of
+sequential prediction: before each real outcome is seen, forecast it as well
+as possible from the past. When the null density is known, this problem has a
+classical solution, the Bayes factor, and we build on it. We first recall why
+the Bayes factor is a product of forecasts, and then show that the Monte Carlo
+e-process has the same structure, with the score in place of the model.
 
-\subsection{Scores are forecasts}\label{sec:scores}
-
-The Bayes factor is the model for what follows. For a composite alternative
-with model $q_\theta$ and prior $\pi_0$, it is the ratio of the marginal
-likelihood $m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,
-\pi_0(d\theta)$ to the null density. By the chain rule,
+For a model $q_\theta$ with prior $\pi_0$, the Bayes factor is the ratio of
+the marginal likelihood $m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,
+\pi_0(d\theta)$ to the null density $p_0$. By the chain rule,
 \begin{equation}\label{eq:prequential}
 \mathrm{BF}_t = \prod_{i=1}^{t} \frac{m_i(x_i)}{p_0(x_i \mid x_{1:i-1})},
 \qquad
@@ -606,6 +600,8 @@ and a regular model with $d$ parameters
 \citep{clarke1990information}. The Monte Carlo e-process has the same
 structure, with the simulations in place of $p_0$ and the score in place of
 $q_\theta$; the rest of this section makes the correspondence precise.
+
+\subsection{Scores are forecasts}\label{sec:scores}
 
 Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
 $p_t$ for the density of the simulator's next outcome under that action, and
