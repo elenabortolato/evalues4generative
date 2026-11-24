@@ -711,21 +711,16 @@ learner, exact or approximate, trained online or in advance, keeps the
 validity of Theorem~\ref{thm:valid}, and when the monitor rejects, the
 forecasts that beat the simulator indicate where it fails.
 
-\subsection{What an update rule must do}\label{sec:rules}
+\subsection{The update rule}\label{sec:rules}
 
-The method needs a rule that improves the forecast as data arrive. This is the
-point of view of the predictive
-approach to Bayesian inference. In a Bayesian model with likelihood $q_\theta$
-and prior $\pi_0$, the forecasts are the one-step posterior predictives
-\[
-m_t(x) = \int q_\theta(x \mid x_{1:t-1})\,\pi_{t-1}(d\theta),
-\qquad
-\pi_{t-1}(d\theta) \propto \prod_{i<t} q_\theta(x_i \mid x_{1:i-1})\,\pi_0(d\theta),
-\]
-and by the chain rule \eqref{eq:prequential} they determine the joint law of
-the observations; for exchangeable sequences de Finetti's theorem recovers the
-prior and the likelihood from them. \citet{fong2023martingale} take the
-predictives as the primitive. One specifies an update rule
+Section~\ref{sec:scores} reduces the choice of the score to a rule that
+improves the forecast as data arrive. This is the point of view of the
+predictive approach to Bayesian inference. In a Bayesian model the forecasts
+are the posterior predictives $m_t$ of \eqref{eq:prequential}, and by the
+chain rule they determine the joint law of the observations; for exchangeable
+sequences de Finetti's theorem recovers the prior and the likelihood from
+them. \citet{fong2023martingale} take the predictives as the primitive. One
+specifies an update rule
 \[
 m_{t+1} = \mathcal U_t(m_t, X_t),
 \]
@@ -740,29 +735,28 @@ a martingale,
 that is, when imputing one more outcome does not move the forecast on average;
 such sequences are the conditionally identically distributed sequences of
 \citet{berti2004limit}, and Bayesian predictives satisfy the condition. The
-monitor uses only the first half of this construction, the rule
-$\mathcal U_t$ that turns the current forecast and a new outcome into the next
-forecast, and never imputes. The rule must satisfy four requirements.
-\begin{enumerate}
-  \item It must be sequential: the bet on $X_t$ is fixed before $X_t$ is seen,
-        so the forecast cannot be refitted on data that include $X_t$.
-  \item It should forecast well one step ahead, since by
-        \eqref{eq:prequential-wealth} the growth of the wealth is the one-step
-        log score of the forecasts.
-  \item It should hedge early on: an overconfident forecast can lose all the
-        growth (Theorem~\ref{thm:growth}), and averaging over what has not yet
-        been learned protects against it.
-  \item It must be computable from simulations alone, since $p_t$ is
-        available only as a sampler.
-\end{enumerate}
+monitor needs above all the rule $\mathcal U_t$, which turns the current
+forecast and a new outcome into the next forecast; predictive resampling
+enters only in one of the rules of Section~\ref{sec:blr}, to average the bet
+over the uncertainty of the forecast.
+
+By Section~\ref{sec:scores}, such a rule must be sequential, since the bet on
+$X_t$ is fixed before $X_t$ is seen, and should forecast well one step ahead,
+since the growth of the wealth is the one-step log score of the forecasts.
+The setting adds two requirements. The rule should hedge early on: an
+overconfident forecast can lose all the growth (Theorem~\ref{thm:growth}),
+and averaging over what has not yet been learned protects against it. And it
+must be computable from simulations alone, since $p_t$ is available only as
+a sampler.
+
 The rest of the section looks for such a rule. Bayes' theorem is the natural
 first candidate: it is optimal for the log score and gives the Bayes factor
-(Section~\ref{sec:exactbayes}), but it violates the fourth requirement,
-because its normalising constant is an integral against $p_t$. The
-simulation likelihood (Section~\ref{sec:simlik}) restores it by putting the
-Monte Carlo normalisation of \eqref{eq:mc} inside the likelihood, and
-Section~\ref{sec:blr} gives one-step approximations that meet the first
-requirement at a fixed cost per observation.
+(Section~\ref{sec:exactbayes}), but it cannot be computed from simulations
+alone, because its normalising constant is an integral against $p_t$. The
+simulation likelihood (Section~\ref{sec:simlik}) restores this by putting
+the Monte Carlo normalisation of \eqref{eq:mc} inside the likelihood, and
+Section~\ref{sec:blr} gives one-step approximations that are sequential at a
+fixed cost per observation.
 
 \subsection{Exact Bayes on the tilted family}\label{sec:exactbayes}
 
