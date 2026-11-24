@@ -609,13 +609,11 @@ $q_\theta$.
 
 Fix a time $t$ and condition on $\G_t$, so that the action is known. Write
 $p_t$ for the density of the simulator's next outcome under that action, and
-$q_t$ for the density of the unknown law $Q_t$ of the real next outcome.
-
-The natural score is the density ratio
-$q_t/p_t$. Neither density can be evaluated, but their ratio can be estimated
-by a classifier separating real outcomes (label 1) from simulator draws
-(label 0): if the two classes have prior weights $r$ and $1-r$, Bayes'
-theorem gives
+$q_t$ for the density of the unknown law $Q_t$ of the real next outcome. The
+natural score is the density ratio $q_t/p_t$. Neither density can be
+evaluated, but their ratio can be estimated by a classifier separating real
+outcomes (label 1) from simulator draws (label 0): if the two classes have
+prior weights $r$ and $1-r$, Bayes' theorem gives
 \[
 \Pr(\text{real} \mid x) = \frac{r\, q_t(x)}{r\, q_t(x) + (1-r)\, p_t(x)},
 \qquad
@@ -626,11 +624,10 @@ so the classifier's logit is the log ratio up to an additive constant, which
 is zero with balanced class weights \citep{thomas2022lfire} and in any case
 cancels in \eqref{eq:mc}.
 
-\paragraph{The forecast behind a score.} In practice $T_t$ is only an
-estimate of the true ratio, learned from past data, and what matters is the
-density it induces. Reweighting the simulator by the score as in
-\eqref{eq:tilt}, which keeps the simulator's outcomes and gives each a weight
-proportional to its score, yields the tilted null
+In practice $T_t$ is only an estimate of the true ratio, learned from past
+data, and what matters is the density it induces. Reweighting the simulator by
+the score as in \eqref{eq:tilt}, which keeps the simulator's outcomes and gives
+each a weight proportional to its score, yields the tilted null
 \[
 \tilde T_t(x) = \frac{T_t(x)\,p_t(x)}{Z_t},
 \qquad
@@ -646,11 +643,10 @@ E_t = \frac{T_t(X_t)}{\widehat Z_t} \;\to\; \frac{T_t(X_t)}{Z_t}
 \]
 a likelihood ratio of $\tilde T_t$ against the simulator: a bettor using the
 score acts as if the next outcome followed $\tilde T_t$, and wins when real
-outcomes fall where $\tilde T_t$ puts more mass than the simulator.
-
-If $T_t$ is the true ratio, $Z_t = 1$ and $\tilde T_t = q_t$; otherwise
-$\tilde T_t$ is the score's forecast of $q_t$. Conversely, any predictive
-density $f_t$ computed from the past is the tilted null of a score,
+outcomes fall where $\tilde T_t$ puts more mass than the simulator. If $T_t$
+is the true ratio, $Z_t = 1$ and $\tilde T_t = q_t$; otherwise $\tilde T_t$
+is the score's forecast of $q_t$. Conversely, any predictive density $f_t$
+computed from the past is the tilted null of a score,
 \[
 T_t = \frac{f_t}{p_t}
 \quad\Longrightarrow\quad
@@ -664,11 +660,10 @@ constant and predictive densities are therefore the same object. The
 correspondence is the familiar one between density ratios and densities,
 used for instance in noise-contrastive estimation \citep{gutmann2012noise};
 what the Monte Carlo normalisation adds is that the wealth scores these
-densities prequentially, without evaluating any of them, as we now show.
+densities prequentially, without evaluating any of them.
 
-\paragraph{The wealth is a prequential likelihood ratio.} By the limit of
-the bet above, with the betting fraction $\lambda = 1$ the log wealth tends
-to
+Indeed, by the limit of the bet above, with the betting fraction
+$\lambda = 1$ the log wealth tends to
 \begin{equation}\label{eq:prequential-wealth}
 \log W_t \;=\; \sum_{i \le t} \log E_i \;\to\; \sum_{i \le t} \log \tilde T_i(X_i)
 - \sum_{i \le t} \log p_i(X_i),
@@ -680,9 +675,7 @@ between the cumulative log scores of two forecasters, each forecast issued
 before the outcome it is scored on: the prequential likelihood ratio of
 \citet{dawid1984present}. The monitor rejects at level $\alpha$ when the
 score's forecasts have predicted the real outcomes $1/\alpha$ times better
-than the simulator did.
-
-\paragraph{The best score is the true ratio.} Under the truth, writing
+than the simulator did. Under the truth, writing
 $\log(\tilde T_t/p_t) = \log(q_t/p_t) - \log(q_t/\tilde T_t)$, the expected
 increment of \eqref{eq:prequential-wealth} is
 \[
@@ -697,6 +690,25 @@ Theorem~\ref{thm:growth}(ii), and a finite $M$ multiplies the growth by about
 $M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). A learned score therefore pays, at
 every step, for its error as a forecaster: validity comes from
 exchangeability; power is a matter of prediction.
+
+This reading of the score, as a forecast scored by the logarithmic loss,
+turns its choice into a problem of sequential prediction, and this problem
+has a known answer: forecasting with the posterior predictive of a Bayesian
+mixture loses at most a term of order $d\log t$ against the best forecaster
+in the class, on every sample path. The rest of this section builds on this
+answer (Sections~\ref{sec:rules} to~\ref{sec:simlik}), and it is what
+Theorem~\ref{thm:simlik} delivers for the Monte Carlo e-process. It also
+explains why refitting a point estimate at each step is not enough: the
+resulting sequence of plug-in forecasts is in general not the predictive
+sequence of any mixture, so it carries no such guarantee. The same reading
+says where power comes from. A score can only forecast within the family of
+its tilted nulls, so the features determine which departures can be
+detected, which is the contrast between departures inside and outside a
+parametric family in Section~\ref{sec:exp-concurrent}. Finally, since a
+forecast need only be issued before the outcome it is scored on, any
+learner, exact or approximate, trained online or in advance, keeps the
+validity of Theorem~\ref{thm:valid}, and when the monitor rejects, the
+forecasts that beat the simulator indicate where it fails.
 
 \subsection{What an update rule must do}\label{sec:rules}
 
