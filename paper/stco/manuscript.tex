@@ -1068,16 +1068,21 @@ at the end (Section~\ref{sec:trial}).
 \section{Simulation studies}\label{sec:experiments}
 %======================================================================
 
-Throughout, $\alpha = 0.05$, so the test rejects when the wealth reaches 20,
-the betting-fraction grid has 20 values from 0.05 to 1, and $M = 16$ unless
-stated otherwise. Tables report, over 400 replications unless stated
-otherwise, the share of runs that reject a true null within the horizon
-(false alarms), the share that reject a false null (power), and the median
-stopping time under the alternative, with runs that never reject counted as
-infinite (Table~\ref{tab:llm} instead uses the runs that reject). The horizon
-is 500 steps for the drift task and 400 for the bandit and the audit; the
-Monte Carlo standard error of a false-alarm rate near 0.05 is about 0.011.
-Seeds are shared, so methods are compared on identical data.
+The experiments ask whether a learned score can break validity
+(Section~\ref{sec:exp-drift}); whether adaptive allocation can
+(Section~\ref{sec:exp-bandit}); whether the growth rates of
+Section~\ref{sec:power} and the regret of Theorem~\ref{thm:simlik} are what
+one observes (Section~\ref{sec:exp-budget}); how the update rules and the
+scores of concurrent methods compare (Sections~\ref{sec:exp-blr}
+and~\ref{sec:exp-concurrent}); and what adaptive actions add in an audit with
+real model outputs (Section~\ref{sec:exp-llm}). Throughout, $\alpha = 0.05$,
+$M = 16$ unless stated otherwise, and the betting fraction is mixed over 20
+values from 0.05 to 1. Each table reports, over 400 replications on data
+shared by all methods, the share of runs that reject a true null within the
+horizon (false alarms; Monte Carlo standard error about 0.011 near 0.05), the
+share that reject a false null (power), and the median stopping time, with
+runs that never reject counted as infinite; the horizon is 500 steps for the
+drift task and 400 for the bandit and the audit.
 
 \subsection{Validity with learned scores}\label{sec:exp-drift}
 
@@ -1146,7 +1151,7 @@ oracle LR & 0.043 & 1.000 & 15 \\
 \end{tabular}
 \end{table}
 
-\subsection{The theory in numbers}\label{sec:exp-budget}
+\subsection{Empirical growth rates}\label{sec:exp-budget}
 
 On the drift task, validity holds at every budget, including $M = 1$ (false
 alarms 1.5--3.5\%), and the median stopping time at $M = 1$ is 1.8 times that
@@ -1180,7 +1185,11 @@ gives 14--74\% false alarms. The logistic Bayesian learning rule is the
 fastest and makes the method insensitive to the flexibility of the features
 (power 0.97 with degree-6 features, against 0.84 for the refit). The
 simulation-likelihood learner, the one with the guarantee of
-Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. All variants
+Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. This is the
+price of the guarantee rather than a contradiction: the bound holds on every
+path, against the best score in hindsight, and the Bayesian mixture pays for
+it with cautious early bets, whereas the logistic learner bets more
+aggressively with no such bound, which pays on these tasks. All variants
 are in the Supplement (Section~S4), and a comparison with the Besag--Clifford
 e-process of \citet{dombowsky2026besag} in Section~S3.
 
