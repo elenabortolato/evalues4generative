@@ -81,7 +81,7 @@ Each trace is summarised relative to $g_t$ by:
   \item two context variables: the predicted glucose level and the committed
         insulin rate.
 \end{itemize}
-The score is the BLR predictive of Section~4.1 on these
+The score is the BLR predictive of Section~4.3 on these
 summaries, updated after every epoch.
 
 Because the dosing plan is committed at the start of the epoch, the epoch's
@@ -210,7 +210,7 @@ for each participant, the simulator with that participant's virtual-patient
 parameters is run $M = 16$ times under the arm actually assigned and the same
 meal protocol. The monitor asks whether the in-silico trial still predicts
 what happens to the participants \emph{given the allocation the design has
-made}. The score is the BLR predictive of Section~4.4 on six
+made}. The score is the BLR predictive of Section~4.3 on six
 summaries of the day relative to the twin's noise-free path (mean and standard
 deviation of the residual, time below 70 and above 180 mg/dL, and the arm),
 with interactions between the arm and the residual and time-below-range
@@ -389,8 +389,9 @@ conditioning on the action rejects a true null in every run
 
 This section collects material moved out of the main text: the rejection
 curves of the drift experiment, all variants of the update rules, the regret
-check of Theorem~3, the trial with each learner, and
-all variants of the comparison with concurrent methods.
+check of Theorem~3, the growth rate as a function of the budget, the trial
+with each learner, and all variants of the comparison with concurrent methods,
+with the details of the alternatives outside SLICE's family.
 
 \subsection{Drift experiment: rejection curves}
 
@@ -408,7 +409,7 @@ drifted (detections). The dotted line is $\alpha = 0.05$.}
 
 Table~\ref{tab:blr-full} compares, on the drift task and the bandit with identical
 data, the refitted point estimate with the online Bayesian learning rule of
-Section~4.4 of the main text, updated at every step with no burn-in. With the
+Section~4.3 of the main text, updated at every step with no burn-in. With the
 logistic loss, the probability-scale predictive $\kappa\bar\eta$ beats the posterior
 mean in every setting and makes the method insensitive to the flexibility of
 the features: with degree-6 features power rises from 0.84 to 0.97 and the
@@ -418,7 +419,7 @@ predictive $\mu + v/2$ is the worst score in every setting, with power 0.74--0.8
 in the drift task, as its uncertainty premium over-bets where the Gaussian
 approximation is least reliable. On the simulation likelihood, the
 posterior-predictive bet beats the plug-in bet at the posterior mean (223
-against 265 steps), as Proposition~5 suggests, and with a prior
+against 265 steps), as Proposition~4 suggests, and with a prior
 variance of 0.03 it comes within 7\% of the logistic learner (223 against 209
 steps with degree 4, 222 against 214 with degree 6); with the default prior
 variance of one it needs 290 steps. The two learners fail in opposite
@@ -430,7 +431,7 @@ best fraction 0.75), and a fraction below one cannot amplify a cautious bet.
 False alarms stay between 1.0\% and 3.3\% for every score; using the logistic
 posterior odds directly as the bet gives between 14\% and 74\% false alarms.
 
-The predictive-first updates (the predictive-first update of Section~4.4) are valid in every setting and
+The predictive-first updates (equation (9) of the main text) are valid in every setting and
 slower than their Gaussian counterparts on the drift task: 234--277 steps with
 degree-4 features, against 209--223, and with the flexible degree-6 features the
 plug-in and resampled predictives lose much of their power (0.65 and 0.64,
@@ -447,7 +448,17 @@ these problems: a power of 0.61 within 500 steps on the drift, where the
 discrepancy is a smooth change of curvature that a polynomial score represents
 directly and trees approximate by axis-aligned steps, and a median of 63 steps
 on the bandit. The mixture over trees and the forest's mean log-odds perform
-alike.
+alike. The forest is built as follows. The exchangeable units are the
+monitoring steps, each contributing its real outcome (label one, weight one)
+and its $M$ simulations (label zero, weight $1/M$), and each of $N = 16$ trees
+of depth at most 6 is fitted to the past steps with its own
+$\mathrm{Dirichlet}(1, \ldots, 1)$ weights, so that the forest is a sample from
+the martingale posterior of the empirical predictive, the Bayesian bootstrap.
+A leaf's score is its log-odds under a $\mathrm{Beta}(a, a)$ prior on its
+weighted class counts, $\log\{(w_1 + a)/(w_0 + a)\}$ with $a = 3$, so that
+leaves supported by little data bet little, and the bet is the mixture
+$N^{-1}\sum_b E_t(\mathrm{tree}_b)$; each tree is fitted on the past only, so
+the mixture is exactly fair.
 
 \begin{table}[t]
 \centering
@@ -456,7 +467,7 @@ Bayesian learning rule on the logistic loss (probability-scale predictive
 $\kappa\bar\eta$, ratio-scale $\bar\eta+v/2$, or posterior mean $\bar\eta$) or on the
 simulation likelihood (posterior-predictive mixture bet, or plug-in at the
 posterior mean; prior variance in brackets); predictive update: the
-classifier's predictive updated directly by (the predictive-first update of Section~4.4), betting with the
+classifier's predictive updated directly by equation (9) of the main text, betting with the
 current predictive (plug-in) or averaging over predictive-resampling paths;
 Bayesian-bootstrap forest: trees fitted with Dirichlet weights (the martingale
 posterior of the empirical predictive) on the raw outcomes, refitted every 25
@@ -502,7 +513,7 @@ bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
 
 \subsection{Regret of the posterior-predictive e-process}
 
-Section~5.3 of the main text describes the set-up. Table~\ref{tab:regret}
+The set-up is given in the next subsection. Table~\ref{tab:regret}
 reports the largest regret over the 12 paths of each scenario.
 
 \begin{table}[t]
@@ -527,10 +538,34 @@ bound, $d\log t + d\log(4eGD/d)$ & 10.9 & 15.5 & 17.7 & 20.1 & 21.5 & & \\
 \end{tabular}
 \end{table}
 
+\subsection{Growth rate and budget}
+
+On the drift task with the regularised learner (200 replications), false
+alarms stay between 1.5\% and 3.5\% at every budget, and the median stopping
+time is 371 steps at $M = 1$ against 207 at $M = 64$, a factor 1.8 against the
+factor 2 of Theorem~2(iv); for larger $M$ the ratios are smaller, as part of
+the stopping time is spent learning the score. With $P = \mathcal N(0,1)$,
+$Q = \mathcal N(\delta, 1)$ and $T(x) = e^{\theta x}$, for which
+$\tilde T = \mathcal N(\theta, 1)$, $g_\infty = \theta\delta - \theta^2/2$ and
+$\rho = e^{\theta\delta}$, the efficiency $g_M/g_\infty$ for $\delta = 0.25$ is
+0.48, 0.66, 0.80, 0.89 and 0.93 at $M = 1, 2, 4, 8, 16$, against
+$M/(M+1) = 0.50, 0.67, 0.80, 0.89, 0.94$. With $\theta = 2\delta$ and
+$\delta = 1$, where $g_\infty = 0$, the growth rate rises to 0.18 at $M = 4$ and
+falls towards zero as $M$ grows: a finite budget tempers an overconfident
+score. The regret check of Theorem~3 uses the bounded features
+$\phi(x) = (\mathrm{clip}(x, \pm 3), \mathrm{clip}(x^2 - 1, \pm 3))/3$ ($d = 2$,
+$G = \sqrt 2$), a uniform prior on the disc of radius $D = 3$ and
+$P = \mathcal N(0,1)$; the mixture is computed exactly on a grid of 31\,000
+points and the hindsight optimum by convex optimisation, for 12 paths of each
+scenario. Under the null the log wealth decreases, and under the alternatives
+the monitor keeps pace with the best fixed score chosen in hindsight,
+including after the change point, where that score is itself a compromise
+between the two regimes.
+
 \subsection{The trial with each learner}
 
 Table~\ref{tab:trial-learners} compares all learners. The four predictive-first
-learners of Section~4.4 of the main text are valid as well, with false alarms in 1--5\%
+learners of Section~4.3 of the main text are valid as well, with false alarms in 1--5\%
 of trials while the stateless twin raises them in 81--98\%; they detect snacking
 in 99\% of trials after a median of 42--51 participant-days, and e-BH flags D in
 99\% of trials and B in 37--62\%, with A, C and E flagged in at most 2\%.
@@ -632,11 +667,36 @@ estimated shift fluctuate, and the ratio of the skewed family responds to the
 fluctuation; it does not estimate the change of scale.
 
 %======================================================================
+\subsection{Inside and outside the family: details}
+
+In the drift, SLICE's family is $x = (z_1, z_2 + b(z_1^2 - 1))$ with
+$z \sim \mathcal N(0, I)$, in which $x_1 \sim \mathcal N(0, 1)$ for every $b$,
+and the real data are $x = (1.2 z_1, z_2 + b_0(1.44 z_1^2 - 1))$ with
+$b_0 = 0.5$. In $p_b(x) = \phi(x_1)\,\phi(x_2 - b(x_1^2 - 1))$ the marginal of
+$x_1$ does not depend on $b$, so minimising $\KL(Q\|P_b)$ is least squares of
+$x_2$ on $x_1^2 - 1$ through the origin, whose limit is
+$\E[x_2(x_1^2 - 1)]/\E[(x_1^2 - 1)^2] = b_0$, and $\phi(x_1)$ cancels in the
+score: the projection is the null and the power is 0.01. In the bandit, the
+family is $y \mid a = \mu_a + \delta_a + e^{\varepsilon/2} - e^{1/8}$, in which
+$\delta$ moves only the location of each arm, while the real noise of the most
+pulled arm is 1.5 times larger with the same mean; the estimate of $\delta_a$
+converges to zero, and SLICE's power of 0.56 comes only from its early
+fluctuations. Our scores, learned from real against simulated outcomes, have
+power 0.73 to 0.87 on the drift and 1.00 on the bandit.
+
+Our network is trained as a binary classifier of joint against shuffled pairs
+(NRE-A), whereas SLICE uses the contrastive estimator NRE-C. Both estimate
+$\log p_\theta(y)/m(y)$, NRE-C up to a function of $y$ alone, which cancels in
+the score. The choice can affect the power inside the family, where our network
+is already close to the exact ratio (67 against 69 steps on the drift, 35
+against 35 on the bandit), but not outside it, where the exact ratio itself has
+power 0.01 on the drift.
+
 \section{Classical forms of the predictive factorisation}\label{sec:factorisation}
 %======================================================================
 
 Computing a Bayes factor as a product of one-step posterior predictives, as in
-equation (1) of the main text, is classical, and it appears in several equivalent
+equation (6) of the main text, is classical, and it appears in several equivalent
 forms. In Dawid's prequential form \citep{dawid1984present}, the log marginal
 likelihood is the cumulative log score of the forecasts $m_i$, each issued
 before $x_i$ is seen,
@@ -674,9 +734,9 @@ where $m(\cdot \mid x_S)$ is the posterior predictive given the observations in
 $S$: the log marginal likelihood is the sum, over training-set sizes, of
 exhaustive leave-$(t-k)$-out cross-validation scores \citep{fong2020marginal}.
 All these forms need the predictive density $m_i$, and hence the normalising
-constant of the model. Section~4.4 of the main text gives the analogue of the
+constant of the model. Section~4.2 of the main text gives the analogue of the
 product for a model that can only be sampled, and the averages over posterior
-nodes used to compute it in Section~4.5 are of the same form as the
+nodes used to compute it in Section~4.3 are of the same form as the
 sequential Monte Carlo estimate $\tilde m_i$.
 
 \bibliographystyle{plainnat}

@@ -578,8 +578,11 @@ close to the truth. Choosing such a score is therefore a problem of
 sequential prediction: before each real outcome is seen, forecast it as well
 as possible from the past. When the null density is known, this problem has a
 classical solution, the Bayes factor, and we build on it. We first recall why
-the Bayes factor is a product of forecasts, and then show that the Monte Carlo
-e-process has the same structure, with the score in place of the model.
+the Bayes factor is a product of forecasts and show that the Monte Carlo
+e-process has the same structure, with the score in place of the model
+(Section~\ref{sec:scores}); we then derive an update rule for the score with a
+pathwise guarantee (Section~\ref{sec:simlik}), and its practical version
+(Section~\ref{sec:blr}).
 
 For a model $q_\theta$ with prior $\pi_0$, the Bayes factor is the ratio of
 the marginal likelihood $m(x_{1:t}) = \int \prod_{i \le t} q_\theta(x_i \mid x_{1:i-1})\,
@@ -692,118 +695,55 @@ $M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). A learned score therefore pays, at
 every step, for its error as a forecaster: validity comes from
 exchangeability; power is a matter of prediction.
 
-This reading of the score, as a forecast scored by the logarithmic loss,
-turns its choice into a problem of sequential prediction, and this problem
-has a known answer: forecasting with the posterior predictive of a Bayesian
-mixture loses at most a term of order $d\log t$ against the best forecaster
-in the class, on every sample path. The rest of this section builds on this
-answer (Sections~\ref{sec:rules} to~\ref{sec:simlik}), and it is what
-Theorem~\ref{thm:simlik} delivers for the Monte Carlo e-process. It also
-explains why refitting a point estimate at each step is not enough: the
-resulting sequence of plug-in forecasts is in general not the predictive
-sequence of any mixture, so it carries no such guarantee. The same reading
-says where power comes from. A score can only forecast within the family of
-its tilted nulls, so the features determine which departures can be
-detected, which is the contrast between departures inside and outside a
-parametric family in Section~\ref{sec:exp-concurrent}. Finally, since a
-forecast need only be issued before the outcome it is scored on, any
-learner, exact or approximate, trained online or in advance, keeps the
-validity of Theorem~\ref{thm:valid}, and when the monitor rejects, the
-forecasts that beat the simulator indicate where it fails.
+This reading says where power comes from. A score can only forecast within
+the family of its tilted nulls, so the features determine which departures
+can be detected, which is the contrast between departures inside and outside
+a parametric family in Section~\ref{sec:exp-concurrent}. And since a forecast
+need only be issued before the outcome it is scored on, any learner, exact or
+approximate, trained online or in advance, keeps the validity of
+Theorem~\ref{thm:valid}; when the monitor rejects, the forecasts that beat the
+simulator indicate where it fails.
 
-\subsection{The update rule}\label{sec:rules}
+\subsection{From Bayes to the simulation likelihood}\label{sec:rules}\label{sec:exactbayes}\label{sec:simlik}
 
-Section~\ref{sec:scores} reduces the choice of the score to a rule that
-improves the forecast as data arrive. This is the point of view of the
-predictive approach to Bayesian inference. In a Bayesian model the forecasts
-are the posterior predictives $m_t$ of \eqref{eq:prequential}, and by the
-chain rule they determine the joint law of the observations; for exchangeable
-sequences de Finetti's theorem recovers the prior and the likelihood from
-them. \citet{fong2023martingale} take the predictives as the primitive. One
-specifies an update rule
-\[
-m_{t+1} = \mathcal U_t(m_t, X_t),
-\]
-and recovers posterior uncertainty by \emph{predictive resampling}: draw
-$X_{t+1} \sim m_{t+1}$, update, draw $X_{t+2} \sim m_{t+2}$, and so on; any
-quantity computed from the limiting predictive is then a draw from the
-\emph{martingale posterior}. The imputation converges when the predictives form
-a martingale,
-\[
-\E_{X \sim m_t}\big[\mathcal U_t(m_t, X)(x)\big] = m_t(x) \quad \text{for all } x,
-\]
-that is, when imputing one more outcome does not move the forecast on average;
-such sequences are the conditionally identically distributed sequences of
-\citet{berti2004limit}, and Bayesian predictives satisfy the condition. The
-monitor needs above all the rule $\mathcal U_t$, which turns the current
-forecast and a new outcome into the next forecast; predictive resampling
-enters only in one of the rules of Section~\ref{sec:blr}, to average the bet
-over the uncertainty of the forecast.
+Section~\ref{sec:scores} turns the choice of the score into a problem of
+sequential prediction under the logarithmic loss. A rule that improves the
+forecast as data arrive must be sequential, since the bet on $X_t$ is fixed
+before $X_t$ is seen; it should hedge early on, since an overconfident
+forecast can lose all the growth (Theorem~\ref{thm:growth}); and it must be
+computable from simulations alone, since $p_t$ is available only as a sampler.
+For sequential prediction under the logarithmic loss the classical answer is
+Bayesian: forecasting with the posterior predictive of a mixture loses at most
+a term of order $d\log t$ against the best forecaster in the class, on every
+sample path. It is also the point of view of the predictive approach to
+inference, in which the sequence of one-step predictives is the primitive
+object \citep{fong2023martingale}. We first ask what Bayes' rule gives, and
+then how to compute it from simulations.
 
-By Section~\ref{sec:scores}, such a rule must be sequential, since the bet on
-$X_t$ is fixed before $X_t$ is seen, and should forecast well one step ahead,
-since the growth of the wealth is the one-step log score of the forecasts.
-The setting adds two requirements. The rule should hedge early on: an
-overconfident forecast can lose all the growth (Theorem~\ref{thm:growth}),
-and averaging over what has not yet been learned protects against it. And it
-must be computable from simulations alone, since $p_t$ is available only as
-a sampler.
-
-The rest of the section looks for such a rule. Bayes' theorem is the natural
-first candidate: it is optimal for the log score and gives the Bayes factor
-(Section~\ref{sec:exactbayes}), but it cannot be computed from simulations
-alone, because its normalising constant is an integral against $p_t$. The
-simulation likelihood (Section~\ref{sec:simlik}) restores this by putting
-the Monte Carlo normalisation of \eqref{eq:mc} inside the likelihood, and
-Section~\ref{sec:blr} gives one-step approximations that are sequential at a
-fixed cost per observation.
-
-\subsection{Exact Bayes on the tilted family}\label{sec:exactbayes}
-
-By \eqref{eq:prequential-wealth}, the monitor is paid the log score of its
-forecasts $\tilde T_t$. Which forecast should it issue? If the real outcomes
-are described by a model $\{Q_\theta\}$ with prior $\pi_0$, the answer is the
-Bayesian rule: $\mathcal U_t$ is Bayes' theorem, the forecast is the posterior
-predictive $m_t$, and the score is $T_t = m_t/p_t$, whose tilted null
-\eqref{eq:tilt} is $m_t$ itself, with $Z_t = 1$. Because the logarithmic score
-is strictly proper, this is the best bet on average under the model.
-
-\begin{proposition}[The posterior predictive is the Bayes-optimal bet]\label{prop:bayesopt}
-Fix $t$ and let $\{Q_\theta\}$ be a model for the conditional law of $X_t$
-given $\G_t$, with prior $\pi_0$, under which the outcomes are conditionally
-independent given $\theta$; let $m_t$
-be the posterior predictive density of $X_t$ given $\G_t$. For every
-$\G_t$-measurable score $T$ with $\E_{P_t}[T] < \infty$, the Bayes-expected growth
-satisfies
-\[
-\E\big[\log E_t^\infty \mid \G_t\big] \le
-\E\Big[\log \frac{m_t}{p_t}(X_t) \Bigm| \G_t\Big]
-\quad \text{under the Bayesian model,}
-\]
-with equality if and only if $T \propto m_t/p_t$, $P_t$-almost everywhere.
-\end{proposition}
-
-\begin{proof}
-$E_t^\infty = \tilde T(X_t)/p(X_t)$, where $\tilde T = T p/\E_P[T]$ is a
-density. Under the Bayesian model, $X_t$ given $\G_t$ has density $m_t$, so
-the difference between the two sides is
-$\E_{m_t}[\log (\tilde T/m_t)] = -\KL(m_t\|\tilde T) \le 0$.
-\end{proof}
-
-Which model? Section~\ref{sec:scores} already supplies one. A log-linear
-score $s = \theta^\top\phi$ has the tilted null \eqref{eq:tilt}
+If the real outcomes followed a model $\{Q_\theta\}$ with prior $\pi_0$, the
+best forecast on average under the model would be its posterior predictive
+$m_t$, with score $T_t = m_t/p_t$ and tilted null $m_t$ itself: for any score
+with tilted null $\tilde T_t$, the expected log gain under the model falls
+short of that of $m_t/p_t$ by $\KL(m_t\|\tilde T_t) \ge 0$, because the
+logarithmic score is strictly proper. Section~\ref{sec:scores} supplies the
+model. A log-linear score $s = \theta^\top\phi$ has the tilted null
 $dQ_\theta/dP = \exp\{\theta^\top \phi(x) - \log Z(\theta)\}$, with
-$Z(\theta) = \E_P[e^{\theta^\top\phi}]$, and as $\theta$
-varies these tilted nulls form an exponential family built on the simulator.
-Taking this family as the model for the real outcomes means that the forecast
-is an average of tilted nulls, $m_t = \int q_\theta\, \pi_{t-1}(d\theta)$, and
-its score $T_t = \int (dQ_\theta/dP)\, \pi_{t-1}(d\theta)$ turns the process into
-a Bayes factor.
+$Z(\theta) = \E_P[e^{\theta^\top\phi}]$, and as $\theta$ varies these tilted
+nulls form an exponential family built on the simulator. Taking this family as
+the model makes the forecast an average of tilted nulls,
+$m_t = \int q_\theta\, \pi_{t-1}(d\theta)$, whose score
+$T_t = \int (dQ_\theta/dP)\, \pi_{t-1}(d\theta)$ turns the process into a
+Bayes factor. The following is a direct consequence of the chain rule and of
+the Laplace expansion of \citet{clarke1990information}, stated for this
+family; its role is to serve as the benchmark that the simulation likelihood
+approaches as $M \to \infty$.
 
-\begin{proposition}[Predictive scores give the Bayes factor]\label{prop:bayes}
+\begin{proposition}[Predictive scores give the Bayes factor; cf.\ \citealp{clarke1990information}]\label{prop:bayes}
 With this score $\E_P[T_t] = 1$, the unlimited-budget factor is
 $E_t^\infty = T_t(X_t)$, and
-$\prod_{i\le t} E_i^\infty = \int \prod_{i \le t} (dQ_\theta/dP)(X_i)\,\pi_0(d\theta)$,
+\[
+\prod_{i\le t} E_i^\infty = \int \prod_{i \le t} \frac{dQ_\theta}{dP}(X_i)\,\pi_0(d\theta),
+\]
 the Bayes factor of the tilted family against the simulator. For i.i.d.\ data
 and under the usual regularity conditions for Laplace approximations, its
 logarithm is $\sup_\theta \sum_{i\le t}\log (dQ_\theta/dP)(X_i) - \frac{d}{2}\log t
@@ -811,61 +751,47 @@ logarithm is $\sup_\theta \sum_{i\le t}\log (dQ_\theta/dP)(X_i) - \frac{d}{2}\lo
 $\KL(Q\|P) - \inf_\theta \KL(Q\|Q_\theta)$.
 \end{proposition}
 
-\begin{proof}
-$\E_P[dQ_\theta/dP] = 1$ for every $\theta$. The product of one-step predictive
-ratios is the ratio of marginal likelihoods, and the expansion is the
-Laplace approximation of \citet{clarke1990information}; see
-Appendix~\ref{app:proofs}.
-\end{proof}
+The proof, in Appendix~\ref{app:proofs}, combines the chain rule with the
+Laplace expansion of \citet{clarke1990information}.
 
-With posterior predictive scores the learning penalty is paid once,
-$(d/2)\log t$ in total, whereas a plug-in estimate bets everything on one tilt
-and can lose all its growth.
-The factorisation of a Bayes factor into one-step posterior predictives has
-several classical forms, prequential, minimum description length, sequential
-Monte Carlo and cross-validation, which are recalled in Section~S5 of the
+Averaging over the tilts is what keeps the cost of learning small: the Bayes
+factor pays for not knowing $\theta$ once, $(d/2)\log t$ in total, whereas a
+forecast at a point estimate bets everything on one tilt, and a wrong tilt
+can lose all the growth. This factorisation of a Bayes factor into one-step
+predictives has several classical forms, recalled in Section~S5 of the
 Supplement.
 
-Proposition~\ref{prop:bayes} is, however, only a
-benchmark: Bayes' rule for the tilt needs $Z(\theta)$ at every
-step and for every $\theta$. This is the normalising constant of
-\eqref{eq:tilt} that the plug-in bet cannot know (Section~\ref{sec:method}),
-an integral against a law that can only be sampled, and it is exactly what the
-Monte Carlo factor estimates from the $M+1$ outcomes. The next section uses
-that estimate inside the likelihood.
+Proposition~\ref{prop:bayes} is, however, only a benchmark. To compute the
+forecast $m_t$, Bayes' rule needs the normalising constant $Z(\theta)$ of the
+tilt at every step and for every $\theta$. This is an integral against the
+simulator, which can only be sampled, and it is the same constant whose
+absence makes the unnormalised bet of Section~\ref{sec:method} unfair.
 
-\subsection{The simulation likelihood}\label{sec:simlik}
-
-The Monte Carlo factor itself provides the way out. Fix a parameter
-$\theta \in \mathbb{R}^d$ and $\G_t$-measurable features $\phi_t$, write
-$U_{t,0} = X_t$ and $U_{t,k} = Y_{t,k}$, and let
+The Monte Carlo factor provides the way out, because it estimates that
+constant from the $M+1$ outcomes. Fix $\theta \in \mathbb{R}^d$ and
+$\G_t$-measurable features $\phi_t$, write $U_{t,0} = X_t$ and
+$U_{t,k} = Y_{t,k}$, and let
 \[
 E_t(\theta) = \frac{(M+1)\exp\{\theta^\top\phi_t(U_{t,0})\}}
 {\sum_{k=0}^{M}\exp\{\theta^\top\phi_t(U_{t,k})\}}
 \]
-be the factor \eqref{eq:mc} with score $s_t = \theta^\top\phi_t$. Up to the
-constant $M+1$, $E_t(\theta)$ is the probability that a conditional-logit model
-of the question ``which of the $M+1$ outcomes is the real one?'' assigns to the
-real outcome. It is a likelihood for $\theta$ whose normalising constant is a
-sum over the simulations, and it is always computable. We call
-$L_t(\theta) = \prod_{i \le t} E_i(\theta)$ the \emph{simulation likelihood}.
-Its logarithm is, up to constants, the InfoNCE objective of contrastive
-learning \citep{oord2018representation}, a link also drawn by
-\citet{cortinovis2026slice} for the optimal score, and the partial likelihood of
-ranking-based noise-contrastive estimation \citep{ma2018noise}. With a prior
-$\pi_0$ on $\theta$ and posterior $\pi_t \propto \pi_0 L_t$, the
-\emph{posterior-predictive bet} is
-$\bar E_t = \int E_t(\theta)\, \pi_{t-1}(d\theta)$. This posterior,
-$\pi_t(\theta) \propto \pi_0(\theta)\exp\{-\sum_{i \le t}\ell_i(\theta)\}$ with
-$\ell_i = -\log E_i$, is a prequential posterior in the sense of
-\citet{sinharoy2026prequential}, who update generalised posteriors of
-simulator-based forecasting models with a one-step-ahead loss estimated from
-simulations; the particular loss $-\log E_t(\theta)$, with learning rate one,
-is what makes the posterior mixture of the bets an e-process
-(Theorem~\ref{thm:simlik}(i)). For independent data, \citet{forre2026anytime}
-fit the score by maximising the empirical growth $\sum_i \log E_i(\theta)$ on
-past observations; Bayesian updating replaces that refit by one posterior step
-per observation.
+be the factor \eqref{eq:mc} with score $s_t = \theta^\top\phi_t$. As a
+function of $\theta$ it is, up to the constant $M+1$, the conditional-logit
+likelihood that the real outcome is the one picked among the $M+1$, and its
+normalising constant is a sum over the simulations, always computable. We call
+$L_t(\theta) = \prod_{i \le t} E_i(\theta)$ the \emph{simulation likelihood};
+its logarithm is the InfoNCE objective of contrastive learning
+\citep{oord2018representation,ma2018noise}. With a prior $\pi_0$ on $\theta$
+and posterior $\pi_t \propto \pi_0 L_t$, the \emph{posterior-predictive bet}
+is
+\[
+\bar E_t = \int E_t(\theta)\, \pi_{t-1}(d\theta),
+\]
+updated by one posterior step per observation instead of a refit on the whole
+history. The posterior is a prequential posterior in the sense of
+\citet{sinharoy2026prequential}, with loss $-\log E_t(\theta)$ and learning
+rate one, the choice that makes the posterior mixture of the bets an
+e-process.
 
 \begin{theorem}[Predictive updating on the simulation likelihood]\label{thm:simlik}
 Suppose the conditions of Theorem~\ref{thm:valid} hold for each fixed $\theta$
@@ -920,19 +846,19 @@ the best tilt in the class, up to the simulation cost of
 Theorem~\ref{thm:growth}(iii), and Ville's inequality then gives rejection
 after about $\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps.
 
-\subsection{Practical update rules}\label{sec:blr}
+\subsection{Practical update rules}\label{sec:blr}\label{sec:algorithm}
 
-Exact Bayesian updating needs the posterior $\pi_{t-1}$ at every step. Three
-kinds of rule cost a fixed amount per step instead: a Gaussian approximation
-of a posterior, a predictive-first rule that updates the forecast directly, and
-a nonparametric rule. All give valid bets; they differ in where uncertainty
-comes from and in the guarantees they carry (Table~\ref{tab:rules}).
+Exact Bayesian updating needs the posterior $\pi_{t-1}$ at every step. We
+replace it by a Gaussian approximation updated in one step per observation,
+on either of two losses, or update the forecast directly as martingale
+posteriors do. All give valid bets; they differ in where uncertainty comes from
+and in the guarantees they carry (Table~\ref{tab:rules}).
 
-\paragraph{Approximate posteriors.} The integral in $\bar E_t$ is over $\theta$ only, and any $\G_t$-measurable
-distribution $\nu_{t-1}$ on $\theta$, an approximate posterior, in
-place of $\pi_{t-1}$ still gives a valid bet
-$E^{\nu}_t = \int E_t(\theta)\,\nu_{t-1}(d\theta)$, because $E_t(\theta)$ is fair
-for each $\theta$. The price of the approximation is bounded as follows.
+The integral in $\bar E_t$ is over $\theta$ only, and any $\G_t$-measurable
+distribution $\nu_{t-1}$ on $\theta$, an approximate posterior, in place of
+$\pi_{t-1}$ still gives a valid bet
+$E^{\nu}_t = \int E_t(\theta)\,\nu_{t-1}(d\theta)$, because $E_t(\theta)$ is
+fair for each $\theta$. The price of the approximation is bounded as follows.
 
 \begin{proposition}[Approximate predictive bets]\label{prop:approx}
 Let $\nu_{t-1}$ be any $\G_t$-measurable distribution on $\mathbb{R}^d$ with mean
@@ -961,16 +887,15 @@ $\E_{\nu_{t-1}}\|\theta - m\|^2 = \mathrm{tr}\,\Sigma_{t-1}$.
 A predictive bet built from an approximate posterior is therefore never worse
 than the plug-in bet at its mean by more than
 $\frac{G^2}{2}\sum_i \mathrm{tr}\,\Sigma_{i-1}$. If the posterior precision grows
-at least linearly, $\Sigma_i^{-1} \succeq \Sigma_0^{-1} + i\,\gamma I$ for some
-$\gamma > 0$, this is at most $\frac{G^2 d}{2\gamma}\log t + O(1)$, the order of
-the regret in Theorem~\ref{thm:simlik}. Such growth needs features that are not
-collinear under the simulator and iterates that stay bounded, so that the
-weights in the Hessian do not vanish; the constant degrades when $\gamma$ is
-small. The Bayesian learning rule \citep{khan2023bayesian}
-provides such a posterior. It approximates a posterior within an exponential
-family by natural-gradient descent on the expected loss plus the Kullback--Leibler
-divergence from the prior; in a stream, one step per observation with the
-previous approximation as the prior \citep{jones2024bong} gives, for a Gaussian
+at least linearly, $\Sigma_i^{-1} \succeq \Sigma_0^{-1} + i\,c_0 I$ for some
+$c_0 > 0$, this is at most $\frac{G^2 d}{2c_0}\log t + O(1)$, the order of the
+regret in Theorem~\ref{thm:simlik}; such growth needs features that are not
+collinear under the simulator and iterates that stay bounded. The Bayesian
+learning rule \citep{khan2023bayesian} provides such a posterior. It
+approximates a posterior within an exponential family by natural-gradient
+descent on the expected loss plus the Kullback--Leibler divergence from the
+prior; in a stream, one step per observation with the previous approximation
+as the prior \citep{jones2024bong} gives, for a Gaussian
 $\nu_t = \mathcal N(\bar\theta_t, S_t^{-1})$ and a per-step loss $\ell_t$,
 \begin{equation}\label{eq:blr}
 S_t = S_{t-1} + \E_{\nu_{t-1}}[\nabla^2 \ell_t], \qquad
@@ -981,81 +906,56 @@ and one step of online Newton in general. Its cost is $O((M+1)d^2 + d^3)$ per
 step with a direct solve, $O((M+1)d^2)$ with rank-one updates of $S_t^{-1}$,
 with no refitting and no burn-in.
 
-Two losses are natural. On the simulation
-likelihood, $\ell_t(\theta) = -\log E_t(\theta)$, with gradient
+Two losses are natural. On the simulation likelihood,
+$\ell_t(\theta) = -\log E_t(\theta)$, with gradient
 $\sum_k w_k \phi_t(U_{t,k}) - \phi_t(U_{t,0})$ and Hessian
-$\mathrm{Cov}_w(\phi_t)$; expectations under $\nu_{t-1}$ are computed with fixed
-antithetic nodes, and the bet is the average of $E_t(\theta)$ over the nodes,
-so Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} apply directly.
-Alternatively, $\ell_t$ is the balanced logistic loss of classifying the real
-outcome (weight one) against the $M$ simulations (weight $1/M$ each), a
-generalised posterior \citep{bissiri2016general,sinharoy2026prequential} that identifies the same tilt
-through noise-contrastive estimation \citep{gutmann2012noise}; with the probit
-approximation $\E_\nu[\sigma(z^\top\theta)] \approx \sigma(\kappa\bar\eta)$,
-$\bar\eta = z^\top\bar\theta$, $v = z^\top S^{-1}z$ and $\kappa = (1+\pi v/8)^{-1/2}$, the
-score is the predictive log-odds $\kappa\bar\eta$ and is inserted in \eqref{eq:mc}.
-Both scores start at zero, so the monitor starts by not betting, and both
-shrink where the posterior is uncertain. Features are standardised with
-simulator draws only, before any real data are seen, so that the score stays
-predictable.
+$\mathrm{Cov}_w(\phi_t)$; expectations under $\nu_{t-1}$ are computed with
+fixed antithetic nodes, and the bet is the average of $E_t(\theta)$ over the
+nodes, so Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} apply
+directly. Alternatively, $\ell_t$ is the balanced logistic loss of classifying
+the real outcome (weight one) against the $M$ simulations (weight $1/M$ each),
+a generalised posterior \citep{bissiri2016general,sinharoy2026prequential}
+that identifies the same tilt through noise-contrastive estimation
+\citep{gutmann2012noise}. With the probit approximation
+$\E_\nu[\sigma(z^\top\theta)] \approx \sigma(\kappa\bar\eta)$, where
+$\bar\eta = z^\top\bar\theta$, $v = z^\top S^{-1}z$ and
+$\kappa = (1+\pi v/8)^{-1/2}$, the score is the predictive log-odds
+$\kappa\bar\eta$ on the probability scale, inserted in \eqref{eq:mc}; this is
+our default. The ratio scale $\bar\eta + v/2$ would be the exact predictive
+under an exact posterior, but its premium $v/2$ over-bets where the
+approximation is least reliable, and it is the worst score in every experiment
+(Supplement, Section~S4). Both losses give scores that start at zero, so the
+monitor starts by not betting, and that shrink where the posterior is
+uncertain. Features are standardised with simulator draws only, before any
+real data are seen, so that the score stays predictable.
 
-\paragraph{Predictive-first updates.} The same two classifiers can also be updated without a posterior over their
-weights, by updating their predictive directly, as martingale posteriors do
-\citep{fong2023martingale}. The learner then carries the predictive itself,
-$\sigma(z^\top\theta_t)$ for the logistic loss or the softmax
-$e^{\theta_t^\top z_k}/\sum_{k'} e^{\theta_t^\top z_{k'}}$ over the $M+1$
-outcomes for the simulation likelihood, and updates it by Fisher scoring on the
-predictive's own log-likelihood,
+The same two classifiers can also be updated without a posterior over their
+weights, by updating their predictive directly. In the approach of
+\citet{fong2023martingale} one specifies a rule
+$m_{t+1} = \mathcal U_t(m_t, X_t)$ and recovers uncertainty by
+\emph{predictive resampling}, drawing future outcomes from the current
+predictive and updating; this converges when imputing one more outcome does
+not move the forecast on average, $\E_{X \sim m_t}[\mathcal U_t(m_t, X)] = m_t$,
+the conditionally identically distributed sequences of \citet{berti2004limit}.
+Here the learner carries the predictive itself, $\sigma(z^\top\theta_t)$ for
+the logistic loss or the softmax $e^{\theta_t^\top z_k}/\sum_{k'} e^{\theta_t^\top z_{k'}}$
+over the $M+1$ outcomes for the simulation likelihood, and updates it by
+Fisher scoring on the predictive's own log-likelihood,
 \begin{equation}\label{eq:mp}
 I_t = I_{t-1} + J_t(\theta_{t-1}), \qquad
 \theta_t = \theta_{t-1} - I_t^{-1}\, \nabla_t(\theta_{t-1}),
 \end{equation}
-where $\nabla_t$ is the gradient of the new batch's loss and $J_t$ its Fisher information,
-which for both losses does not depend on the labels, and $I_0$ is a prior
-precision. Under the predictive the gradient has mean zero, so $\theta_t$ is a
-martingale, which is the condition for the convergence of predictive resampling
-in parametric martingale posteriors \citep{fong2023martingale}; the predictive
-$\sigma(z^\top\theta_t)$, a nonlinear function of $\theta_t$, is a martingale
-only to first order in the step $I_t^{-1}\nabla_t$. The
-bet uses either the current predictive (the \emph{plug-in predictive}) or an
-average of the factor over $N$ \emph{predictive-resampling} paths, obtained by
-running \eqref{eq:mp} forward from $(\theta_{t-1}, I_{t-1})$ on past batches
-whose labels are drawn from the predictive; this is the martingale posterior's
-uncertainty, truncated at $h_{\max}$ steps ($N = 16$, $h_{\max} = \min(t, 200)$, refreshed every
-ten steps). For the logistic loss, \eqref{eq:mp} is the Newton step of
-\eqref{eq:blr} taken at the point $\theta_{t-1}$ rather than averaged over a
-Gaussian posterior, and the forecast is the current predictive odds with no
-shrinkage. The two routes differ in where uncertainty comes from: a Gaussian
-approximation of a posterior, or simulation from the predictive. Both give valid
-bets.
-
-\paragraph{A nonparametric rule.} The predictive rule need not be parametric. The simplest rule of
-\citet{fong2023martingale} is the empirical predictive, under which the next
-observation is a copy of a past one, $\mathbb P_{n+1} = (n\mathbb P_n + \delta_{x_{n+1}})/(n+1)$;
-predictive resampling with it is a P\'olya urn, and its martingale posterior is
-the Bayesian bootstrap, which reweights the data by
-$\mathrm{Dirichlet}(1, \ldots, 1)$ weights. Any learner can therefore be made a
-martingale-posterior learner. We do this for a random forest: the exchangeable
-units are the monitoring steps, each contributing its real outcome (label one,
-weight one) and its $M$ simulations (label zero, weight $1/M$), and each of $N$
-trees is fitted to the past steps with its own Dirichlet weights, so that the
-forest is a sample from the martingale posterior. A leaf's score is its
-log-odds under a $\mathrm{Beta}(a, a)$ prior on its weighted class counts,
-$\log\{(w_1 + a)/(w_0 + a)\}$, so that leaves supported by little data bet
-little, and the bet is the posterior-predictive mixture
-$\bar E_t = N^{-1}\sum_b E_t(\mathrm{tree}_b)$, as in Theorem~\ref{thm:simlik};
-each tree is fitted on the past only, so the mixture is exactly fair, and the
-first inequality of Proposition~\ref{prop:approx} applies. The trees are
-refitted every few steps ($N = 16$, depth at most 6, $a = 3$).
-
-\paragraph{Other choices.} Under a Gaussian posterior the logit could also be scored on the
-ratio scale, $\log\E_\nu[e^{z^\top\theta}] = \bar\eta + v/2$, which is the predictive
-of Propositions~\ref{prop:bayesopt} and~\ref{prop:bayes} when the posterior is
-exact; its uncertainty premium $v/2$ over-bets where the approximation is least
-reliable, and it is the worst score in every experiment below. If the system
-may drift, replacing $S_{t-1}$ by $\gamma S_{t-1}$, $\gamma < 1$, before each
-update keeps the monitor responsive, and like every choice of score leaves
-validity untouched.
+where $\nabla_t$ is the gradient of the new batch's loss, $J_t$ its Fisher
+information, which for both losses does not depend on the labels, and $I_0$ a
+prior precision. Under the predictive the gradient has mean zero, so
+$\theta_t$ is a martingale, and the bet averages the factor over $N$
+predictive-resampling paths, obtained by running \eqref{eq:mp} forward from
+$(\theta_{t-1}, I_{t-1})$ on past batches whose labels are drawn from the
+predictive ($N = 16$, truncated at $\min(t, 200)$ steps, refreshed every ten
+steps). Any learner can be made a martingale-posterior learner in this way:
+with the empirical predictive, predictive resampling is the Bayesian
+bootstrap, and a random forest fitted with Dirichlet weights on the past steps
+is valid as well (Supplement, Section~S4).
 
 \sbox{\widetab}{\begin{tabular}{lll}
 \toprule
@@ -1065,25 +965,22 @@ Bayes on the simulation likelihood & exact posterior & pathwise regret (Theorem~
 BLR on the simulation likelihood & Gaussian approximation & Theorem~\ref{thm:simlik} up to Proposition~\ref{prop:approx} \\
 BLR on the logistic loss (default) & Gaussian approximation & none \\
 predictive-first \eqref{eq:mp} & predictive resampling & none \\
-Bayesian-bootstrap forest & Dirichlet weights & none \\
 \bottomrule
 \end{tabular}}%
 \begin{table}[t]
 \centering
 \caption{Update rules for the score (Sections~\ref{sec:simlik}
 and~\ref{sec:blr}). All give exactly valid bets; they differ in the source of
-uncertainty about the score and in the guarantee they carry beyond validity.}
+uncertainty about the score and in the guarantee they carry beyond validity.
+Further variants are in the Supplement.}
 \label{tab:rules}
 \small
 \begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
 \end{table}
 
-\subsection{The method in full}\label{sec:algorithm}
-
-The pieces of this section fit together as follows, for the default score, the
-logistic Bayesian learning rule with the probability-scale predictive; the
-steps are numbered as in Figure~\ref{fig:workflow}. Each step is followed by
-the role it plays.
+Algorithm~1 puts the default rule together, the logistic Bayesian learning
+rule with the probability-scale predictive; its steps are numbered as in
+Figure~\ref{fig:workflow}, and each is followed by the role it plays.
 
 \begin{figure}[t]
 \centering
@@ -1095,7 +992,7 @@ seen, turns the $M+1$ outcomes into the bet $E_t$ (3--4), which updates the
 wealth (5); the null is rejected when the wealth reaches $1/\alpha$, and
 otherwise the learner updates the score with the new outcomes (6) and the
 next step begins. Validity rests on the shaded block alone; the learner
-affects only power. Algorithm~1 (Section~\ref{sec:algorithm}) gives the
+affects only power. Algorithm~1 gives the
 formulas of each step.}
 \label{fig:workflow}
 \end{figure}
@@ -1157,17 +1054,13 @@ $s_t$ of \eqref{eq:mc}.
         $\bar\eta_k$, which approximates $\E_\nu[\sigma'(z_k^\top\theta)]$; the score
         stays predictable.
 \end{enumerate}
-\textbf{Variants.} With the simulation likelihood (Section~\ref{sec:simlik}),
-steps 3--4 are replaced by the posterior-predictive mixture
-$\bar E_t = N^{-1}\sum_b E_t(\theta_b)$ over posterior nodes $\theta_b$, and step 6
-by \eqref{eq:blr} with $\ell_t = -\log E_t(\theta)$; Theorem~\ref{thm:simlik} and
-Proposition~\ref{prop:approx} then apply.
-
-\textbf{Predictive-first version.} Steps 3 and 6 are replaced by the rule
-\eqref{eq:mp} of Section~\ref{sec:blr}, and step 4 by the average of the factor
-over predictive-resampling paths; with a random forest, step 3 uses the trees'
-leaf log-odds, step 4 averages the factor over the trees, and step 6 refits the
-Bayesian-bootstrap trees every few steps. In a multi-arm design, one copy of the
+\textbf{Variants.} With the simulation likelihood, steps 3--4 are replaced by
+the posterior-predictive mixture $\bar E_t = N^{-1}\sum_b E_t(\theta_b)$ over
+posterior nodes $\theta_b$, and step 6 by \eqref{eq:blr} with
+$\ell_t = -\log E_t(\theta)$; Theorem~\ref{thm:simlik} and
+Proposition~\ref{prop:approx} then apply. With the predictive-first rule,
+steps 3 and 6 are replaced by \eqref{eq:mp} and step 4 by the average of the
+factor over predictive-resampling paths. In a multi-arm design, one copy of the
 algorithm per arm, betting only on that arm's observations, is combined by e-BH
 at the end (Section~\ref{sec:trial}).
 
@@ -1175,44 +1068,38 @@ at the end (Section~\ref{sec:trial}).
 \section{Simulation studies}\label{sec:experiments}
 %======================================================================
 
-Throughout, $\alpha = 0.05$, so the test rejects when the wealth reaches 20;
+Throughout, $\alpha = 0.05$, so the test rejects when the wealth reaches 20,
 the betting-fraction grid has 20 values from 0.05 to 1, and $M = 16$ unless
-stated otherwise. Each experiment compares the Monte Carlo e-process with the
-plug-in bet on the same score, with the oracle likelihood-ratio e-process
-(unavailable in practice, the benchmark), and with a classical test
-recomputed every ten steps. Tables report, over 400 replications unless stated
+stated otherwise. Tables report, over 400 replications unless stated
 otherwise, the share of runs that reject a true null within the horizon
 (false alarms), the share that reject a false null (power), and the median
-stopping time under the alternative, computed over all runs with the runs that
-never reject counted as infinite (Table~\ref{tab:llm} instead uses the runs
-that reject); the horizon is 500 steps for the drift task, 400 for the bandit
-and for the language-model audit; the Monte Carlo standard error of a
-false-alarm rate near 0.05 is about 0.011. Seeds are shared across methods, so
-methods are compared on identical data.
+stopping time under the alternative, with runs that never reject counted as
+infinite (Table~\ref{tab:llm} instead uses the runs that reject). The horizon
+is 500 steps for the drift task and 400 for the bandit and the audit; the
+Monte Carlo standard error of a false-alarm rate near 0.05 is about 0.011.
+Seeds are shared, so methods are compared on identical data.
 
 \subsection{Validity with learned scores}\label{sec:exp-drift}
 
-The simulator is the two-dimensional ``banana'' generator
-$x = (z_1, z_2 + b(z_1^2 - 1))$, $z \sim \mathcal N(0, I)$, with $b = 0.5$, and
-under the alternative the real data drift to $b = 0.8$, which changes neither
-the means nor the marginal of $x_1$, so a detector must learn the shape of the
-discrepancy. The score is a balanced polynomial logistic regression refitted
-every ten steps, either regularised (degree 4, ridge 1) or flexible and
-overfitting (degree 6, ridge $10^{-3}$). Table~\ref{tab:drift} shows the
-central point of the paper (rejection curves are in the Supplement,
-Section~S4). With the same
-score, using the learned ratio directly as the bet gives 10\% false alarms with
-the regularised learner and 59\% with the overfitting one, while the Monte
-Carlo e-process gives 3\% with both: a worse learner costs power, not validity.
-Recomputing a Kolmogorov--Smirnov test every ten steps gives 32\% false alarms.
-The oracle is far ahead (median 35 steps), which is the price of learning the
-discrepancy online.
+The simulator is the two-dimensional ``banana''
+$x = (z_1, z_2 + b(z_1^2 - 1))$, $z \sim \mathcal N(0, I)$, with $b = 0.5$; under
+the alternative the real data drift to $b = 0.8$, which changes neither the
+means nor the marginal of $x_1$, so the shape of the discrepancy must be
+learned. The score is a balanced polynomial logistic regression refitted every
+ten steps, regularised (degree 4, ridge 1) or overfitting (degree 6, ridge
+$10^{-3}$). With the same score, using the learned ratio directly as the bet
+gives 10\% false alarms with the regularised learner and 59\% with the
+overfitting one, while the Monte Carlo e-process gives 3\% with both
+(Table~\ref{tab:drift}): a worse learner costs power, not validity. A
+Kolmogorov--Smirnov test recomputed every ten steps gives 32\%. The oracle
+likelihood-ratio e-process, unavailable in practice, stops after 35 steps,
+which is the price of learning the discrepancy online.
 
 \begin{table}[t]
 \centering
 \caption{Generative-model drift (Section~\ref{sec:exp-drift}). The KS test is
 applied per coordinate against a pool of simulator draws, with a Bonferroni
-correction over coordinates, and recomputed every ten steps.}
+correction, and recomputed every ten steps.}
 \label{tab:drift}
 \begin{tabular}{llrrr}
 \toprule
@@ -1230,19 +1117,16 @@ flexible & MC e-process & 0.028 & 0.838 & 320 \\
 
 \subsection{Adaptive allocation}\label{sec:exp-bandit}
 
-Three arms are allocated by Thompson sampling on the real outcomes, and a
-digital twin simulates any arm, $y = \mu_k + e^{\epsilon/2} - e^{1/8}$ with
+Three arms are allocated by Thompson sampling on the real outcomes, and a twin
+simulates any arm, $y = \mu_k + e^{\epsilon/2} - e^{1/8}$ with
 $\epsilon \sim \mathcal N(0, 1)$ and $\mu = (0, 0.2, 0.4)$. Under the
-alternative, arm~0 is better in reality than the twin predicts (mean shifted
-by 0.5), and Thompson sampling moves towards it, pulling it in 65\% of steps
-against 7\% under the null. Table~\ref{tab:bandit} shows that adaptive
-allocation leaves the conditioned e-process valid, with 2.8\% false alarms,
-while the same e-process with the twin run on uniformly random arms, the
-setting of Proposition~\ref{prop:necessary}, rejects the true null in every
-run: once Thompson sampling concentrates on the best arm, the real outcomes
-follow that arm's law while the simulated ones follow a mixture over arms. A
-per-arm $t$-test recomputed every ten steps has 39\% false alarms; the plug-in
-happens to be nearly calibrated here (5.5\%), but nothing guarantees it.
+alternative arm~0 is better in reality than the twin predicts (mean shifted by
+0.5), and Thompson sampling pulls it in 65\% of steps instead of 7\%. The
+conditioned e-process stays valid, with 2.8\% false alarms
+(Table~\ref{tab:bandit}), whereas the same e-process with the twin run on
+uniformly random arms, the setting of Proposition~\ref{prop:necessary}, rejects
+the true null in every run, and a per-arm $t$-test recomputed every ten steps
+in 39\% of runs.
 
 \begin{table}[t]
 \centering
@@ -1264,23 +1148,18 @@ oracle LR & 0.043 & 1.000 & 15 \\
 
 \subsection{The theory in numbers}\label{sec:exp-budget}
 
-Three checks concern the theory. First, varying the budget in the drift task
-(regularised learner, 200 replications) leaves validity intact at every $M$,
-including $M = 1$ (false alarms between 1.5\% and 3.5\%), and the median
-stopping time at $M = 1$ is 1.8 times that at $M = 64$ (371 against 207 steps),
-close to the factor 2 predicted by Theorem~\ref{thm:growth}(iv); for larger $M$
-the ratios are smaller, as part of the stopping time is spent learning the
-score. Second, with $P = \mathcal N(0,1)$, $Q = \mathcal N(\delta, 1)$ and
-$T(x) = e^{\theta x}$, for which $\tilde T = \mathcal N(\theta, 1)$,
-$g_\infty = \theta\delta - \theta^2/2$ and $\rho = e^{\theta\delta}$ are
-explicit, the ceiling (i) and the lower bound (iii) of
-Theorem~\ref{thm:growth} hold in all 56 configurations, and for $\delta = 0.25$
-the efficiency $g_M/g_\infty$ is 0.48, 0.66, 0.80, 0.89 and 0.93 at
-$M = 1, 2, 4, 8, 16$, against $M/(M+1) = 0.50, 0.67, 0.80, 0.89, 0.94$, for
-perfect, under- and overconfident scores alike (Figure~\ref{fig:growth}). With
-$\theta = 2\delta$ and $\delta = 1$, where $g_\infty = 0$, the growth rate rises
-to 0.18 at $M = 4$ and falls towards zero as $M$ grows: a finite budget tempers
-an overconfident score.
+On the drift task, validity holds at every budget, including $M = 1$ (false
+alarms 1.5--3.5\%), and the median stopping time at $M = 1$ is 1.8 times that
+at $M = 64$, close to the factor 2 of Theorem~\ref{thm:growth}(iv). With
+$P = \mathcal N(0,1)$, $Q = \mathcal N(\delta, 1)$ and $T(x) = e^{\theta x}$,
+where everything is explicit, the bounds of Theorem~\ref{thm:growth} hold in
+all 56 configurations, and the efficiency $g_M/g_\infty$ follows $M/(M+1)$
+closely for perfect, under- and overconfident scores alike
+(Figure~\ref{fig:growth}). The regret bound of Theorem~\ref{thm:simlik},
+checked by computing the mixture exactly on a grid for four scenarios
+including a change point, holds on every path and at every time, with largest
+regret 7.5 against a bound of 21.5 at $t = 2000$ and slopes close to the
+interior rate $(d/2)\log t$ (Supplement, Section~S4).
 
 \begin{figure}[t]
 \centering
@@ -1292,45 +1171,25 @@ Theorem~\ref{thm:growth}(iv).}
 \label{fig:growth}
 \end{figure}
 
-Third, Theorem~\ref{thm:simlik} is checked with the bounded features
-$\phi(x) = (\mathrm{clip}(x, \pm 3), \mathrm{clip}(x^2 - 1, \pm 3))/3$ (so
-$d = 2$ and $G = \sqrt 2$), a uniform prior on the disc of radius $D = 3$ and
-$P = \mathcal N(0,1)$. The mixture $\bar W_t$ is computed exactly on a grid of
-31\,000 points and the hindsight optimum by convex optimisation, for 12 paths
-of each of four scenarios: the null, a mean shift, a scale change, and a drift
-at $t = 500$. The bound holds on every path and at every time: at $t = 2000$ the largest
-regret over all paths is 7.5, against a bound of 21.5 (Supplement,
-Section~S4). The regret grows at the interior rate
-$(d/2)\log t$, with slopes between 1.01 and 1.10 against $d/2 = 1$. Under the
-null the log wealth decreases, and under the alternatives the monitor keeps
-pace with the best fixed score chosen in hindsight, including after the change
-point, where that score is itself a compromise between the two regimes.
-
 \subsection{Update rules}\label{sec:exp-blr}
 
-Table~\ref{tab:blr} compares, on the drift task and the bandit with identical
-data, the refitted point estimate with three of the update rules of
-Section~\ref{sec:predictive}, updated at every step with no burn-in. All are
-valid, with false alarms between 1.3\% and 3.0\%, whereas using the logistic
-posterior odds directly as the bet gives between 14\% and 74\%. The logistic
-Bayesian learning rule with the probability-scale predictive $\kappa\bar\eta$
-is the fastest on both tasks and makes the method insensitive to the
-flexibility of the features: with degree-6 features its power is 0.97, against
-0.84 for the refitted estimate. On the simulation likelihood, the
-posterior-predictive bet beats the plug-in bet at the posterior mean (Supplement, Section~S4), as Proposition~\ref{prop:approx} suggests. The
-predictive-first updates are valid and somewhat slower on the drift task, and
-on par on the bandit. The Supplement (Section~S4) reports all variants,
-including the ratio-scale predictive, the Bayesian-bootstrap forest and the
-degree-6 features, with a discussion of why the learners differ.
+Table~\ref{tab:blr} compares the refitted point estimate with three update
+rules of Section~\ref{sec:predictive}, updated at every step with no burn-in.
+All are valid, whereas using the logistic posterior odds directly as the bet
+gives 14--74\% false alarms. The logistic Bayesian learning rule is the
+fastest and makes the method insensitive to the flexibility of the features
+(power 0.97 with degree-6 features, against 0.84 for the refit). The
+simulation-likelihood learner, the one with the guarantee of
+Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. All variants
+are in the Supplement (Section~S4), and a comparison with the Besag--Clifford
+e-process of \citet{dombowsky2026besag} in Section~S3.
 
 \begin{table}[t]
 \centering
-\caption{Update rules, MC e-process throughout (400 replications). BLR: online
-Bayesian learning rule (Section~\ref{sec:blr}) on the logistic loss with the
-probability-scale predictive, or on the simulation likelihood with the
-posterior-predictive mixture bet (prior variance 0.03); predictive update: the
-predictive-first rule \eqref{eq:mp} on the simulation likelihood, averaged over
-predictive-resampling paths. All variants are in the Supplement.}
+\caption{Update rules (Section~\ref{sec:blr}), MC e-process throughout. BLR
+on the simulation likelihood uses the posterior-predictive mixture bet (prior
+variance 0.03); the predictive update is the rule \eqref{eq:mp} on the
+simulation likelihood, averaged over predictive-resampling paths.}
 \label{tab:blr}
 \begin{tabular}{llrrr}
 \toprule
@@ -1347,37 +1206,21 @@ bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
 \end{tabular}
 \end{table}
 
-The Supplement compares the Monte Carlo e-process with the Besag--Clifford
-e-process of \citet{dombowsky2026besag} on the drift task, where the null is
-i.i.d. When the likelihood ratio is available the Monte Carlo normalisation
-costs almost nothing (median 36 steps against 35 for the exact oracle); knowing
-the parametric family of the drift is worth a factor of about 3.5 over learning
-it from samples (58 against 209 steps); and with a learned score all-in betting
-fails (power 0.41), so the mixture over $\lambda$ is the right strategy.
-
 \subsection{Comparison with concurrent methods}\label{sec:exp-concurrent}
 
-The concurrent methods of Section~\ref{sec:intro} use the same bet and differ
-from ours in how the score is chosen. We compare them on the drift task and the
-bandit, with the same simulations, the same mixture over $\lambda$ and the same
-data for every method, so that only the score differs. For
-\citet{forre2026anytime} we use their two scores: the score refitted every ten
-steps by maximising the penalised empirical growth on the past, which is the
-maximiser of the simulation likelihood under a ridge penalty, with the bet
-placed at the maximiser; and a score fitted once, before monitoring, on
+The concurrent methods use the same bet and differ in how the score is
+chosen, so we run them with the same simulations, mixture over $\lambda$ and
+data. For \citet{forre2026anytime} we use the score refitted every ten steps by
+maximising the penalised empirical growth, and a score fitted in advance on
 simulations from a guessed alternative. For \citet{cortinovis2026slice} we use
-SLICE as it would serve our question, with a single null ($G = 1$): an
-amortised neural ratio network trained once on $2 \times 10^5$ simulations from
-the simulator's parametrised family (curvature $b$ for the drift, a location
-shift per arm for the bandit), evaluated at a predictable estimate of the
-parameter. Both concurrent methods assume independent data; in the bandit they
-are run on simulations under the arm actually chosen, which our
-Theorem~\ref{thm:valid} makes valid, and once as published, with the twin run
-on random arms. Besides the alternatives of Sections~\ref{sec:exp-drift}
-and~\ref{sec:exp-bandit}, which lie inside SLICE's family, each task has an
-alternative outside it: in the drift the curvature is unchanged and the first
-coordinate is 20\% wider, and in the bandit the most pulled arm keeps its mean
-and its noise is 50\% larger.
+SLICE with a single null: an amortised neural ratio network trained on
+$2 \times 10^5$ simulations from the simulator's parametrised family
+(curvature $b$ for the drift, a location shift per arm for the bandit),
+evaluated at a predictable estimate of the parameter. In the bandit both are
+run on simulations under the chosen arm, and once as published, with the twin
+on random arms. Each task also has an alternative outside SLICE's family: in
+the drift the first coordinate is 20\% wider, in the bandit the most pulled
+arm keeps its mean and has 50\% larger noise.
 
 \sbox{\widetab}{\begin{tabular}{lrrrrrr}
 \toprule
@@ -1394,144 +1237,71 @@ F\&B, twin on random arms & -- & -- & \multicolumn{2}{c}{false alarms 100\%} & -
 \end{tabular}}%
 \begin{table}[t]
 \centering
-\caption{Comparison with the scores of \citet{forre2026anytime} (F\&B) and
-\citet{cortinovis2026slice} (SLICE); 400 replications per scenario. Entries:
-power within the horizon and, in brackets, the median stopping time;
-``in family'': the alternatives of Sections~\ref{sec:exp-drift}
-and~\ref{sec:exp-bandit}; ``out of family'': departures that SLICE's
-parametrised family does not contain. False alarms: range over the two tasks.
-Time: computing time per replication on one core, drift / bandit; the
-simulators are cheap here, so it measures mostly the cost of the score, and
-for SLICE it excludes the training of the network. The F\&B score fitted in advance uses the true in-family drift
-alternative. All variants are in the Supplement.}
+\caption{Comparison with \citet{forre2026anytime} (F\&B) and
+\citet{cortinovis2026slice} (SLICE). Entries: power and, in brackets, median
+stopping time; ``in family'': the alternatives of
+Sections~\ref{sec:exp-drift} and~\ref{sec:exp-bandit}; ``out of family'':
+departures that SLICE's family does not contain. False alarms: range over the
+two tasks. Time: computing time per replication on one core, drift / bandit,
+excluding the training of SLICE's network. All variants are in the
+Supplement.}
 \label{tab:concurrent}
 \small
 \begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
 \end{table}
 
-Table~\ref{tab:concurrent} shows four things. First, conditioning on the action
-is necessary for every score: run as published, with the twin on random arms,
-the refitted score of \citet{forre2026anytime} rejects the true null in every
-bandit run, and with simulations under the chosen arm it is valid. Second,
-scores that know where the departure lies are fastest: when the alternative is
-inside the family, SLICE stops after 67 steps on the drift and 35 on the bandit,
-and a score fitted in advance on the true alternative after 58, against about
-210 for scores learned from the data. Third, this knowledge is also their
-weakness: out of the family, SLICE has power 0.01 on the drift and 0.56 on the
-bandit, and a score fitted on the expected alternative has power 0.01, while
-every score learned from real against simulated outcomes keeps its power.
-Fourth, among the scores learned from the data, the refitted maximiser of
-\citet{forre2026anytime} and our posterior-predictive updates perform alike,
-slightly better for the refit on the drift and for ours on the bandit, but ours
-cost a third as much and carry the pathwise guarantee of
-Theorem~\ref{thm:simlik}, since they update one step per observation instead
-of refitting on the whole history. The network of SLICE cost $2 \times 10^5$
-simulations and 26 seconds here, because the simulators are cheap;
-\citet{cortinovis2026slice} use $10^7$ simulations per model. When an amortised
-score is available, nothing forces a choice: the average of its wealth and
-ours is again a test martingale, which is close to the faster of the two when
-the departure is inside the family and keeps power when it is not.
+Table~\ref{tab:concurrent} shows three things. Conditioning on the action is
+necessary for every score: run as published, the refitted score of
+\citet{forre2026anytime} rejects the true null in every bandit run. Scores
+that know where the departure lies are fastest inside the family, SLICE after
+67 steps on the drift and a score fitted on the true alternative after 58,
+against about 210 for scores learned from the data; but outside the family
+their power falls to 0.01 on the drift (Remark~\ref{rem:family}), while every
+score learned from real against simulated outcomes keeps it. Among the learned
+scores, the refit of \citet{forre2026anytime} and our updates perform alike,
+but ours cost a third as much and carry the pathwise guarantee of
+Theorem~\ref{thm:simlik}: they average over the uncertainty about the score's
+parameter, whereas a sequence of refits at a maximiser is in general not the
+predictive sequence of any exchangeable model
+\citep{fortini2000exchangeability,fortini2024exchangeability}.
 
 \begin{remark}[Inside and outside the family]\label{rem:family}
-SLICE fixes a parametrised family $\{P_\theta\}$ of simulators, with the null
-at $\theta_0$, and bets with the score
-$s_t = \log (p_{\hat\theta_{t-1}}/p_{\theta_0})$, where $\hat\theta_{t-1}$ is
-estimated from the past real outcomes; its tilted null is
-$\tilde T_t = P_{\hat\theta_{t-1}}$. An alternative is \emph{inside the family}
-when $Q = P_\theta$ for some $\theta \ne \theta_0$, and \emph{outside} it
-otherwise. Outside, $\hat\theta_t$ converges to the projection
-$\theta^* = \arg\min_\theta \KL(Q\|P_\theta)$, and with an unlimited budget
-the growth rate tends to
-$g_\infty = \KL(Q\|P_{\theta_0}) - \KL(Q\|P_{\theta^*})$
-(Theorem~\ref{thm:growth}(ii)). When $\theta^* = \theta_0$ the score itself
-tends to zero, every factor tends to one, and the wealth stops growing however
-large $\KL(Q\|P_{\theta_0})$ is and however good the network.
-
-Both out-of-family alternatives of Table~\ref{tab:concurrent} are of this
-kind. In the drift, the family is $x = (z_1, z_2 + b(z_1^2 - 1))$ with
-$z \sim \mathcal N(0, I)$, in which $x_1 \sim \mathcal N(0, 1)$ for every $b$,
-and the real data are $x = (1.2 z_1, z_2 + b_0(1.44 z_1^2 - 1))$ with
-$b_0 = 0.5$. No $b$ produces the wider first coordinate. In
-$p_b(x) = \phi(x_1)\,\phi(x_2 - b(x_1^2 - 1))$ the marginal of $x_1$ does not
-depend on $b$, so minimising $\KL(Q\|P_b)$ is least squares of $x_2$ on
-$x_1^2 - 1$ through the origin, whose limit is
-$\E[x_2(x_1^2 - 1)]/\E[(x_1^2 - 1)^2] = b_0$, and $\phi(x_1)$ cancels in the
-score: the power is 0.01. In the
-bandit, the family is
-$y \mid a = \mu_a + \delta_a + e^{\varepsilon/2} - e^{1/8}$ with
-$\varepsilon \sim \mathcal N(0, 1)$, in which $\delta$ moves only the location
-of each arm, while the real noise of the most pulled arm is 1.5 times larger
-with the same mean. The estimate of $\delta_a$ converges to zero, and the
-power of 0.56 comes only from its early fluctuations. Our scores
-$z(x)^\top\theta$ are learned from real against simulated outcomes rather than
-within a family of simulators, and their features contain $x_1^2$ and the
-squared outcome of each arm, so a change of scale moves $\tilde T_t$ towards
-$Q$; their power is 0.73 to 0.87 on the drift and 1.00 on the bandit.
-
-Our network is trained as a binary classifier of joint against shuffled
-pairs (NRE-A), whereas \citet{cortinovis2026slice} use the contrastive
-estimator NRE-C \citep{miller2022contrastive}. Both estimate
-$\log p_\theta(y)/m(y)$, NRE-C up to a function of $y$ alone, which cancels in
-$s_t$. The choice can affect the power inside the family, where our network is
-already close to the exact ratio (67 against 69 steps on the drift, 35 against
-35 on the bandit), but not outside it, where the exact ratio itself has power
-0.01 on the drift.
+SLICE bets with $s_t = \log (p_{\hat\theta_{t-1}}/p_{\theta_0})$ within a
+parametrised family $\{P_\theta\}$ with null $\theta_0$, so its tilted null is
+$P_{\hat\theta_{t-1}}$. Outside the family, $\hat\theta_t$ converges to the
+projection $\theta^* = \arg\min_\theta \KL(Q\|P_\theta)$ and the growth tends to
+$\KL(Q\|P_{\theta_0}) - \KL(Q\|P_{\theta^*})$ (Theorem~\ref{thm:growth}(ii)).
+When $\theta^* = \theta_0$ the score tends to zero and the wealth stops
+growing, however large the departure and however good the network. Both
+out-of-family alternatives are of this kind: in the drift no curvature $b$
+produces a wider first coordinate and the projection is the null itself, and
+in the bandit a location shift cannot produce a larger noise. Our features
+contain $x_1^2$ and the squared outcome of each arm, so a change of scale moves
+the tilted null towards $Q$. Details, and the choice between the NRE-A and
+NRE-C estimators \citep{miller2022contrastive}, are in the Supplement.
 \end{remark}
-
-The difference between the two scores learned from the data is also a
-difference in what kind of predictive they are. The refitted score of
-\citet{forre2026anytime} is a prequential forecasting system in the sense of
-\citet{dawid1984present}: a sequence of one-step predictives
-$\tilde T_t \propto p_t\, e^{\hat\theta_{t-1}^\top\phi}$, each computed from the
-past, which is all that validity and the prequential reading of the wealth
-\eqref{eq:prequential-wealth} require; the same holds for SLICE at its
-estimated parameter. It is a plug-in, however. A sequence of plug-ins at a
-refitted maximiser is in general not the predictive sequence of any
-exchangeable model, so it has no de Finetti representation with a parameter
-and a posterior \citep{fortini2000exchangeability,fortini2024exchangeability};
-it is a martingale, the condition of \citet{fong2023martingale} and of
-\citet{berti2004limit}, only approximately; and it carries no uncertainty about
-the score's parameter. Our updates average over that uncertainty, through the
-posterior of the simulation likelihood, which is an exact Bayesian predictive,
-or through predictive resampling, under which the parameter of the
-predictive-first rule \eqref{eq:mp} is an exact martingale. This averaging is
-what yields the pathwise regret bound of Theorem~\ref{thm:simlik} and the
-cautious early bets that make our scores competitive at a third of the cost.
 
 \subsection{Auditing a language-model API with adaptively chosen prompts}\label{sec:exp-llm}
 
-The comparison above isolates the score. The actions are the other half of
-the method, and an audit of a language-model API shows what they add. An API
-advertises a model $P$ and may answer some queries with a cheaper substitute.
-The auditor can query the API and can run $P$ locally, but evaluates neither
-likelihood. As in the routing audit of \citet{cortinovis2026slice}, the probes
-are prompts that ask for random output, which each model answers in its own
-reproducible way: eight random digits, an integer between 1 and 100, a colour,
-and six coin flips. The advertised model is Qwen2.5-1.5B-Instruct
-\citep{qwen2024qwen25} quantised at 8 bits; the substitutes are the same model
-at 4 and 3 bits, and a different, smaller model, Qwen2.5-0.5B-Instruct. All
-replies are real outputs, generated with \texttt{llama.cpp}
-\citep{gerganov2023llamacpp} at temperature one, 3000 per prompt for $P$ and 1500 for each
-substitute, and, as in \citet{cortinovis2026slice}, only the routing is
-simulated. At each step the auditor chooses a prompt $A_t$, observes the API's reply $X_t$,
-and draws $M = 8$ replies of $P$ to the same prompt. Under the null the real reply and
-the simulations are drawn from the same pool of $P$'s replies, so they are
-exactly exchangeable given the past.
-
-The prompt is chosen by an upper confidence bound on the realised log growth
-of each prompt, with each prompt kept above a tenth of the queries; the choice
-depends on the past only, so Theorem~\ref{thm:valid} applies. The learned
-score is a logistic BLR on hashed character $n$-grams, with one block of
-weights per prompt. We compare it with SLICE, whose score
-$\log\{1 - \hat\theta_{t-1} + \hat\theta_{t-1}\, r_k(y)/p_k(y)\}$ uses one routing
-fraction $\theta$ for all prompts, and with a score fitted in advance, as in
-\citet{forre2026anytime}, equal to the log-ratio $\log r_k/p_k$. Both are
-given 500 replies per prompt of the 4-bit substitute, from which a classifier
-estimates $r_k/p_k$ for each prompt $k$, and both are run, as published, on
-prompts drawn uniformly at random. The routing sends 30\% of all queries to
-the substitute, or 50\% of the colour and number queries only, which lies
-outside SLICE's family; with the 3-bit and the 0.5B substitutes the
-baselines' guess of the substitute is wrong.
+The actions are the other half of the method. An API advertises a model $P$
+and may answer some queries with a cheaper substitute; the auditor can query
+the API and run $P$ locally, but evaluates neither likelihood. As in the
+routing audit of \citet{cortinovis2026slice}, the probes are prompts asking for
+random output (eight random digits, an integer between 1 and 100, a colour,
+six coin flips). The advertised model is Qwen2.5-1.5B-Instruct
+\citep{qwen2024qwen25} at 8 bits; the substitutes are the same model at 4 and 3
+bits and the smaller Qwen2.5-0.5B-Instruct. All replies are real outputs of
+\texttt{llama.cpp} \citep{gerganov2023llamacpp} at temperature one; only the
+routing is simulated. At each step the auditor chooses a prompt by an upper
+confidence bound on its realised log growth, keeping each prompt above a tenth
+of the queries, observes the reply and draws $M = 8$ replies of $P$ to the
+same prompt. The learned score is a logistic BLR on hashed character
+$n$-grams, one block of weights per prompt. We compare it with SLICE, with one
+routing fraction for all prompts, and with a score fitted in advance as in
+\citet{forre2026anytime}; both are given 500 replies per prompt of the 4-bit
+substitute, so their guess is wrong for the 3-bit and 0.5B substitutes. The
+routing sends 30\% of all queries to the substitute, or 50\% of the colour and
+number queries only, which lies outside SLICE's family.
 
 \sbox{\widetab}{\begin{tabular}{lrrrrrrr}
 \toprule
@@ -1550,65 +1320,38 @@ substitute, routing & SLICE & in advance & SLICE & in advance & average & learne
 \centering
 \caption{Auditing a language-model API (Section~\ref{sec:exp-llm}): median
 number of queries to an alarm, over the runs that reject within 400 queries,
-with the power when below one; 400 replications. ``In advance'': the score
-fitted in advance as in \citet{forre2026anytime}, on the 4-bit substitute;
-``average'': the average of its wealth and the learned score's. False alarms
-under the null: 0.0\% (SLICE, both designs), 3.5\% and 2.5\% (fitted in
-advance, published and adaptive), 2.8\% (average), 3.5\% and 2.0\% (learned
-score, adaptive and uniform); a twin that answers a random
-prompt instead of the chosen one raises a false alarm in every run.}
+with the power when below one. ``In advance'': the score fitted in advance on
+the 4-bit substitute; ``average'': the average of its wealth and the learned
+score's. False alarms under the null are at most 3.5\% for every conditioned
+monitor; a twin that answers a random prompt raises a false alarm in every
+run.}
 \label{tab:llm}
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
 \end{table}
 
-Table~\ref{tab:llm} shows three things. First, adaptive prompts help every
-score. With prompts chosen from the past and the twin run on the chosen
-prompt, both published scores need fewer queries than in their published
-form in every scenario: SLICE from 107 to 57 and the score fitted in advance
-from 59 to 23 when the routing depends on the prompt, and from 110 to 95 and
-from 70 to 48 when the substitute is not the expected one. The learned score
-gains up to 0.23 in power over uniform prompts. The auditor
-moves towards the colour prompt, on which the substitutes differ most from
-$P$, with up to 42\% of the queries. Second, validity requires the conditioning: the
-same design with a twin that answers a random prompt rejects the true null
-in every run (Proposition~\ref{prop:necessary}), while all conditioned
-monitors keep false alarms below 5\%. Third, prior knowledge of the
-substitute pays when it is right, and the learned score needs none: without
-any reply of the substitute, the learned score with adaptive prompts matches
-SLICE on the 0.5B substitute and needs half as many queries when the routing
-depends on the prompt. The average of the two wealths, a test martingale by
-construction, needs at most 16 queries more than the score fitted in advance
-in our design, is faster than both published methods in three of the five
-scenarios and ties in a fourth, and, being at least half the learned wealth,
-keeps the learned score's power, up to a factor two in the threshold, however
-wrong the guess of the substitute. The design is
-semi-synthetic and the models are small; the replies, however, are real, and
-the auditor needs only the ability to run the advertised model.
+Adaptive prompts help every score (Table~\ref{tab:llm}): in our design both
+published scores need fewer queries than as published in every scenario, up
+to 61\% fewer, and the learned score gains up to 0.23 in power; the auditor
+moves towards the colour prompt, on which the substitutes differ most. Validity
+requires the conditioning: a twin that answers a random prompt rejects the
+true null in every run. Prior knowledge of the substitute pays when it is
+right, and the learned score needs none: with no reply of the substitute it
+matches SLICE on the 0.5B substitute and needs half as many queries when the
+routing depends on the prompt. The average of the two wealths is within 16
+queries of the faster component and keeps the learned score's power however
+wrong the guess.
 
-\paragraph{Computational cost.} The cost of the audit is the cost of the
-simulator. Each step needs $M = 8$ replies of $P$, which take 2 to 8 seconds
-on four CPU cores, while computing the bet and updating the score takes about
-1.3~ms with the learned score ($d = 129$ weights), 1.1~ms with the score fitted
-in advance, 1.6 to 1.8~ms with SLICE and 2.6~ms for the average of two
-wealths. The e-process itself is therefore below 0.1\% of the running time
-for every method, and what matters is the number of queries to an alarm,
-which the adaptive choice of prompts reduces by up to 61\%. The methods
-differ in their fixed and growing costs. Ours needs nothing before monitoring
-but 200 replies of the twin to standardise the features, and its update costs
-the same at every step, $O((M+1)d^2 + d^3)$ for the Gaussian update as
-implemented, $O((M+1)d^2)$ with rank-one updates, so the total cost is linear in
-the number of steps. The score fitted in advance and SLICE need replies of a guessed
-substitute before monitoring, 500 per prompt here, or, for an amortised
-network, simulations across the simulator's family, $2 \times 10^5$ in
-Section~\ref{sec:exp-concurrent} and of the order of $10^7$ in
-\citet{cortinovis2026slice}. SLICE's estimate of the routing fraction and the
-refit of \citet{forre2026anytime} revisit the whole history at each update,
-so their cost per step grows with $t$, unless sufficient statistics are
-available; on the drift task the refit costs about three times our update
-(Table~\ref{tab:concurrent}). These timings are of our implementations, not
-the authors'.
+The cost of the audit is the cost of the simulator: the $M = 8$ replies of $P$
+take 2 to 8 seconds per step on four CPU cores, whereas the bet and the update
+take 1 to 3~ms for every method, below 0.1\% of the running time. What matters
+is therefore the number of queries to an alarm. Our update costs the same at
+every step, $O((M+1)d^2)$ with rank-one updates, and needs only 200 replies of
+the twin to standardise the features; the baselines need replies of a guessed
+substitute, or an amortised training, before monitoring, and the refit and
+SLICE's estimate revisit the whole history, so their cost per step grows with
+$t$.
 
 %======================================================================
 \section{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
@@ -1616,96 +1359,51 @@ the authors'.
 
 \subsection{The trial and its twin}\label{sec:application}
 
-Automated insulin delivery for type~1 diabetes doses insulin from the readings
-of a continuous glucose monitor (CGM). Dosing algorithms are designed and tested
-on the UVA/Padova type~1 diabetes simulator
-\citep{dallaman2007meal,kovatchev2009insilico,dallaman2014uva}, which the US Food
-and Drug Administration accepted as a substitute for animal trials in
-preclinical testing \citep{kovatchev2009insilico}, and the same simulator is
-used to design clinical trials of dosing strategies: arms are compared in
-silico, and the simulator's predictions justify the design. We use the
-open-source implementation \texttt{simglucose} \citep{xie2018simglucose} of its
-2008 academic version, a 13-dimensional ordinary differential equation model
-of meal absorption, glucose kinetics, hepatic glucose production and
-subcutaneous insulin absorption, through a vectorised port that reproduces
-\texttt{simglucose}'s trajectories to within $5 \times 10^{-4}$~mg/dL. Three
-sources of randomness make it a stochastic simulator: insulin sensitivity
-fluctuates within every five-minute interval (the parameters $V_{mx}$ and
-$k_{p3}$ are multiplied by the same factor $e^{0.15\eta}$), carbohydrate absorption varies
-($C$ grams are absorbed as $Ce^{0.2\eta}$), and the CGM has the Johnson-$S_U$
-error of \citet{breton2008analysis}. The physiological state is hidden and the
-per-interval perturbations enter the dynamics nonlinearly, so the law of a
-day's CGM trace has no tractable density: the setting of this paper, in which
-the simulator can only be sampled.
+Insulin-dosing algorithms for type~1 diabetes are designed and tested on the
+UVA/Padova simulator \citep{dallaman2007meal,kovatchev2009insilico,dallaman2014uva},
+accepted by the US Food and Drug Administration for preclinical testing, and
+the same simulator is used to design trials of dosing strategies. We use the
+open-source \texttt{simglucose} \citep{xie2018simglucose}, a 13-dimensional
+model of meal absorption, glucose kinetics and insulin absorption, with three
+sources of randomness: insulin sensitivity fluctuating every five minutes,
+variable carbohydrate absorption, and the CGM error of
+\citet{breton2008analysis}. The state is hidden and the perturbations enter
+the dynamics nonlinearly, so the law of a day's CGM trace has no tractable
+density.
 
-We consider a MAMS trial of five strategies run by the pump in closed loop:
-\begin{itemize}
-  \item \textbf{A, control:} carbohydrate bolus, correction to 140~mg/dL above
-        150, basal suspended below 80;
-  \item \textbf{B, aggressive:} bolus $\times 1.5$, correction to 100, suspend
-        below 60;
-  \item \textbf{C, conservative:} bolus $\times 0.8$, correction to 160, suspend
-        below 90;
-  \item \textbf{D, intensified:} bolus $\times 1.2$, correction to 120, suspend
-        below 70;
-  \item \textbf{E, tight correction:} bolus $\times 1.0$, correction to 110,
-        suspend below 80.
-\end{itemize}
-The outcome is the time in range (70--180~mg/dL) over a full day, 06:00 to
-06:00, with meals of 50, 70 and 80~g at 07:00, 12:30 and 19:00. According to
-the simulator, arms B and C are worse than control (time in range 0.79 and 0.84
-against 0.91) and arms D and E are equivalent to it (0.90 and 0.91). The trial
-has three stages. In each, 50 new participants, each one of the ten adult
-virtual patients drawn at random, are allocated in permuted blocks among the
-arms still active, and every participant already enrolled is observed for one
-more day. Participants carry their physiological state from one day to the
-next, so a participant's day depends on their earlier treatment. After stages
-1 and 2 an interim analysis compares each active experimental arm with control
-on all participant-days so far and drops it for futility when $z < -1$ (first
-interim) or $z < 0$ (second). Participants on a dropped arm are re-assigned to
-the active experimental arm with the highest interim time in range, or to
-control if none is left, and new participants are allocated only to active
-arms. The trial has 150 participants and 300 participant-days, and every
-element of the design, which arm a participant receives, on which day and
-after which history, is chosen from the data.
+The trial compares five closed-loop strategies, a control (A) and four
+variants of its bolus, correction target and suspension threshold:
+aggressive (B), conservative (C), intensified (D) and tight correction (E);
+details are in Appendix~\ref{app:details}. The outcome is the time in range
+(70--180~mg/dL) over a day with three meals. By the simulator, B and C are
+worse than control (time in range 0.79 and 0.84 against 0.91) and D and E
+equivalent to it. In each of three stages, 50 new participants, each one of
+ten virtual adults, are allocated in permuted blocks among the active arms,
+and every enrolled participant is observed for one more day, carrying their
+physiological state from one day to the next. After stages 1 and 2 each
+experimental arm is dropped for futility when its $z$-statistic against
+control falls below $-1$ and $0$ respectively, and its participants are
+re-assigned to the best active arm. The trial has 150 participants and 300
+participant-days, and every element of the design is chosen from the data.
 
-The twin is the in-silico trial itself: for each participant-day, the
-simulator with that participant's parameters is re-initialised at the
-participant's current physiological state and run $M = 16$ times under the arm
-assigned for that day. Participant-days are monitored in a fixed order within
-each stage, and the score is the logistic BLR predictive of Section~\ref{sec:blr}
-on six summaries of the day relative to the twin's noise-free path (mean and
-standard deviation of the residual, time below 70 and above 180~mg/dL, and the
-arm), with interactions between the arm and the residual and time-below-range
-features. We compare it with four alternatives: the plug-in bet on the same
-score; a \emph{stateless} twin, run under the assigned arm but started from the
-resting state, which ignores the participant's history and therefore the
-consequences of earlier treatment and re-assignment; a \emph{pooled} twin,
-started from rest under an arm drawn uniformly from the five, which is the
-pre-trial in-silico prediction and ignores both the allocation and the history;
-and a $t$-test of standardised time-in-range residuals recomputed after every
-participant-day. A single alarm says that the twin fails somewhere, but a trial
-team needs to know under which arm. We therefore also run one e-process per arm,
-each with its own score, which bets only on that arm's participant-days and has
-factor one otherwise. Whether a participant-day is spent on arm $k$ is decided
-before its outcome, so by Theorem~\ref{thm:valid} each is a test martingale for
-the hypothesis that the twin is correct under arm $k$, whatever the interim
-decisions and re-assignments. Each arm's e-value is its wealth at the end of the
-trial, or when it first reaches $K/\alpha$ with $K = 5$, and e-BH
-\citep{wang2022false} is applied across the arms; stopping an arm at $K/\alpha$
-locks in its rejection, and the stopped wealth is still an e-value by optional
-stopping. This is the bandit
-multiple-testing construction of \citet{xu2021unified} with the twin as the
-null; e-BH controls the false discovery rate under the arbitrary dependence
-between arms that the shared interim decisions create.
-
-Under the null, the participants are the simulator. We consider two
-departures. Under \emph{insulin resistance}, insulin sensitivity is 25\% lower
-than in the virtual cohort, in every arm. Under \emph{defensive snacking},
-participants told that their regimen is intensified (arms B and D) eat an
-unannounced 20~g snack at bedtime against night-time lows. The simulator does
-not know this, and arms A, C and E remain exactly as the twin predicts, so the
-false discovery rate of e-BH is well defined.
+The twin re-initialises the simulator at each participant's current state and
+runs it $M = 16$ times under the arm assigned for that day. The score is the
+logistic BLR of Section~\ref{sec:blr} on six summaries of the day relative to
+the twin's noise-free path. We compare it with the plug-in bet; a
+\emph{stateless} twin, started from rest under the assigned arm, which ignores
+the participant's history; a \emph{pooled} twin, started from rest under a
+random arm, the pre-trial prediction; and a $t$-test recomputed after every
+participant-day. To say under which arm the twin fails, we also run one
+e-process per arm, betting only on that arm's participant-days; whether a day
+is spent on arm $k$ is decided before its outcome, so each is a test martingale
+by Theorem~\ref{thm:valid}, and e-BH \citep{wang2022false} across the arms,
+with each arm stopped at $K/\alpha$, controls the false discovery rate under
+the dependence created by the shared interim decisions, as in
+\citet{xu2021unified}. Under the null the participants are the simulator. Under
+\emph{insulin resistance}, insulin sensitivity is 25\% lower in every arm;
+under \emph{defensive snacking}, participants on the intensified arms B and D
+eat an unannounced 20~g snack at bedtime, while A, C and E remain exactly as
+the twin predicts.
 
 \subsection{Results}
 
@@ -1729,65 +1427,41 @@ A / B / C / D / E & 0 / 0 / 0 / 0 / 0.01 & 1 / 1 / 1 / 1 / 1 & 0 / 0.64 / 0 / 0.
 \end{tabular}}%
 \begin{table}[t]
 \centering
-\caption{A three-stage MAMS trial with futility analyses and re-assignment,
-checked against its in-silico twin (150 participants, 300 participant-days,
-100 replications per scenario). Top: rejection rate by the end of the trial
-and, in brackets, the median number of participant-days before the first
-alarm. Middle: the design, as the share of trials in which each arm is still
-active at the end, and the mean number of re-assigned participants. Bottom:
-share of trials in which e-BH flags each arm, at $\alpha = 0.05$.}
+\caption{A three-stage MAMS trial checked against its in-silico twin (150
+participants, 300 participant-days, 100 replications per scenario). Top:
+rejection rate and, in brackets, median number of participant-days to the
+first alarm. Middle: share of trials with each arm active at the end, and mean
+number of re-assigned participants. Bottom: share of trials in which e-BH
+flags each arm, at $\alpha = 0.05$.}
 \label{tab:trial}
 \begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
 \end{table}
 
-Table~\ref{tab:trial} summarises 100 replications of each scenario. Only the
-monitor that conditions on both the allocation and the history is valid, with a
-false-alarm rate of 2\%. The stateless twin raises a false alarm in 95\% of
-trials: after the first day participants no longer start from rest, and after a
-re-assignment their state reflects a treatment they no longer receive. The
-pooled twin, the pre-trial prediction, rejects a true null in every trial, and
-the recomputed $t$-test and the plug-in bet raise false alarms in 46\% and 47\%
-of trials. Both parts of the conditioning are therefore necessary, on the
-action and on the history, and the alternatives' alarms under the departures
-carry no evidence.
+Only the monitor that conditions on both the allocation and the history is
+valid, with 2\% false alarms (Table~\ref{tab:trial}). The stateless twin raises
+a false alarm in 95\% of trials, because after the first day participants no
+longer start from rest and after a re-assignment their state reflects a
+treatment they no longer receive; the pooled twin does so in every trial, and
+the recomputed $t$-test and the plug-in bet in 46\% and 47\%. Insulin
+resistance is detected after a median of four participant-days. Defensive
+snacking is detected in 99\% of trials after 32, and it changes the design: the
+snack protects arm D from night-time lows, so D survives to the end in 93\% of
+trials instead of 27\% and receives 41\% of the participant-days instead of
+17\%, for a reason its in-silico justification does not contain. e-BH names
+the arm, flagging D in 99\% of trials and B in 64\%, with a false discovery
+rate of 0.3\%; B is found less often because the design usually drops it after
+about ten participant-days. With the simulation-likelihood learner the
+conclusions are the same and detection slower (51 participant-days instead of
+32); the other learners are valid as well (Supplement, Section~S4).
 
-Insulin resistance is detected in every trial after a median of four
-participant-days, and the design reacts to it: arms B and D, which compensate
-for resistance, survive every interim, and C is dropped. Defensive snacking is
-detected in 99\% of trials after a median of 32 participant-days, and it changes
-the design as well. The snack protects the intensified arm D from night-time
-lows, so D survives to the end in 93\% of trials instead of 27\% under the null
-and receives 41\% of all participant-days instead of 17\%: the trial favours an
-arm for a reason that its in-silico justification does not contain. e-BH
-names the arm. Under the null it flags some arm in 1\% of trials, under
-resistance all five arms in every trial, and under snacking D in 99\% of trials
-and B in 64\%, while A, C and E are flagged in at most 1\%, a false discovery
-rate of 0.3\%. Arm B is found less often because the design usually drops it at
-the first interim, after about ten participant-days: an arm that the trial
-abandons accumulates little evidence, which is the price of a monitor that does
-not influence the allocation. With the simulation-likelihood learner of
-Section~\ref{sec:blr} (prior variance 0.03) instead of the logistic one, the
-conclusions are the same but detection is slower: false alarms stay at 2\%
-(98\% and 100\% for the stateless and pooled twins), snacking is detected in
-99\% of trials after a median of 51 participant-days instead of 32, and e-BH
-flags D in 99\% of trials and B in 39\%, with no false discovery.
-The predictive-first learners and the Bayesian-bootstrap forest are valid as
-well, with false alarms in 1--5\% of trials, against 81--98\% for the stateless
-twin, and detect snacking in 99\% of trials (Supplement, Section~S4).
-
-Two caveats matter in practice. The twin is re-initialised at the participant's
-true physiological state, which is observable in silico but would have to be
-estimated from CGM and insulin records in a real trial; sampling from the
-twin's filtering distribution instead breaks exact exchangeability, and the
-guarantees of \citet{barber2026montecarlo} for approximately exchangeable
-samples are the natural tool. And an alarm says that the in-silico
-justification of the design has failed, not that an arm is unsafe or
-ineffective; in a trial it would be reported to the data monitoring committee,
-and its consequences for the trial's efficacy analysis, which is not the object
-of this monitor, are for the design to specify. A simpler single-stage,
-three-arm version with Thompson-sampling allocation, and the monitoring of a
-single patient under closed-loop control, are in the Supplement and lead to the
-same conclusions.
+The twin is re-initialised at the participant's true state, which in a real
+trial would have to be estimated from CGM and insulin records; sampling from a
+filtering distribution breaks exact exchangeability, and the guarantees of
+\citet{barber2026montecarlo} for approximately exchangeable samples are the
+natural tool. An alarm says that the in-silico justification of the design
+has failed, not that an arm is unsafe; it would be reported to the data
+monitoring committee. A single-stage version with Thompson sampling and the
+monitoring of a single patient are in the Supplement.
 
 %======================================================================
 \section{Related work}\label{sec:related}
@@ -2346,6 +2020,32 @@ substitute and 1000 of $P$, with the log ratio clipped to $[-10, 10]$. SLICE's
 routing fraction $\hat\theta_{t-1}$ maximises
 $\sum_{i<t}\log\{1 - \theta + \theta\,\hat r(X_i)/\hat p(X_i)\}$ over a grid of 201
 values in $[0, 1]$, which keeps the argument of the logarithm positive.
+
+\paragraph{MAMS trial.} The twin is \texttt{simglucose}
+\citep{xie2018simglucose}, the open-source implementation of the 2008 academic
+version of the UVA/Padova simulator, through a vectorised port that reproduces
+its trajectories to within $5 \times 10^{-4}$~mg/dL. Insulin sensitivity
+fluctuates within every five-minute interval ($V_{mx}$ and $k_{p3}$ are
+multiplied by the same factor $e^{0.15\eta}$), $C$ grams of carbohydrate are
+absorbed as $Ce^{0.2\eta}$, and the CGM has the Johnson-$S_U$ error of
+\citet{breton2008analysis}. The five strategies are: A, control, carbohydrate
+bolus, correction to 140~mg/dL above 150, basal suspended below 80; B,
+aggressive, bolus $\times 1.5$, correction to 100, suspend below 60; C,
+conservative, bolus $\times 0.8$, correction to 160, suspend below 90; D,
+intensified, bolus $\times 1.2$, correction to 120, suspend below 70; E, tight
+correction, bolus $\times 1.0$, correction to 110, suspend below 80. A day runs
+from 06:00 to 06:00 with meals of 50, 70 and 80~g at 07:00, 12:30 and 19:00. At
+an interim, each active experimental arm is compared with control on all
+participant-days so far, and a dropped arm's participants are re-assigned to
+the active experimental arm with the highest interim time in range, or to
+control if none is left; new participants are allocated only to active arms.
+Participant-days are monitored in a fixed order within each stage. The score
+uses six summaries of the day relative to the twin's noise-free path (mean and
+standard deviation of the residual, time below 70 and above 180~mg/dL, and the
+arm), with interactions between the arm and the residual and time-below-range
+features. Each arm's e-value is its wealth at the end of the trial, or when it
+first reaches $K/\alpha$ with $K = 5$; stopping locks in the rejection and the
+stopped wealth is still an e-value by optional stopping.
 
 \paragraph{Seeds and cost.} Replication $i$ uses seed $i$ under the null and
 $10^6 + i$ under the alternative, for every method, so methods are compared on
