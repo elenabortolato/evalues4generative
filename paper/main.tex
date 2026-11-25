@@ -203,7 +203,10 @@ developments assume independent observations and a simulator without state.
 under conditional exchangeability and prove validity given independent
 covariates. They also learn the score differently: \citet{forre2026anytime}
 refit it by maximising its empirical growth, and \citet{cortinovis2026slice}
-train a neural ratio estimator before the data arrive.
+train a neural ratio estimator before the data arrive, over the simulator's own
+parametric family, so that their score can forecast only departures that the
+family contains; our scores reweight the simulator by features of the outcome,
+and detect departures that its designers did not build into it.
 Section~\ref{sec:discussion} states in detail which of our results coincide
 with theirs.
 
@@ -697,8 +700,12 @@ exchangeability; power is a matter of prediction.
 
 This reading says where power comes from. A score can only forecast within
 the family of its tilted nulls, so the features determine which departures
-can be detected, which is the contrast between departures inside and outside
-a parametric family in Section~\ref{sec:exp-concurrent}. And since a forecast
+can be detected. For a score built from the simulator's own parameters, as in
+SLICE, the tilted nulls are members of that parametric family, and a departure
+outside it is invisible however accurate the score; a score learned on
+features of the outcome reweights the simulator in directions that need not
+correspond to any parameter. This is the contrast between departures inside
+and outside a parametric family in Section~\ref{sec:exp-concurrent}. And since a forecast
 need only be issued before the outcome it is scored on, any learner, exact or
 approximate, trained online or in advance, keeps the validity of
 Theorem~\ref{thm:valid}; when the monitor rejects, the forecasts that beat the
@@ -1267,8 +1274,15 @@ that know where the departure lies are fastest inside the family, SLICE after
 against about 210 for scores learned from the data; but outside the family
 their power falls to 0.01 on the drift (Remark~\ref{rem:family}), while every
 score learned from real against simulated outcomes keeps it. Among the learned
-scores, the refit of \citet{forre2026anytime} and our updates perform alike,
-but ours cost a third as much and carry the pathwise guarantee of
+scores, the refit of \citet{forre2026anytime} is slightly more powerful on the
+drift task, markedly so against our logistic learner outside the family (0.91
+against 0.73), and ours are faster on the bandit (38 against 61 steps inside
+the family, 112 against 167 outside). The gap outside the family is the
+logistic learner's rather than the method's: on the simulation likelihood,
+the objective that the refit maximises, our update has the same median
+stopping time as the refit (228 steps), plausibly because the logistic
+learner's probit shrinkage keeps its bets small for longer when the signal is
+weak. Ours cost a third as much and carry the pathwise guarantee of
 Theorem~\ref{thm:simlik}: they average over the uncertainty about the score's
 parameter, whereas a sequence of refits at a maximiser is in general not the
 predictive sequence of any exchangeable model
@@ -1303,7 +1317,8 @@ bits and the smaller Qwen2.5-0.5B-Instruct. All replies are real outputs of
 \texttt{llama.cpp} \citep{gerganov2023llamacpp} at temperature one; only the
 routing is simulated. At each step the auditor chooses a prompt by an upper
 confidence bound on its realised log growth, keeping each prompt above a tenth
-of the queries, observes the reply and draws $M = 8$ replies of $P$ to the
+of the queries (any rule that uses the past only would keep the monitor valid,
+and this one was not tuned), observes the reply and draws $M = 8$ replies of $P$ to the
 same prompt. The learned score is a logistic BLR on hashed character
 $n$-grams, one block of weights per prompt. We compare it with SLICE, with one
 routing fraction for all prompts, and with a score fitted in advance as in
@@ -1464,8 +1479,9 @@ conclusions are the same and detection slower (51 participant-days instead of
 32); the other learners are valid as well (Supplement, Section~S4).
 
 The twin is re-initialised at the participant's true state, which in a real
-trial would have to be estimated from CGM and insulin records; sampling from a
-filtering distribution breaks exact exchangeability, and the guarantees of
+trial would have to be estimated from CGM and insulin records; plugging in an
+estimated state, or sampling it from an approximate filtering distribution,
+breaks exact exchangeability, and the guarantees of
 \citet{barber2026montecarlo} for approximately exchangeable samples are the
 natural tool. An alarm says that the in-silico justification of the design
 has failed, not that an arm is unsafe; it would be reported to the data
@@ -1511,7 +1527,7 @@ them, test the twin's basal physiology, its model of meal absorption and the
 absence of hidden meals. Combined by e-BH, a rejection by the third monitor
 alone points to unannounced meals rather than to an inadequate twin, whereas a
 rejection on the fasting windows points to the physiology; a monitor that does
-not reject, however, gives no evidence that its part of the twin is right. The tilted null can also drive
+not reject, however, gives no evidence that its part of the twin is right. The tilted null might also drive
 the design: its divergence from the simulator under each action,
 $\KL(\tilde T_{t,a}\|P_{t,a})$, is the growth the monitor expects from that
 action, and choosing actions to maximise it is a model-based alternative to
@@ -1526,8 +1542,10 @@ over time, with fresh simulations for each observation. The closest work is
 e-value with exchangeable samples, including MCMC samples, and give the
 Besag--Clifford e-process for an i.i.d.\ stream; their results on the
 likelihood-ratio score are used, with attribution, in
-Section~\ref{sec:power}. Two concurrent papers use the same bet for
-independent data. \citet{forre2026anytime} show that the
+Section~\ref{sec:power}.
+
+Two concurrent papers use a similar betting strategy
+for independent data. \citet{forre2026anytime} show that the
 likelihood ratio is the optimal score for every $M$, bound the loss from a
 finite $M$, and refit the score online by maximising its empirical growth,
 leaving dependent streams open. \citet{cortinovis2026slice} invert the
@@ -1542,7 +1560,7 @@ $M/(M+1)$, and updates the score's parameter by Bayes' rule on the simulation
 likelihood, with a pathwise regret bound, where both concurrent papers bet at
 a point estimate.
 
-The methods are complementary rather than competing. SLICE answers a
+The methods are complementary rather than competing. SLICE \citep{cortinovis2026slice} answers a
 different question, which values of a simulator's parameter are compatible
 with the data. When the departure lies inside its parametrised family it is
 the fastest method we compared; when it does not, its power depends on where
@@ -1612,21 +1630,28 @@ Several limitations remain. The null is a simple conditional null; simulators
 with unknown calibration parameters need composite-null constructions, such
 as universal inference or reverse information projections
 \citep{grunwald2024safe}, adapted to samplers. Exact validity requires the
-simulator to be run from the state of the real system, which is observed in
-silico, in the audit and in the bandit but must be estimated for a physical
-twin; estimated states, like MCMC-based samplers, break exact
-exchangeability, and the guarantees of \citet{barber2026montecarlo} suggest how
-to control the resulting error. Theorem~\ref{thm:simlik} compares the monitor
-with the best score in a parametric class, not with the true density ratio,
-and its regret bound is not known to be optimal; the approximate one-step
-update used in practice is covered only through
-Proposition~\ref{prop:approx}, and in our experiments the logistic learner,
-which has no such guarantee, is more powerful than the simulation-likelihood
+simulator to be run from the state of the real system, which is known in
+silico and absent in the audit and the bandit, but must be inferred for a
+physical twin. Sampling the state from an exact filtering distribution keeps
+validity exact with respect to the observed history; plugging in a point
+estimate does not, and an approximate filter, like an MCMC-based simulator,
+makes exchangeability only approximate. Since the resulting bias recurs at
+every step, extending the guarantees of \citet{barber2026montecarlo} for a
+single approximately exchangeable test to the sequential setting is an open
+problem. Theorem~\ref{thm:simlik} compares the monitor with the best score in
+a parametric class, not with the true density ratio, and its $d\log t$ regret
+is not known to be optimal. It holds for the exact posterior, whereas the
+one-step Gaussian update used in practice is covered only through
+Proposition~\ref{prop:approx}; and in our experiments the logistic learner,
+which has no regret guarantee, is faster than the simulation-likelihood
 learner that has one, by about 6\% in stopping time on the drift task and
-about 60\% in the trial, because the latter's bets are too cautious. Closing
-this gap, for instance with a tempered posterior, such as a learning rate
-$\gamma \ne 1$ in the prequential posterior of \citet{sinharoy2026prequential},
-that keeps the guarantee, is the most useful next step.
+about 60\% in the trial, because the latter's bets are too cautious. A
+tempered posterior $\pi_t \propto \pi_0 L_t^{\gamma}$ with $\gamma > 1$, as in
+the prequential posteriors of \citet{sinharoy2026prequential}, would bet more
+and is valid for every $\gamma$, since any posterior computed from the past
+gives a fair bet; what is lost is the exact factorisation behind
+Theorem~\ref{thm:simlik}, and a regret bound for it is the most useful next
+step.
 Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} also assume bounded
 features, whereas our experiments standardise polynomial features without
 bounding them and clip only the score; the guarantees apply exactly once the
