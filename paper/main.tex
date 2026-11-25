@@ -204,15 +204,16 @@ under conditional exchangeability and prove validity given independent
 covariates. They also learn the score differently: \citet{forre2026anytime}
 refit it by maximising its empirical growth, and \citet{cortinovis2026slice}
 train a neural ratio estimator before the data arrive.
-Section~\ref{sec:related} lists in detail which of our results coincide with
-theirs.
+Section~\ref{sec:discussion} states in detail which of our results coincide
+with theirs.
 
 Section~\ref{sec:method} gives the method and its validity,
 Section~\ref{sec:power} its power, and Section~\ref{sec:predictive} the
 predictive view and the update rules (Algorithm~1). Section~\ref{sec:experiments}
 contains simulations, the comparison with concurrent methods and the
 language-model audit, and Section~\ref{sec:trial} the trial.
-Section~\ref{sec:discussion} discusses limitations.
+Section~\ref{sec:discussion} relates the method to earlier and concurrent
+work and discusses its limitations.
 
 %======================================================================
 \section{Monte Carlo e-processes under adaptive control}\label{sec:method}
@@ -1472,196 +1473,147 @@ monitoring committee. A single-stage version with Thompson sampling and the
 monitoring of a single patient are in the Supplement.
 
 %======================================================================
-\section{Related work}\label{sec:related}
-%======================================================================
-
-Classical Monte Carlo tests compare a fixed dataset with simulations from the
-null \citep{besag1989generalized}; \citet{fischer2024sequential} make them
-anytime-valid in the number of simulations for a fixed dataset, and
-\citet{barber2026montecarlo} give guarantees without exact joint
-exchangeability. Here the data themselves arrive over time, and fresh
-simulations are drawn for each new observation. The closest work is
-\citet{dombowsky2026besag}, who normalise an arbitrary statistic into an
-e-value with samples exchangeable with the data under the null, produced by
-the parallel MCMC method of \citet{besag1989generalized} when the null can
-only be sampled by MCMC. For the unnormalised likelihood ratio they show
-log-optimality as $M \to \infty$ and a non-asymptotic lower bound on the
-e-power, and they give composite nulls of finite cardinality, confidence
-regions and a Besag--Clifford e-process for an i.i.d.\ stream, including a
-plug-in score for a composite alternative. Relative to their work, this paper
-adds actions chosen from the data, with the conditioning requirement and its
-necessity; the analysis of learned scores through the tilted null and the local
-efficiency $M/(M+1)$; the predictive view of the score and exact Bayesian
-updating on the simulation likelihood with its pathwise regret; and per-arm
-monitoring in adaptive designs. Their MCMC construction applies directly when
-the simulator is itself an MCMC sampler.
-
-Two concurrent papers use the same normalised bet for independent data.
-\citet{forre2026anytime} test a simulator $P_0$ against an alternative $P_1$
-that can also only be sampled, or against any departure from $P_0$. They show
-that the likelihood ratio is the optimal score for every $M$, bound the loss
-from a finite $M$, prove approximate growth optimality of scores fitted by
-maximising the empirical growth, under compactness and M-estimation
-conditions, and refit the score online on past observations; data streams that
-depend on the past are left open. \citet{cortinovis2026slice} invert the
-e-process over the parameter of a simulator into confidence sequences, with
-amortised neural ratio scores trained before monitoring and fixed, and extend
-validity to observations that depend on i.i.d.\ covariates; in an appendix
-they note that the construction extends to dependent data when the
-simulations are drawn conditionally on the observed history. Relative to both,
-this paper develops that direction for actions chosen from the data and
-simulators with state, gives the conditioning required under an arbitrary
-allocation rule, shows that it is necessary and quantifies the failure
-when it is dropped, reads arbitrary scores through the tilted null with the
-local efficiency $M/(M+1)$, gives sequential Bayesian and predictive updates of
-the score with a pathwise regret bound, and applies the method to adaptive
-designs. Neither paper updates the score's parameter by Bayes' rule: both bet
-at a point estimate, the maximiser of the empirical growth in
-\citet{forre2026anytime} and a predictable estimate or posterior summary in
-\citet{cortinovis2026slice}. Treating the bet as a likelihood, averaging it
-over the posterior of the score's parameter, the prequential reading of the
-wealth and the pathwise regret bound are specific to this paper.
-
-Model-X sequential tests of conditional independence \citep{shaer2023modelx}
-draw a dummy covariate from its known conditional law at each step and bet on a
-learned predictor, the same mechanism as ours with $M = 1$ applied to a
-different null. Sequential predictive two-sample tests bet with an online
-classifier separating two streams
-\citep{podkopaev2023sequential,shekhar2023nonparametric}, the sequential
-kernelised Stein discrepancy tests goodness of fit when the score function is
-available \citep{martinez2025sequential}, and conformal test martingales
-\citep{vovk2003testing,vovk2021testing}, including weighted versions for
-deployed AI systems \citep{prinster2025watch}, test the exchangeability of a
-stream with no reference model. Randomisation tests and e-processes for
-adaptively collected data \citep{nair2023randomization,zampieri2025sequential},
-anytime-valid off-policy inference \citep{waudbysmith2024anytime} and adaptive
-auditing of AI systems \citep{zhou2026adaptive} handle adaptivity, but none of
-them uses a simulator as the null; digital-twin validation by re-initialising
-the twin from observed states \citep{ghasemloo2026subtrace} uses the same
-conditioning idea with fixed-sample tests. Prequential posteriors
-\citep{sinharoy2026prequential} assimilate data into generative forecasting
-models with intractable likelihoods through a scoring-rule loss estimated from
-simulations, and target the parameter with the best one-step-ahead predictive
-loss under misspecification; their aim is to calibrate the simulator, whereas
-ours is to test it, and the simulation likelihood is the instance of their
-construction, with the logarithmic loss of an exactly fair bet and learning
-rate one, whose posterior mixture is a test martingale. In bandit multiple testing, one
-e-process per arm combined by e-BH controls the false discovery rate under
-arbitrary adaptive sampling \citep{xu2021unified}; there the hypotheses concern
-the arms' effects and the sampling can be chosen to make the tests powerful,
-whereas our per-arm monitors test the twin, with the allocation fixed by the
-trial. Finally, reading the wealth as a prequential likelihood ratio follows
-\citet{dawid1984present}; computing the marginal likelihood as a product of
-one-step posterior predictives is Dawid's prequential form, the Bayes universal
-code of minimum description length
-\citep{rissanen1984universal,grunwald2007minimum}, and the basis of sequential
-Monte Carlo estimates of the evidence \citep{kong1994sequential,chopin2002sequential},
-and it is related to cross-validation by \citet{fong2020marginal}
-(Section~\ref{sec:predictive}); the link between predictive scores and Bayes factors
-is the prequential view of the marginal likelihood
-\citep{clarke1990information}; taking the predictive sequence as the primitive
-is the approach of martingale posteriors \citep{fong2023martingale}; and the
-simulation likelihood connects the monitor to contrastive learning
-\citep{oord2018representation,ma2018noise} and the score update to the Bayesian
-learning rule \citep{khan2023bayesian,jones2024bong}.
-
-%======================================================================
-\section{Discussion}\label{sec:discussion}
+\section{Discussion}\label{sec:discussion}\label{sec:related}
 %======================================================================
 
 The Monte Carlo e-process separates two concerns that are usually entangled.
 Validity comes from exchangeability with fresh, correctly conditioned
 simulations, and holds for any score and any policy, including interim
 analyses and re-assignments. Power comes from the score, which is a sequence of
-one-step predictives; Theorem~\ref{thm:growth} measures it by the distance
+one-step forecasts: Theorem~\ref{thm:growth} measures it by the distance
 between the tilted null and the truth, scaled by $M/(M+1)$, and
 Theorem~\ref{thm:simlik} shows that exact Bayesian updating on the simulation
 likelihood achieves the growth of the best score in a class, with no
-recomputation. Approximations made when computing the score can therefore cost
-power but never validity, and the score can be updated either through a
-Gaussian approximation of a posterior or directly through its predictive, as
-martingale posteriors do: in our experiments both routes are valid everywhere,
-and the Gaussian route is usually faster because its covariance damps early
-bets.
+recomputation. Approximations in the score therefore cost power but never
+validity. The tilted null also makes a rejection informative. When the monitor
+rejects, the posterior over the score's parameter describes the tilts of the
+simulator that have forecast reality better than the simulator itself, so the
+features with large posterior coefficients indicate the direction of the
+departure: a shift in the mean, an excess of variance, a particular arm. This
+reading is descriptive rather than inferential, since correlated features can
+forecast equally well; a formal statement about one aspect of the simulator
+needs its own e-process, as the per-arm e-processes combined by e-BH provide
+in the trial.
 
-The tilted null also makes a rejection informative. When the monitor rejects,
-the posterior over the score's parameter describes the tilts of the simulator
-that have forecast reality better than the simulator itself, so the features
-with large posterior coefficients indicate the direction of the departure:
-a shift in the mean, an excess of variance, a particular arm. This reading is
-descriptive rather than inferential, since the posterior is not a test of each
-feature and correlated features can forecast equally well; a formal statement
-about a given aspect of the simulator needs its own e-process, as the per-arm
-e-processes combined by e-BH provide in the trial
-(Section~\ref{sec:trial}).
+Classical Monte Carlo tests compare a fixed dataset with simulations from the
+null \citep{besag1989generalized}; \citet{fischer2024sequential} make them
+anytime-valid in the number of simulations, and \citet{barber2026montecarlo}
+give guarantees without exact exchangeability. Here the data arrive over time,
+and fresh simulations are drawn for each observation. The closest work is
+\citet{dombowsky2026besag}, who normalise an arbitrary statistic into an
+e-value with samples exchangeable with the data, including samples from the
+parallel MCMC method of \citet{besag1989generalized} when the null can only be
+sampled that way; they show log-optimality of the likelihood ratio as
+$M \to \infty$ and a non-asymptotic lower bound on the e-power, and give a
+Besag--Clifford e-process for an i.i.d.\ stream. Two concurrent papers use the
+same bet for independent data. \citet{forre2026anytime} show that the
+likelihood ratio is the optimal score for every $M$, bound the loss from a
+finite $M$, and refit the score online by maximising its empirical growth,
+leaving dependent streams open. \citet{cortinovis2026slice} invert the
+e-process into confidence sequences for the parameters of a simulator, with
+amortised neural ratio scores, prove validity given i.i.d.\ covariates, and
+note in an appendix that the construction extends to dependent data by
+simulating conditionally on the history. Relative to these papers, ours treats
+actions chosen from the data and simulators with state, shows that the
+conditioning is necessary and quantifies the failure without it, reads
+arbitrary scores through the tilted null with the local efficiency
+$M/(M+1)$, and updates the score's parameter by Bayes' rule on the simulation
+likelihood, with a pathwise regret bound, where both concurrent papers bet at
+a point estimate.
 
-The actions are a source of power, not only a threat to validity. Once the
-simulator is run under the action taken, the design may be chosen to gather
-evidence where it accumulates fastest, and Theorem~\ref{thm:valid} keeps the
-monitor valid whatever the rule. In the audit of Section~\ref{sec:exp-llm},
-choosing the prompts adaptively makes every score faster, ours and the two
-concurrent ones alike, by 8\% to 61\% in the number of queries. Methods built for
-independent data and a fixed design, such as \citet{forre2026anytime} and
-\citet{cortinovis2026slice}, gain from being placed in this design, and
-without the conditioning on the action they lose validity altogether.
-
-The concurrent methods and ours are therefore complementary rather than
-competing. SLICE answers a different question, which values of a simulator's
-parameter are compatible with the data, and its test of a single null is a
-by-product. When the departure lies inside the simulator's parametrised family
-it is the fastest method we compared (Section~\ref{sec:exp-concurrent}); when
-it does not, its power depends on where the departure projects onto the
-family, and it vanishes when the projection is the null itself, however
-accurate the network (Remark~\ref{rem:family}). It also needs the family and
-an amortised training on simulations from it, of the order of $10^7$ in
+The methods are complementary rather than competing. SLICE answers a
+different question, which values of a simulator's parameter are compatible
+with the data. When the departure lies inside its parametrised family it is
+the fastest method we compared; when it does not, its power depends on where
+the departure projects onto the family and vanishes when the projection is
+the null itself (Remark~\ref{rem:family}), and it needs an amortised training
+on the family, of the order of $10^7$ simulations in
 \citet{cortinovis2026slice}. A score learned from real against simulated
 outcomes needs neither, and pays for this with a slower start when prior
 knowledge of the alternative exists: in the audit, a score fitted in advance
 on the right substitute stops after 30 to 41 queries, the learned score after
-134 to 220. The natural synthesis is to use an amortised or pretrained score
-as the centre of the prior of the online update, rather than as a separate
-bet. The monitor would then start as fast as the pretrained score and correct
-it where the guess is wrong, with the validity of Theorem~\ref{thm:valid}
-and the pathwise guarantee of Theorem~\ref{thm:simlik} relative to that
-prior. The average of the two wealths used in Section~\ref{sec:exp-llm} is a
-cruder version of this synthesis, and already within 16 queries of the faster
-of its two components.
+134 to 220. The natural synthesis is to use a pretrained score as the centre
+of the prior of the online update, so that the monitor starts as fast as the
+pretrained score and corrects it where the guess is wrong, with the guarantees
+of Theorems~\ref{thm:valid} and~\ref{thm:simlik} relative to that prior; the
+average of the two wealths in Section~\ref{sec:exp-llm}, within 16 queries of
+the faster component, is a cruder version of it. In the other direction,
+since SLICE bets at the plug-in forecast $P_{\hat\theta_{t-1}}$, its confidence
+sequences are a likelihood-free version of the running-estimate confidence
+sequences of universal inference \citep{wasserman2020universal}. Averaging the
+bets over a posterior instead keeps validity, and a pathwise regret bound for
+such confidence sequences would need a posterior computed for each candidate
+null from its own simulation likelihood, with scores log-linear in their
+parameter; we leave this to future work.
 
-Since the score of \citet{cortinovis2026slice} bets with the plug-in forecast
-$P_{\hat\theta_{t-1}}$ (Remark~\ref{rem:family}), their confidence sequences
-are a likelihood-free version of the running-estimate confidence sequences of
-universal inference \citep{wasserman2020universal}. Averaging the normalised
-bets over a posterior instead of betting at the plug-in keeps validity; to give
-confidence sequences for simulator parameters with a pathwise regret bound in
-the spirit of Theorem~\ref{thm:simlik}, the posterior must be computed for each
-candidate null from its own simulation likelihood, and the bound needs scores
-that are log-linear in their parameter, unlike a neural ratio network. We
-leave this to future work.
+The actions are a source of power, not only a threat to validity. Once the
+simulator is run under the action taken, the design may be chosen to gather
+evidence where it accumulates fastest: in the audit this makes every score
+faster, ours and the concurrent ones alike, by 8\% to 61\% in the number of
+queries, while without the conditioning on the action the concurrent methods
+lose validity altogether. Other anytime-valid methods handle adaptively
+collected data, through randomisation tests and e-processes
+\citep{nair2023randomization,zampieri2025sequential}, off-policy inference
+\citep{waudbysmith2024anytime} or adaptive audits of AI systems
+\citep{zhou2026adaptive}, but none uses a simulator as the null; digital-twin
+validation by re-initialising the twin from observed states
+\citep{ghasemloo2026subtrace} uses the same conditioning with fixed-sample
+tests. In bandit multiple testing, one e-process per arm combined by e-BH
+controls the false discovery rate under adaptive sampling
+\citep{xu2021unified}; there the hypotheses concern the arms' effects and the
+sampling is chosen to make the tests powerful, whereas our per-arm monitors
+test the twin under the allocation fixed by the trial. Among sequential tests
+that bet with a learned predictor, Model-X tests of conditional independence
+\citep{shaer2023modelx} use the same mechanism with $M = 1$, drawing a dummy
+covariate from its known law; two-sample tests
+\citep{podkopaev2023sequential,shekhar2023nonparametric}, kernelised Stein
+discrepancy tests \citep{martinez2025sequential} and conformal test
+martingales \citep{vovk2003testing,vovk2021testing,prinster2025watch} address
+other nulls: two streams compared with each other, a model whose score
+function is available, or exchangeability with no reference model.
+
+The predictive reading places the method among classical ideas. Computing a
+marginal likelihood as a product of one-step predictives is the prequential
+form of \citet{dawid1984present}, the Bayes universal code of minimum
+description length \citep{rissanen1984universal,grunwald2007minimum} and the
+basis of sequential Monte Carlo estimates of the evidence
+\citep{kong1994sequential,chopin2002sequential}, and it is related to
+cross-validation by \citet{fong2020marginal}; taking the predictives as the
+primitive is the approach of martingale posteriors
+\citep{fong2023martingale}. Prequential posteriors
+\citep{sinharoy2026prequential} calibrate generative forecasting models
+through a scoring-rule loss estimated from simulations. Their aim is to
+calibrate a simulator and ours to test it, and the simulation likelihood is
+the instance of their construction whose loss, the logarithm of an exactly
+fair bet, makes the posterior mixture a test martingale.
 
 Several limitations remain. The null is a simple conditional null; simulators
-with unknown calibration parameters need composite-null constructions, such as
-universal inference or reverse information projections \citep{grunwald2024safe},
-adapted to samplers. MCMC-based samplers and estimated initial states break
-exact exchangeability, and the guarantees of \citet{barber2026montecarlo}
-suggest how to control the resulting error. Theorem~\ref{thm:simlik} compares
-the monitor with the best score in a parametric class, not with the true
-density ratio, and its regret bound is not known to be optimal; the
-approximate one-step update used in practice is covered only through
+with unknown calibration parameters need composite-null constructions, such
+as universal inference or reverse information projections
+\citep{grunwald2024safe}, adapted to samplers. Exact validity requires the
+simulator to be run from the state of the real system, which is observed in
+silico, in the audit and in the bandit but must be estimated for a physical
+twin; estimated states, like MCMC-based samplers, break exact
+exchangeability, and the guarantees of \citet{barber2026montecarlo} suggest how
+to control the resulting error. Theorem~\ref{thm:simlik} compares the monitor
+with the best score in a parametric class, not with the true density ratio,
+and its regret bound is not known to be optimal; the approximate one-step
+update used in practice is covered only through
 Proposition~\ref{prop:approx}, and in our experiments the logistic learner,
 which has no such guarantee, is more powerful than the simulation-likelihood
-learner that has one: by about 6\% in stopping time on the drift task and by about
-60\% in the trial, because the latter's bets are too cautious. Closing this gap,
-for instance with a tempered or sharper posterior, such as a learning rate
+learner that has one, by about 6\% in stopping time on the drift task and
+about 60\% in the trial, because the latter's bets are too cautious. Closing
+this gap, for instance with a tempered posterior, such as a learning rate
 $\gamma \ne 1$ in the prequential posterior of \citet{sinharoy2026prequential},
-that keeps the guarantee, is the most useful next step. Theorem~\ref{thm:simlik} and
-Proposition~\ref{prop:approx} also assume bounded features, whereas our
-experiments standardise polynomial features without bounding them and clip
-only the score; the guarantees apply exactly once the features are clipped.
-Finally, the experiments are
-low-dimensional; high-dimensional simulators call for learned feature maps and
-structured posterior approximations. High-energy physics is a natural target,
-since searches for new physics already compare collision data with large
-samples from the Standard Model simulator using learned classifiers
+that keeps the guarantee, is the most useful next step.
+Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} also assume bounded
+features, whereas our experiments standardise polynomial features without
+bounding them and clip only the score; the guarantees apply exactly once the
+features are clipped. Finally, the experiments are low-dimensional;
+high-dimensional simulators call for learned feature maps and structured
+posterior approximations. High-energy physics is a natural target, since
+searches for new physics already compare collision data with large samples
+from the Standard Model simulator using learned classifiers
 \citep{dagnolo2019learning}, and the Monte Carlo e-process would make such
 comparisons anytime-valid as data accumulate.
 
