@@ -1476,16 +1476,21 @@ monitoring of a single patient are in the Supplement.
 \section{Discussion}\label{sec:discussion}\label{sec:related}
 %======================================================================
 
-The Monte Carlo e-process separates two concerns that are usually entangled.
-Validity comes from exchangeability with fresh, correctly conditioned
-simulations, and holds for any score and any policy, including interim
-analyses and re-assignments. Power comes from the score, which is a sequence of
-one-step forecasts: Theorem~\ref{thm:growth} measures it by the distance
-between the tilted null and the truth, scaled by $M/(M+1)$, and
+The Monte Carlo e-process separates validity, the control of false alarms,
+from power, the speed at which a wrong simulator is detected; in a classical
+test both depend on the test statistic, and learning the statistic from the
+data spoils its calibration. Here validity comes only from how the simulator
+is run, through exchangeability with fresh simulations under the action taken
+and from the current state, and holds for any score and any policy, including
+interim analyses and re-assignments. Power comes only from the score, a
+sequence of one-step forecasts: Theorem~\ref{thm:growth} measures it by the
+distance between the tilted null and the truth, scaled by $M/(M+1)$, and
 Theorem~\ref{thm:simlik} shows that exact Bayesian updating on the simulation
-likelihood achieves the growth of the best score in a class, with no
-recomputation. Approximations in the score therefore cost power but never
-validity. The tilted null also makes a rejection informative. When the monitor
+likelihood loses at most $d\log t$ against the best score of a class chosen in
+hindsight, on every path, so that it grows at that score's rate; since the
+posterior-predictive bets multiply to the Bayesian mixture, the wealth is
+updated in one step per observation and never recomputed from the past.
+Approximations in the score therefore cost power but never validity. The tilted null also makes a rejection informative. When the monitor
 rejects, the posterior over the score's parameter describes the tilts of the
 simulator that have forecast reality better than the simulator itself, so the
 features with large posterior coefficients indicate the direction of the
