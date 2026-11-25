@@ -1491,28 +1491,37 @@ likelihood loses at most $d\log t$ against the best score of a class chosen in
 hindsight, on every path, so that it grows at that score's rate; since the
 posterior-predictive bets multiply to the Bayesian mixture, the wealth is
 updated in one step per observation and never recomputed from the past.
-Approximations in the score therefore cost power but never validity. The tilted null also makes a rejection informative. When the monitor
-rejects, the posterior over the score's parameter describes the tilts of the
-simulator that have forecast reality better than the simulator itself, so the
-features with large posterior coefficients indicate the direction of the
-departure: a shift in the mean, an excess of variance, a particular arm. This
-reading is descriptive rather than inferential, since correlated features can
-forecast equally well; a formal statement about one aspect of the simulator
-needs its own e-process, as the per-arm e-processes combined by e-BH provide
-in the trial.
+Approximations in the score therefore cost power but never validity. The tilted null also makes a rejection informative. The monitor rejects when
+its forecasts, the tilted nulls of its scores, have predicted reality better
+than the simulator; as the posterior concentrates, the tilted null approaches
+the reweighting of the simulator closest to reality,
+$\arg\min_\theta \KL(Q\|Q_\theta)$, and its log ratio to the simulator,
+$\theta^\top\phi - \log Z(\theta)$, shows where reality puts more or less mass
+than the simulator: a shift in the mean, an excess of variance, a particular
+arm. This reading is exploratory rather than inferential. The e-process tests
+the global null that the simulator is right, and correlated features can
+forecast the same departure equally well, so a large coefficient suggests, but
+does not prove, that the simulator fails on that feature. A claim with error
+control about one aspect needs its own e-process: a score that depends on the
+outcome only through a statistic $f$ is valid for the narrower null that the
+simulator reproduces the law of $f$, and several such e-processes, or one per
+arm as in the trial, can be combined by e-BH. The tilted null can also drive
+the design: its divergence from the simulator under each action,
+$\KL(\tilde T_{t,a}\|P_{t,a})$, is the growth the monitor expects from that
+action, and choosing actions to maximise it is a model-based alternative to
+the upper confidence bound of Section~\ref{sec:exp-llm}, valid by
+Theorem~\ref{thm:valid} since it uses the past only.
 
-Classical Monte Carlo tests compare a fixed dataset with simulations from the
-null \citep{besag1989generalized}; \citet{fischer2024sequential} make them
-anytime-valid in the number of simulations, and \citet{barber2026montecarlo}
-give guarantees without exact exchangeability. Here the data arrive over time,
-and fresh simulations are drawn for each observation. The closest work is
+Monte Carlo tests compare a fixed dataset with simulations from the null
+\citep{besag1989generalized}, and \citet{fischer2024sequential} make them
+anytime-valid in the number of simulations; here the data themselves arrive
+over time, with fresh simulations for each observation. The closest work is
 \citet{dombowsky2026besag}, who normalise an arbitrary statistic into an
-e-value with samples exchangeable with the data, including samples from the
-parallel MCMC method of \citet{besag1989generalized} when the null can only be
-sampled that way; they show log-optimality of the likelihood ratio as
-$M \to \infty$ and a non-asymptotic lower bound on the e-power, and give a
-Besag--Clifford e-process for an i.i.d.\ stream. Two concurrent papers use the
-same bet for independent data. \citet{forre2026anytime} show that the
+e-value with exchangeable samples, including MCMC samples, and give the
+Besag--Clifford e-process for an i.i.d.\ stream; their results on the
+likelihood-ratio score are used, with attribution, in
+Section~\ref{sec:power}. Two concurrent papers use the same bet for
+independent data. \citet{forre2026anytime} show that the
 likelihood ratio is the optimal score for every $M$, bound the loss from a
 finite $M$, and refit the score online by maximising its empirical growth,
 leaving dependent streams open. \citet{cortinovis2026slice} invert the
