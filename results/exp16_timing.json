@@ -2,21 +2,29 @@
  "reps": 20,
  "reps_1600": 5,
  "ms_per_query_400": {
-  "slice": 1.53,
-  "fb-pre": 1.08,
-  "fb-refit": 7.3,
-  "ours-uniform": 1.34,
-  "ours-simlik": 2.1,
-  "slice-bandit": 1.61,
-  "fb-bandit": 1.17,
-  "fb-refit-bandit": 7.66,
-  "combo-bandit": 2.55,
-  "ours-bandit": 1.3,
-  "ours-simlik-bandit": 2.1
+  "slice": 1.6,
+  "fb-pre": 1.11,
+  "fb-refit": 7.31,
+  "ours-uniform": 1.24,
+  "ours-simlik": 2.06,
+  "slice-bandit": 1.55,
+  "fb-bandit": 1.02,
+  "fb-refit-bandit": 7.99,
+  "combo-bandit": 2.49,
+  "ours-bandit": 1.41,
+  "ours-simlik-bandit": 2.11
  },
  "ms_per_query_1600": {
-  "fb-refit": 44.65,
-  "ours-uniform": 1.35,
-  "ours-simlik": 2.26
+  "slice": 2.55,
+  "fb-pre": 1.18,
+  "fb-refit": 43.48,
+  "ours-uniform": 1.28,
+  "ours-simlik": 2.09,
+  "slice-bandit": 2.27,
+  "fb-bandit": 1.17,
+  "fb-refit-bandit": 53.42,
+  "combo-bandit": 2.69,
+  "ours-bandit": 1.28,
+  "ours-simlik-bandit": 2.15
  }
 }

@@ -34,7 +34,14 @@ in `results/`, so any table can be checked against them without re-running.
 seed fixed by the replication index, and no script uses an unseeded generator.
 With the library versions above, re-running a script reproduces the stored
 numbers exactly. Seeds depend on the replication index, not on the worker,
-so parallel runs (`--workers`) give the same numbers as serial runs.
+so parallel runs (`--workers`) give the same numbers as serial runs. One
+caveat: OpenBLAS chooses its kernels by CPU, so on a different processor the
+rounding of matrix inversions can differ in the last digits. For the learners
+that invert a matrix at every step and choose actions from their own bets (the
+logistic BLR of the language-model audit), this can change a few adaptive
+choices: re-running `exp16_llm_audit.py` on another machine moved the medians
+of those rows by a few queries and the power by at most 0.04, within Monte
+Carlo error; the rows of Tables 6 and 7 come from one machine.
 
 **Running times** are approximate, for a 4-core machine. "Minutes" means under
 about 10 minutes.
@@ -64,7 +71,8 @@ about 10 minutes.
 | Table 4 | update rules: drift rows on 400 fresh replications disjoint from the 24 tuning runs; bandit rows as in Table S4 | `OMP_NUM_THREADS=1 python experiments/exp17_fresh_seeds.py` (drift); as for Table S4 below (bandit) | `results/exp17.json` | ~6 min |
 | Table 5 | comparison with concurrent methods (Forré & Brenner; SLICE) | `python experiments/exp15_concurrent_methods.py --task drift,bandit,drift-mis,bandit-mis` | `results/exp15.json` | ~1 h in all |
 | Table 5, drift columns | the same on fresh seeds (null 5·10⁶+i, alternative 6·10⁶+i) | `python experiments/exp15_concurrent_methods.py --task drift,drift-mis --seed-offset 5000000 --out results/exp15_fresh.json` | `results/exp15_fresh.json` | ~20 min |
-| Table 6 | auditing a language-model API with adaptive prompts | replies: `python experiments/exp16_llm_generate.py --models DIR` (needs `llama-cpp-python` and the GGUF files of Qwen2.5-1.5B-Instruct at q8_0, q4_k_m, q3_k_m and Qwen2.5-0.5B-Instruct at q4_k_m; the replies used are in `data/llm_audit/replies.json`); audit, all methods (SLICE; Forré & Brenner fitted in advance and refitted; ours, logistic and simulation likelihood; the average) and scenarios (including the sharpened P): `python experiments/exp16_llm_audit.py`; computing time per query: `python experiments/exp16_timing.py` | `results/exp16.json`, `results/exp16_timing.json` | ~3 h for the replies on 4 CPU cores; ~1 h for the audit; ~10 min for the timing |
+| Table 6 | auditing a language-model API with adaptive prompts | replies: `python experiments/exp16_llm_generate.py --models DIR` (needs `llama-cpp-python` and the GGUF files of Qwen2.5-1.5B-Instruct at q8_0, q4_k_m, q3_k_m and Qwen2.5-0.5B-Instruct at q4_k_m; the replies used are in `data/llm_audit/replies.json`); audit, all methods (SLICE; Forré & Brenner fitted in advance and refitted; ours, logistic and simulation likelihood; the average) and scenarios (including the sharpened P): `python experiments/exp16_llm_audit.py`; computing time per query: `python experiments/exp16_timing.py`; LaTeX of Tables 6 and 7: `python experiments/exp16_tables.py` | `results/exp16.json`, `results/exp16_timing.json` | ~3 h for the replies on 4 CPU cores; ~1 h for the audit; ~25 min for the timing |
+| Table 7 | cost of reaching the alarm in the audit (replies generated and computing time, our design) | `python experiments/exp16_cost.py` (repeats the runs of Table 6 with the same seeds and records the computing time up to the alarm); timing per query as for Table 6 | `results/exp16_cost.json`, `results/exp16_timing.json` | ~45 min |
 | Table 7 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
 | Table 8 | notation | none (text) | | |
 

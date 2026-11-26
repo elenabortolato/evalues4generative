@@ -5,8 +5,9 @@ horizon (no early stop is possible after the rare false alarm, which ends a
 run), and the time spent on the bets and the updates is divided by the number
 of queries. The generation of the replies is excluded: it is the same for all
 methods and takes 2 to 8 seconds per query (M = 8 replies) on four CPU cores.
-The refit of Forre and Brenner revisits the whole history, so its cost per
-query grows with the horizon; it is also timed over a longer horizon.
+The refit of Forre and Brenner and SLICE's estimate of the routing fraction
+revisit the whole history, so their cost per query grows with the horizon;
+every method is also timed over a longer horizon.
 
 Output: results/exp16_timing.json
 """
@@ -49,7 +50,7 @@ def main():
     for m in METHODS:
         out["ms_per_query_400"][m] = round(time_method(m, 400, rho), 2)
         print(f"{m:20s} {out['ms_per_query_400'][m]:6.2f} ms per query (horizon 400)", flush=True)
-    for m in ["fb-refit", "ours-uniform", "ours-simlik"]:
+    for m in METHODS:
         out["ms_per_query_1600"][m] = round(time_method(m, 1600, rho, REPS_LONG), 2)
         print(f"{m:20s} {out['ms_per_query_1600'][m]:6.2f} ms per query (horizon 1600)", flush=True)
     (ROOT / "results" / "exp16_timing.json").write_text(json.dumps(out, indent=1))
