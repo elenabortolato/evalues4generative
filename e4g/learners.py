@@ -259,7 +259,9 @@ class ChoiceBLR:
         w /= w.sum(1, keepdims=True)                              # (S, M+1)
         mean_z = w @ z                                            # (S, d)
         grad = (mean_z - z[0]).mean(0)
-        second = np.einsum("sk,ki,kj->ij", w, z, z) / len(theta)
+        # E_q[E_w(z z')] = sum_k wbar_k z_k z_k' with wbar the node-averaged weights
+        # (a matrix product: the equivalent three-operand einsum is ~500x slower)
+        second = z.T @ (w.mean(0)[:, None] * z)
         hess = second - (mean_z.T @ mean_z) / len(theta)          # E_q[Cov_w(z)]
         self.prec = self.prec + self.eta * hess
         self.m = self.m - np.linalg.solve(self.prec, self.eta * grad)

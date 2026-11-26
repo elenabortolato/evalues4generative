@@ -25,6 +25,12 @@ Scenarios
              smaller model (Qwen2.5-0.5B), unexpected by the baselines,
              which were trained on the 4-bit model
   some-05b   as some-q4, with the 0.5B model as the substitute
+  sharp      every query is answered by a sharpened P: P's replies drawn with
+             probability proportional to the square of their frequency, as
+             a lower temperature would do (the most frequent colour goes
+             from 23% to 44%); outside SLICE's family, and closer to P than
+             to the 4-bit model, so a score fitted to the 4-bit model bets
+             in the wrong direction
 Methods
   ours-bandit   Monte Carlo e-process, logistic BLR score on hashed character
                 n-grams with one block per prompt; the prompt is chosen by UCB
@@ -44,6 +50,20 @@ Methods
                 the twin run on the chosen prompt
   fb-bandit     the pretrained score of fb-pre inside our design: prompts
                 chosen by UCB, the twin run on the chosen prompt
+  ours-simlik   our score on the simulation likelihood (Theorem 3): Gaussian
+                one-step update of the posterior on the weights (ChoiceBLR,
+                prior variance 1, 32 antithetic nodes, standardised features
+                clipped to [-10, 10] so that they are bounded as Theorem 3
+                assumes), and the bet is the
+                posterior-predictive bet, the average of E(theta) over the
+                nodes (Proposition 4); uniform prompts
+  ours-simlik-bandit  the same inside our design (UCB prompts)
+  fb-refit      Forre and Brenner's online score: theta' z(x) on the same
+                features as ours, refitted every 10 steps on the whole past
+                by maximising the penalised empirical growth (ridge tau,
+                e4g.competitors.GrowthFit); needs no reply of the substitute;
+                uniform prompts
+  fb-refit-bandit  the same score inside our design (UCB prompts)
   combo-bandit  the average of two wealths on the same data, one with the
                 learned score of ours-bandit and one with the pretrained score
                 of fb-pre, prompts chosen by UCB on their average factor
@@ -74,7 +94,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from e4g.evalues import LambdaMixture, mc_factor  # noqa: E402
-from e4g.learners import BLRRatio  # noqa: E402
+from e4g.competitors import GrowthFit  # noqa: E402
+from e4g.learners import BLRRatio, ChoiceBLR  # noqa: E402
 
 PROMPTS = ["digits", "number", "color", "coin"]
 K, D = len(PROMPTS), 32          # prompts; hashed n-gram features per prompt
@@ -85,11 +106,16 @@ SCENARIOS = {
     "all-q3": dict(sub="q3_k_m", frac={k: 0.3 for k in PROMPTS}),
     "all-05b": dict(sub="05b", frac={k: 0.3 for k in PROMPTS}),
     "some-05b": dict(sub="05b", frac={"color": 0.5, "number": 0.5}),
+    "sharp": dict(sub="sharp", frac={k: 1.0 for k in PROMPTS}),
 }
+SHARPEN = 2.0                    # "sharp": P's replies drawn w.p. ~ frequency ** SHARPEN
+FB_TAU = 1.0                     # ridge of fb-refit, the prior variance of our learned score
+CLIP = 10.0                      # ours-simlik: standardised features clipped to [-CLIP, CLIP]
 BASELINE_SUB = "q4_k_m"          # the substitute the baselines are trained on
 UCB_C, MIN_SHARE = 1.0, 0.1   # prompt choice: UCB on log growth, each prompt >= 10%
 METHODS = ["ours-bandit", "ours-uniform", "ours-mixed", "slice", "fb-pre", "fb-bandit",
-           "combo-bandit", "slice-bandit"]
+           "combo-bandit", "slice-bandit", "fb-refit", "fb-refit-bandit",
+           "ours-simlik", "ours-simlik-bandit"]
 
 
 # ------------------------------------------------------------------ features
@@ -116,7 +142,7 @@ class Pools:
     def __init__(self, path: Path):
         raw = json.loads(path.read_text())
         rng = np.random.default_rng(0)
-        self.feat, self.idx = [], {}
+        self.feat, self.idx, self.sharp_w = [], {}, {}
         for k, prompt in enumerate(PROMPTS):
             texts = []
             for q in ["q8_0", "q4_k_m", "q3_k_m", "05b"]:
@@ -129,9 +155,19 @@ class Pools:
                     self.idx[(k, q, part)] = np.arange(len(texts), len(texts) + len(chunk))
                     texts.extend(chunk)
             self.feat.append(np.array([text_features(s) for s in texts]))
+            for part in ("train", "stream"):    # sharpened P: weights ~ count ** (SHARPEN - 1)
+                ids = self.idx[(k, "q8_0", part)]
+                counts = {}
+                for i in ids:
+                    counts[texts[i]] = counts.get(texts[i], 0) + 1
+                w = np.array([counts[texts[i]] ** (SHARPEN - 1) for i in ids], float)
+                self.sharp_w[(k, part)] = w / w.sum()
 
     def rows(self, k, q, part, rng, n):
-        ids = rng.choice(self.idx[(k, q, part)], n)
+        if q == "sharp":
+            ids = rng.choice(self.idx[(k, "q8_0", part)], n, p=self.sharp_w[(k, part)])
+        else:
+            ids = rng.choice(self.idx[(k, q, part)], n)
         return np.column_stack([np.full(n, k), ids]).astype(float)
 
 
@@ -145,6 +181,20 @@ def block_features(rows: np.ndarray) -> np.ndarray:
     for r, (k, i) in enumerate(rows.astype(int)):
         out[r, k * D:(k + 1) * D] = POOLS.feat[k][i]
     return out
+
+
+class ClippedChoiceBLR(ChoiceBLR):
+    """ChoiceBLR with the standardised features clipped to [-CLIP, CLIP].
+
+    Theorem 3 and Proposition 4 assume bounded features. A feature that is
+    constant on the twin's replies (no whitespace in P's replies to a prompt,
+    say) is standardised to about 1e8 when a substitute's reply has it, which
+    breaks that assumption and makes the posterior precision numerically
+    singular; clipping restores it.
+    """
+
+    def _z(self, x):
+        return np.clip(super()._z(x), -CLIP, CLIP)
 
 
 # ----------------------------------------------------------------- baselines
@@ -184,15 +234,23 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
     rng = np.random.default_rng(seed)
     sc = SCENARIOS[scenario]
     lam_mix, lam_mix2 = LambdaMixture(), LambdaMixture()
-    learns = method.startswith("ours") or method == "combo-bandit"
+    learns = method.startswith(("ours", "fb-refit")) or method == "combo-bandit"
     if learns:
         twin = np.vstack([POOLS.rows(k, "q8_0", "stream", rng, 200) for k in range(K)])
-        learner = BLRRatio(prior_var=1.0, mode="predictive", feature_map=block_features).fit_scaler(twin)
+        if method.startswith("fb-refit"):
+            learner = GrowthFit(tau=FB_TAU, mode="online", feature_map=block_features).fit_scaler(twin)
+        elif method.startswith("ours-simlik"):
+            learner = ClippedChoiceBLR(prior_var=1.0, mode="mixture",
+                                       feature_map=block_features).fit_scaler(twin)
+        else:
+            learner = BLRRatio(prior_var=1.0, mode="predictive",
+                               feature_map=block_features).fit_scaler(twin)
     n_pull, g_sum = np.zeros(K), np.zeros(K)
-    past_lr, first = [], None
+    past_lr, first, t_method = [], None, 0.0   # t_method: seconds spent on bets and updates
     for t in range(1, horizon + 1):
         # 1. action: chosen from the past only
-        if method in ("ours-bandit", "ours-mixed", "fb-bandit", "combo-bandit", "slice-bandit"):
+        if method in ("ours-bandit", "ours-mixed", "fb-bandit", "combo-bandit", "slice-bandit",
+                      "fb-refit-bandit", "ours-simlik-bandit"):
             if t <= 2 * K:
                 a = (t - 1) % K
             elif n_pull.min() < MIN_SHARE * t:
@@ -210,8 +268,12 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
         else:
             ys = POOLS.rows(a, "q8_0", "stream", rng, m)
         # 3-4. score fixed before x is seen, and the bet
+        tic = time.perf_counter()
         rows = np.vstack([x, ys])
-        if method == "combo-bandit":
+        if method.startswith("ours-simlik"):
+            e = learner.factor(x, ys)              # posterior-predictive bet
+            w = lam_mix.update(e)
+        elif method == "combo-bandit":
             # two e-processes on the same data, the learned and the pretrained
             # score; their average wealth is again a test supermartingale
             s, s2 = learner.score(rows), log_rho(rho_models, rows)
@@ -219,7 +281,7 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
             w = 0.5 * (lam_mix.update(e1) + lam_mix2.update(e2))
             e = 0.5 * (e1 + e2)
         else:
-            if method.startswith("ours"):
+            if method.startswith(("ours", "fb-refit")):
                 s = learner.score(rows)
             elif method in ("slice", "slice-bandit"):
                 th = mle_fraction(np.asarray(past_lr))
@@ -228,17 +290,20 @@ def run(seed, scenario, method, horizon, m, alpha, rho_models):
                 s = log_rho(rho_models, rows)
             e = mc_factor(s[0], s[1:])
             w = lam_mix.update(e)
+        t_method += time.perf_counter() - tic
         if first is None and w >= 1 / alpha:
             first = t
             break
         # 6. learn after the bet
         n_pull[a] += 1
         g_sum[a] += np.log(0.5 + 0.5 * e)
+        tic = time.perf_counter()
         if learns:
             learner.update(x, ys)
         elif method in ("slice", "slice-bandit"):
             past_lr.append(log_rho(rho_models, x)[0])
-    return first, n_pull.tolist()
+        t_method += time.perf_counter() - tic
+    return first, n_pull.tolist(), t_method, t
 
 
 def init_worker(path):
