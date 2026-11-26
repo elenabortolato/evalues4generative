@@ -1303,18 +1303,14 @@ NRE-C estimators \citep{miller2022contrastive}, are in the Supplement.
 
 \subsection{Auditing a language-model API with adaptively chosen prompts}\label{sec:exp-llm}
 
-Section~\ref{sec:exp-bandit} showed that actions chosen from the data leave
-the monitor valid. This section shows that choosing them well also makes it
-faster, in an audit of a language model. Many language models are used through an API, a
-service that receives a text, the prompt, and returns the model's reply; the
-user sees the replies but not the model that produced them. A provider may
-advertise a model $P$ and answer some queries with a cheaper substitute, such
-as the same model stored at lower numerical precision, or a smaller model. An
-audit checks the provider's claim from the outside: the auditor sends prompts
-to the API and compares its replies with replies of $P$ to the same prompts,
-generated on the auditor's own computer. The API is the real system, the local
-copy of $P$ is the simulator and the prompt is the action; neither gives the
-probability of a reply, only replies.
+Many language models are used through an API, a service that returns the
+model's reply to a text, the prompt, without showing which model produced it.
+A provider may advertise a model $P$ and answer some queries with a cheaper
+substitute, such as $P$ at lower numerical precision or a smaller model. An
+audit checks this from the outside, comparing the API's replies with replies
+of $P$ to the same prompts, run locally. The API is the real system, the local
+copy of $P$ is the simulator and the prompt is the action; neither gives
+probabilities, only replies.
 
 As in the routing audit of \citet{cortinovis2026slice}, the prompts ask for
 random output (eight random digits, an integer between 1 and 100, a colour,
@@ -1326,77 +1322,191 @@ Qwen2.5-0.5B-Instruct. All replies are real outputs of \texttt{llama.cpp}
 \citep{gerganov2023llamacpp} at temperature one; only the routing, the choice
 of the queries that go to the substitute, is simulated. Either 30\% of all
 queries go to the substitute, or 50\% of the colour and number queries and
-none of the others.
+none of the others. In a last scenario the API answers every query with a
+sharpened $P$, which gives $P$'s frequent replies more often, as a lower
+temperature would: the most frequent colour goes from 23\% to 44\% of the
+replies.
 
 At each step the auditor chooses a prompt, sends it to the API and generates
-$M = 8$ replies of $P$ to the same prompt. The prompt is chosen by an upper
-confidence bound: prompts on which the bets have won more so far are asked
-more often, with a bonus for prompts asked less, and each prompt keeps at
-least a tenth of the queries (any rule that uses the past only would keep the
-monitor valid, and this one was not tuned). The learned score is a logistic
-BLR on hashed character $n$-grams, counts of short strings of characters in
-the reply, with one block of weights per prompt; it needs no reply of the
-substitute. We compare it with two scores that need replies of a guessed
-substitute before the audit starts: SLICE, which estimates one routing
-fraction for all prompts, and a score fitted in advance as in
-\citet{forre2026anytime}. Both are given 500 replies per prompt of the 4-bit
-substitute, so their guess is wrong when the substitute is the 3-bit or the
-0.5B model; routing only the colour and number queries lies outside SLICE's
-family, in which every prompt has the same routing fraction.
+$M = 8$ replies of $P$ to the same prompt. The prompt is chosen adaptively,
+from the bets won so far. For each prompt the auditor computes the average log
+growth of its past bets, adds a bonus that shrinks as the prompt is asked more
+often, and asks the prompt with the largest sum, so that it tries prompts it
+knows little about as well as those that have paid; this is the upper
+confidence bound (UCB) rule of bandit problems \citep{lattimore2020bandit},
+used here without tuning. No prompt is asked in fewer than a tenth of the
+queries: whenever one falls below that share, it is asked next, so that the
+score keeps learning on every prompt.
 
-\sbox{\widetab}{\begin{tabular}{lrrrrrrr}
+We compare five scores. Two are ours, both on hashed character $n$-grams
+with one block of weights per prompt: the logistic BLR of
+Section~\ref{sec:blr}, our default, and the simulation-likelihood rule of the
+same section, the one covered by Theorem~\ref{thm:simlik}. They reweight the
+replies of $P$ prompt by prompt and need no reply of the substitute. The score
+of \citet{forre2026anytime} is used in its two versions: refitted every ten
+steps on the whole history by maximising the empirical growth, on the same
+features, and fitted in advance to separate a guessed substitute $R$ from
+$P$. SLICE assumes that $R$ answers a fraction $\theta$ of the queries, the
+same for all prompts, and estimates $\theta$. The score fitted in advance and
+SLICE learn $R$ before the audit from 500 replies per prompt of the 4-bit
+model, so they guess wrong for the 3-bit and 0.5B substitutes; routing that
+depends on the prompt lies outside SLICE's family, and the sharpened $P$ lies
+outside it in a stronger sense, since it is closer to $P$ than to $R$.
+
+\sbox{\widetab}{\begin{tabular}{llrrrrrl}
 \toprule
- & \multicolumn{2}{c}{as published, uniform} & \multicolumn{4}{c}{our design, adaptive} & uniform \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-7}\cmidrule(lr){8-8}
-substitute, routing & SLICE & in advance & SLICE & in advance & average & learned & learned \\
+ & & \multicolumn{4}{c}{substitute} & false & growth \\
+\cmidrule(lr){3-6}
+score & routing & 4-bit & 3-bit & 0.5B & sharpened $P$ & alarms & guarantee \\
 \midrule
-4-bit, all prompts & 82 & 44 & 71.5 & \textbf{40.5} & 50 & 220 (0.94) & 249 (0.71) \\
-4-bit, two prompts & 76 & 39 & 57 & \textbf{30} & 39 & 134 (0.99) & 227 (0.86) \\
-3-bit, all prompts & 149 (0.96) & 72 & 109 (0.97) & \textbf{50} & 65.5 & 160 (0.98) & 204 (0.94) \\
-0.5B, all prompts & 110 (0.99) & 70 & 95 & \textbf{48} & 56 & 109 & 123 \\
-0.5B, two prompts & 107 & 59 & 57 & \textbf{23} & 29 & 52 & 77 \\
+\multicolumn{8}{l}{\emph{prompts drawn uniformly (as published)}} \\
+SLICE & all & 82 & 149 (0.96) & 110 (0.99) & never & 0.0\% & -- \\
+ & two & 76 &  & 107 &  & & \\
+\addlinespace[3pt]
+F\&B, fitted in advance & all & 44 & 72 & 70 & never & 3.5\% & -- \\
+ & two & 39 &  & 59 &  & & \\
+\addlinespace[3pt]
+F\&B, refitted & all & 251 (0.83) & 170 (0.98) & 102 & 93 & 3.8\% & -- \\
+ & two & 200 (0.93) &  & 75 &  & & \\
+\addlinespace[3pt]
+ours, logistic BLR & all & 255 (0.72) & 209 (0.96) & 123 & 86 & 5.3\% & -- \\
+ & two & 219 (0.83) &  & 77 &  & & \\
+\addlinespace[3pt]
+ours, simulation likelihood & all & 254 (0.69) & 195 (0.99) & 100 & 151 & 4.3\% & Thm~\ref{thm:simlik}$^*$ \\
+ & two & 219 (0.85) &  & 62 &  & & \\
+\midrule
+\multicolumn{8}{l}{\emph{prompts chosen by UCB (our design)}} \\
+SLICE & all & 72 & 109 (0.97) & 95 & never & 0.0\% & -- \\
+ & two & 57 &  & 57 &  & & \\
+\addlinespace[3pt]
+F\&B, fitted in advance & all & \textbf{41} & \textbf{50} & \textbf{48} & never & 2.5\% & -- \\
+ & two & \textbf{30} &  & \textbf{23} &  & & \\
+\addlinespace[3pt]
+F\&B, refitted & all & 177 (0.98) & 131 (0.98) & 94 & \textbf{78} & 3.3\% & -- \\
+ & two & 107 &  & 51 &  & & \\
+\addlinespace[3pt]
+average$^\ddagger$ & all & 50 & 66 & 56 & 95 & 2.8\% & -- \\
+ & two & 39 &  & 29 &  & & \\
+\addlinespace[3pt]
+ours, logistic BLR & all & 218 (0.96) & 162 (0.99) & 109 & \textbf{78} & 3.0\% & -- \\
+ & two & 136 &  & 52 &  & & \\
+\addlinespace[3pt]
+ours, simulation likelihood & all & 193 (0.92) & 138 (0.99) & 83 & 130 & 1.5\% & Thm~\ref{thm:simlik}$^*$ \\
+ & two & 119 (0.99) &  & 36 &  & & \\
 \bottomrule
 \end{tabular}}%
 \begin{table}[t]
 \centering
 \caption{Auditing a language-model API (Section~\ref{sec:exp-llm}): median
-number of queries to an alarm, over the runs that reject within 400 queries,
-with the power when below one. ``In advance'': the score fitted in advance on
-the 4-bit substitute; ``average'': the average of its wealth and the learned
-score's. False alarms under the null are at most 3.5\% for every conditioned
-monitor; a twin that answers a random prompt raises a false alarm in every
-run.}
+number of queries to an alarm (fewest in bold), rounded to an integer, over
+the runs that reject within 400 queries, with the power when below one;
+``never'': no run rejects. Routing: ``all'', the substitute answers 30\% of
+all queries (the sharpened $P$ answers every query); ``two'', it answers 50\%
+of the colour and number queries only. SLICE and the score fitted in advance
+are given replies of the 4-bit substitute; the refitted score and ours are
+given none. False alarms: rejections of the true null within 400 queries
+(Monte Carlo standard error about 1.1\%); a twin that answers a random prompt
+raises a false alarm in every run. $^\ddagger$Average of the wealths of ours
+(logistic) and of the score fitted in advance. $^*$For the exact posterior;
+the one-step Gaussian update used here is covered by
+Proposition~\ref{prop:approx}.}
 \label{tab:llm}
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
 \end{table}
 
-Choosing the prompts helps every score (Table~\ref{tab:llm}). With our
-adaptive design both published scores need fewer queries than with the
-uniformly drawn prompts of their papers, in every scenario and up to 61\%
-fewer, and the learned score gains up to 0.23 in power; the auditor learns to
-ask for a colour more often, because that is where the substitutes differ
-most. Validity requires the conditioning: comparing the API's reply with
-replies of $P$ to a random prompt, rather than to the same prompt, raises a
-false alarm in every run. Knowing the substitute in advance pays when the
-guess is right, but the learned score needs no such knowledge: without a
-single reply of the substitute it matches SLICE on the 0.5B substitute and
-needs half as many queries when the routing depends on the prompt. Averaging
-the wealths of the learned score and of the score fitted in advance gives
-another valid monitor, which needs at most 16 queries more than the faster of
-the two and keeps the power of the learned score however wrong the guess.
+\sbox{\widetab}{\begin{tabular}{llrrrrrrrrr}
+\toprule
+ & & \multicolumn{2}{c}{4-bit} & 3-bit & \multicolumn{2}{c}{0.5B} & sharpened & prepared & \multicolumn{2}{c}{ms per query} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-5}\cmidrule(lr){6-7}\cmidrule(lr){8-8}\cmidrule(lr){10-11}
+score & to the alarm & all & two & all & all & two & $P$, all & ($10^3$) & 400 & 1600 \\
+\midrule
+SLICE & replies ($10^3$) & 6.6 & 6.5 & 6.9 & 6.8 & 6.5 & never & 6.0 & 1.6 & 2.3 \\
+ & computing (s) & 0.12 & 0.09 & 0.17 & 0.15 & 0.09 & never & & & \\
+\addlinespace[3pt]
+F\&B, fitted in advance & replies ($10^3$) & 6.3 & 6.2 & 6.4 & 6.4 & 6.2 & never & 6.0 & 1.0 & 1.2 \\
+ & computing (s) & \textbf{0.05} & \textbf{0.06} & \textbf{0.07} & \textbf{0.06} & \textbf{0.03} & never & & & \\
+\addlinespace[3pt]
+F\&B, refitted & replies ($10^3$) & \textbf{2.2} & \textbf{1.7} & \textbf{1.8} & 1.5 & 1.2 & \textbf{1.4} & 0.8 & 8.0 & 53.4 \\
+ & computing (s) & 0.60 & 0.29 & 0.34 & 0.17 & 0.07 & 0.12 & & & \\
+\addlinespace[3pt]
+average$^\ddagger$ & replies ($10^3$) & 7.2 & 7.1 & 7.3 & 7.2 & 7.0 & 7.6 & 6.8 & 2.5 & 2.7 \\
+ & computing (s) & 0.15 & 0.12 & 0.20 & 0.17 & 0.08 & 0.27 & & & \\
+\addlinespace[3pt]
+ours, logistic BLR & replies ($10^3$) & 2.5 & 1.9 & 2.1 & 1.7 & 1.2 & \textbf{1.4} & 0.8 & 1.4 & 1.3 \\
+ & computing (s) & 0.33 & 0.21 & 0.24 & 0.15 & 0.08 & \textbf{0.11} & & & \\
+\addlinespace[3pt]
+ours, simulation likelihood & replies ($10^3$) & 2.3 & 1.8 & 1.9 & \textbf{1.5} & \textbf{1.1} & 1.8 & 0.8 & 2.1 & 2.2 \\
+ & computing (s) & 0.48 & 0.30 & 0.33 & 0.19 & 0.08 & 0.30 & & & \\
+\bottomrule
+\end{tabular}}%
+\begin{table}[t]
+\centering
+\caption{Cost of reaching the alarm in the audit of
+Section~\ref{sec:exp-llm}, with the prompts chosen by UCB: medians over the
+runs of Table~\ref{tab:llm} that reject (lowest in bold). Replies: replies
+generated by language models, those prepared before the audit (thousands,
+column 9) plus $M = 8$ per query. Computing: time spent on the bets and the
+updates up to the alarm, on one core. Milliseconds per query: computing time
+over 400 and 1600 queries under the null; it grows with the history for the
+refit, which revisits the whole history at every refit, and more slowly for
+SLICE, which re-estimates its routing fraction from all past replies.
+Generating the replies takes 2 to 8 seconds per query on four CPU cores.
+$^\ddagger$As in Table~\ref{tab:llm}.}
+\label{tab:llmcost}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
+\end{table}
+
+Choosing the prompts helps every score (Table~\ref{tab:llm}): with our
+adaptive design every score needs fewer queries than with uniformly drawn
+prompts, in every scenario in which it rejects and up to 61\% fewer, and our
+scores gain up to 0.24 in power; the auditor learns to ask for a colour more
+often, because that is where the substitutes differ most. Validity requires
+the conditioning: comparing the API's reply with replies of $P$ to a random
+prompt, rather than to the same prompt, raises a false alarm in every run,
+whereas the conditioned monitors raise false alarms in at most 5.3\% of the
+runs, within Monte Carlo error of the nominal 5\%.
+
+Knowing the substitute pays when the guess is right and fails when it is not.
+With our design the score fitted in advance is the fastest in the five
+routing scenarios, after 23 to 50 queries against 36 to 218 for the scores
+learned during the audit. When the API sharpens $P$, however, a score fitted
+to $R$ has a tilted null close to $R$, hence a growth rate close to
+$\KL(Q\|P) - \KL(Q\|R) < 0$ by Theorem~\ref{thm:growth}: it never rejects,
+nor does SLICE, which estimates a routing fraction of zero and stops betting.
+The three scores learned during the audit reject in every run, after 78 to
+130 queries. The average of the wealths of the logistic score and of the
+score fitted in advance keeps the best of both: it is within 16 queries of
+the faster component in the routing scenarios, and rejects after 95 queries
+when the guess is wrong.
+
+Our simulation-likelihood rule and the refit of \citet{forre2026anytime} both
+learn the score during the audit and need no guess about the substitute. With
+our design the refit needs 5 to 10\% fewer queries on the 4-bit and 3-bit
+substitutes and 40\% fewer on the sharpened $P$ (78 against 130), whereas our
+rule needs 12 and 29\% fewer on the 0.5B substitute (83 against 94, and 36
+against 51); our logistic rule ties with the refit on the sharpened $P$. In
+exchange our rule carries the guarantee of Theorem~\ref{thm:simlik}, through
+Proposition~\ref{prop:approx} for the one-step update, and its computing time
+per query does not grow with the history (Table~\ref{tab:llmcost}): 2.1 and
+2.2~ms over 400 and 1600 queries, against 8.0 and 53~ms for the refit, which
+revisits the whole history at every refit.
 
 Almost all the running time of the audit goes into the simulator: generating
-the $M = 8$ replies of $P$ takes 2 to 8 seconds per step on four CPU cores,
-whereas the bet and the update take 1 to 3~ms for every method, below 0.1\%
-of the total. The cost that matters is therefore the number of queries before
-an alarm. Our update costs the same at every step, $O((M+1)d^2)$ operations
-with rank-one updates, and needs beforehand only 200 replies of $P$ per
-prompt, to standardise the features. The baselines need replies of a guessed
-substitute before the audit starts, and SLICE re-estimates its routing
-fraction from all past replies at every step, so its cost per step grows with
-the number of queries.
+the $M = 8$ replies of $P$ takes 2 to 8 seconds per query on four CPU cores,
+whereas the bet and the update take at most 8~ms over 400 queries, less than
+0.5\% of the running time. In these short audits the computing time to the
+alarm is therefore at most 0.6~s for every score, and the cost of an alarm is
+counted in generated replies, those prepared before the audit plus eight per
+query. SLICE and the score fitted in advance prepare 6000 replies, more than
+a whole audit, and reach the alarm after 6200 to 6900 replies; the learned
+scores prepare 800 replies of $P$, only to standardise the features, and
+reach it after 1100 to 2500 (Table~\ref{tab:llmcost}). If one preparation
+serves several audits, its cost is shared among them; the growth of the
+refit's cost matters instead for long audits and for cheap simulators.
 
 %======================================================================
 \section{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
@@ -1594,7 +1704,7 @@ on the family, of the order of $10^7$ simulations in
 outcomes needs neither, and pays for this with a slower start when prior
 knowledge of the alternative exists: in the audit, a score fitted in advance
 on the right substitute stops after 30 to 41 queries, the learned score after
-134 to 220. The natural synthesis is to use a pretrained score as the centre
+136 to 218. The natural synthesis is to use a pretrained score as the centre
 of the prior of the online update, so that the monitor starts as fast as the
 pretrained score and corrects it where the guess is wrong, with the guarantees
 of Theorems~\ref{thm:valid} and~\ref{thm:simlik} relative to that prior; the
@@ -2055,6 +2165,21 @@ substitute and 1000 of $P$, with the log ratio clipped to $[-10, 10]$. SLICE's
 routing fraction $\hat\theta_{t-1}$ maximises
 $\sum_{i<t}\log\{1 - \theta + \theta\,\hat r(X_i)/\hat p(X_i)\}$ over a grid of 201
 values in $[0, 1]$, which keeps the argument of the logarithm positive.
+The refit of \citet{forre2026anytime} uses the score $\theta^\top z$ on the
+same standardised features, refitted every ten steps from step 20 by five
+damped Newton steps on the empirical growth penalised by $\|\theta\|^2/2$, the
+variance of our prior. The simulation-likelihood rule has prior
+$\mathcal N(0, I)$ on the 128 standardised coefficients (no intercept, which
+cancels in $E_t(\theta)$) and 32 antithetic nodes, with the standardised
+features clipped to $[-10, 10]$, so that they are bounded as
+Theorem~\ref{thm:simlik} assumes: a feature that is constant on the twin's
+replies, such as whitespace in the replies to one prompt, is otherwise
+standardised to about $10^8$ when a substitute's reply has it. In the
+sharpened scenario each reply of $P$ is drawn with probability proportional
+to the square of its frequency among $P$'s replies to that prompt. Computing
+times are measured on one core, over 20 runs of 400 and 5 runs of 1600
+queries under the null; the computing time to the alarm in
+Table~\ref{tab:llmcost} is measured on the same runs as Table~\ref{tab:llm}.
 
 \paragraph{MAMS trial.} The twin is \texttt{simglucose}
 \citep{xie2018simglucose}, the open-source implementation of the 2008 academic
