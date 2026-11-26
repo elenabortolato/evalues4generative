@@ -187,12 +187,12 @@ class ChoiceBLR:
     Bets (mode):
       "mixture"  the posterior-predictive bet  mean_s E(theta_s), the
                  approximate version of the exact mixture of Theorem 3
-                 (valid for any predictable q, Proposition 5)
+                 (valid for any predictable q, Proposition 4)
       "mean"     the plug-in factor at the posterior mean, E(m)
       "shrunk"   the Monte Carlo factor of the probit-shrunk score
                  kappa(x) m'z(x), kappa = (1 + pi v(x) / 8)^{-1/2} with
                  v(x) = z(x)' S^{-1} z(x): the probability-scale predictive of
-                 Section 5.5 applied to the choice posterior
+                 Section 4.3 applied to the choice posterior
 
     Features are standardised with statistics of simulator draws only
     (fit_scaler), fixed before any real data are seen.

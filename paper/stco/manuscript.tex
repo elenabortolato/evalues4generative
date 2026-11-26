@@ -140,7 +140,8 @@ example $T_\theta(x) = \exp\{\theta^\top z(x)\}$ for a vector of features
 $z(x)$. The bet is itself a likelihood for $\theta$. Up to the factor $M+1$,
 the bet is the real outcome's share of the total score,
 $T_\theta(x_t)/\{T_\theta(x_t) + \sum_{j} T_\theta(y_{t,j})\}$: the
-probability that a conditional-logit model, which picks one item from a set
+probability that a conditional-logit model \citep{mcfadden1974conditional},
+which picks one item from a set
 with probability proportional to its score, picks the real outcome among the
 $M+1$ candidates. The product of these probabilities over time is a likelihood
 for $\theta$, so $\theta$ can be learned by Bayes' rule: we put a prior on
@@ -279,6 +280,14 @@ $\E\big[(M+1)\,T(U_0)/\sum_{k} T(U_k)\big] = 1$.
 The ratios $T(U_k)/\sum_{k'} T(U_{k'})$ sum to one and, by exchangeability,
 have equal expectations, each equal to $1/(M+1)$.
 \end{proof}
+
+The factor has a simple reading. With $U_0 = X_t$ and $U_k = Y_{t,k}$, the
+normalised scores $T_t(U_k)/\sum_{j} T_t(U_j)$ are the probabilities that the
+score assigns to each of the $M+1$ outcomes being the real one, and $E_t$ is
+$M+1$ times the probability it assigns to the outcome that is actually real.
+The bet pays when the score picks out the real outcome better than a uniform
+guess, $1/(M+1)$; under the null the real outcome is indistinguishable from
+the simulations, so on average no score can.
 
 A score is typically a classifier's estimate of the ratio $q_t/p_t$ of the
 densities of the real outcome and of the simulator (Section~\ref{sec:scores}).
@@ -714,37 +723,23 @@ simulator indicate where it fails.
 
 \subsection{From Bayes to the simulation likelihood}\label{sec:rules}\label{sec:exactbayes}\label{sec:simlik}
 
-Section~\ref{sec:scores} turns the choice of the score into a problem of
-sequential prediction under the logarithmic loss. A rule that improves the
-forecast as data arrive must be sequential, since the bet on $X_t$ is fixed
-before $X_t$ is seen; it should hedge early on, since an overconfident
-forecast can lose all the growth (Theorem~\ref{thm:growth}); and it must be
-computable from simulations alone, since $p_t$ is available only as a sampler.
-For sequential prediction under the logarithmic loss the classical answer is
-Bayesian: forecasting with the posterior predictive of a mixture loses at most
-a term of order $d\log t$ against the best forecaster in the class, on every
-sample path. It is also the point of view of the predictive approach to
-inference, in which the sequence of one-step predictives is the primitive
-object \citep{fong2023martingale}. We first ask what Bayes' rule gives, and
-then how to compute it from simulations.
+Section~\ref{sec:scores} turns the choice of the score into sequential
+prediction under the logarithmic loss. The update rule must fix the bet on
+$X_t$ before $X_t$ is seen, should hedge early on, since an overconfident
+forecast can lose all the growth (Theorem~\ref{thm:growth}), and must use
+simulations alone, since $p_t$ can only be sampled.
 
-If the real outcomes followed a model $\{Q_\theta\}$ with prior $\pi_0$, the
-best forecast on average under the model would be its posterior predictive
-$m_t$, with score $T_t = m_t/p_t$ and tilted null $m_t$ itself: for any score
-with tilted null $\tilde T_t$, the expected log gain under the model falls
-short of that of $m_t/p_t$ by $\KL(m_t\|\tilde T_t) \ge 0$, because the
-logarithmic score is strictly proper. Section~\ref{sec:scores} supplies the
-model. A log-linear score $s = \theta^\top\phi$ has the tilted null
-$dQ_\theta/dP = \exp\{\theta^\top \phi(x) - \log Z(\theta)\}$, with
-$Z(\theta) = \E_P[e^{\theta^\top\phi}]$, and as $\theta$ varies these tilted
-nulls form an exponential family built on the simulator. Taking this family as
-the model makes the forecast an average of tilted nulls,
-$m_t = \int q_\theta\, \pi_{t-1}(d\theta)$, whose score
-$T_t = \int (dQ_\theta/dP)\, \pi_{t-1}(d\theta)$ turns the process into a
-Bayes factor. The following is a direct consequence of the chain rule and of
-the Laplace expansion of \citet{clarke1990information}, stated for this
-family; its role is to serve as the benchmark that the simulation likelihood
-approaches as $M \to \infty$.
+Bayes' rule hedges by averaging over what has not yet been learned. If the
+real outcomes followed a model $\{Q_\theta\}$ with prior $\pi_0$, the best
+forecast under the model would be its posterior predictive $m_t$, since the
+logarithmic score is strictly proper. Section~\ref{sec:scores} supplies a
+model: the log-linear scores $s = \theta^\top\phi$ have tilted nulls
+$dQ_\theta/dP = \exp\{\theta^\top\phi - \log Z(\theta)\}$, with
+$Z(\theta) = \E_P[e^{\theta^\top\phi}]$, an exponential family built on the
+simulator. With this model the forecast is an average of tilted nulls,
+$m_t = \int q_\theta\,\pi_{t-1}(d\theta)$, its score is
+$T_t = \int (dQ_\theta/dP)\,\pi_{t-1}(d\theta)$, and the process becomes a
+Bayes factor, the benchmark for what follows.
 
 \begin{proposition}[Predictive scores give the Bayes factor; cf.\ \citealp{clarke1990information}]\label{prop:bayes}
 With this score $\E_P[T_t] = 1$, the unlimited-budget factor is
@@ -762,18 +757,9 @@ $\KL(Q\|P) - \inf_\theta \KL(Q\|Q_\theta)$.
 The proof, in Appendix~\ref{app:proofs}, combines the chain rule with the
 Laplace expansion of \citet{clarke1990information}.
 
-Averaging over the tilts is what keeps the cost of learning small: the Bayes
-factor pays for not knowing $\theta$ once, $(d/2)\log t$ in total, whereas a
-forecast at a point estimate bets everything on one tilt, and a wrong tilt
-can lose all the growth. This factorisation of a Bayes factor into one-step
-predictives has several classical forms, recalled in Section~S5 of the
-Supplement.
-
-Proposition~\ref{prop:bayes} is, however, only a benchmark. To compute the
-forecast $m_t$, Bayes' rule needs the normalising constant $Z(\theta)$ of the
-tilt at every step and for every $\theta$. This is an integral against the
-simulator, which can only be sampled, and it is the same constant whose
-absence makes the unnormalised bet of Section~\ref{sec:method} unfair.
+Proposition~\ref{prop:bayes} is only a benchmark: Bayes' rule needs the
+normalising constant $Z(\theta)$ of every tilt at every step, an integral
+against a simulator that can only be sampled.
 
 The Monte Carlo factor provides the way out, because it estimates that
 constant from the $M+1$ outcomes. Fix $\theta \in \mathbb{R}^d$ and
@@ -784,12 +770,14 @@ E_t(\theta) = \frac{(M+1)\exp\{\theta^\top\phi_t(U_{t,0})\}}
 {\sum_{k=0}^{M}\exp\{\theta^\top\phi_t(U_{t,k})\}}
 \]
 be the factor \eqref{eq:mc} with score $s_t = \theta^\top\phi_t$. As a
-function of $\theta$ it is, up to the constant $M+1$, the conditional-logit
-likelihood that the real outcome is the one picked among the $M+1$, and its
-normalising constant is a sum over the simulations, always computable. We call
+function of $\theta$ it is, up to the constant $M+1$, the probability that the
+score assigns to the real outcome among the $M+1$
+(Section~\ref{sec:method}), a conditional-logit likelihood whose normalising
+constant is a sum over the simulations, always computable. We call
 $L_t(\theta) = \prod_{i \le t} E_i(\theta)$ the \emph{simulation likelihood};
 its logarithm is the InfoNCE objective of contrastive learning
-\citep{oord2018representation,ma2018noise}. With a prior $\pi_0$ on $\theta$
+\citep{oord2018representation,ma2018noise}, which \citet{durkan2020contrastive}
+use to estimate likelihood ratios in simulation-based inference. With a prior $\pi_0$ on $\theta$
 and posterior $\pi_t \propto \pi_0 L_t$, the \emph{posterior-predictive bet}
 is
 \[
@@ -839,20 +827,28 @@ at most $2D$.
 \end{enumerate}
 \end{theorem}
 
-Part (i) says that exact Bayesian updating is available once the likelihood is
-the right one: not the likelihood of the real outcome under the tilt, which
-needs $Z(\theta)$, but the likelihood of the real outcome's position among the
-simulations, which the simulations normalise. The Bayes factor of
-Proposition~\ref{prop:bayes} is its limit as $M \to \infty$. Part (ii) holds on
-every path, with no assumption on the alternative: the monitor is never more
-than $d\log t$ behind the best fixed score in the class chosen in hindsight,
-the same simulations included. The argument is the standard one for Bayesian mixtures
-of log-concave likelihoods \citep{kakade2005online,grunwald2007minimum},
-applied to the simulation likelihood, whose log is concave in $\theta$ and
-whose gradient is bounded by $2G$. Part (iii) turns this into growth at the rate of
-the best tilt in the class, up to the simulation cost of
-Theorem~\ref{thm:growth}(iii), and Ville's inequality then gives rejection
-after about $\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps.
+Part (i) says that the score can be updated by Bayes' rule exactly, even
+though the normalising constant $Z(\theta)$ of the tilt is unknown. This is
+because the simulation likelihood is not the density of the real outcome under
+the tilt, which would need $Z(\theta)$, an integral over all possible
+outcomes. It answers the simpler question of Section~\ref{sec:method}: among
+the $M+1$ outcomes at hand, which one is the real one? The answer compares the
+scores of these $M+1$ outcomes only, so it needs no integral, and its
+posterior predictive is the bet itself: updating $\theta$ by Bayes' rule and
+betting are the same operation, so the guarantees of Bayesian mixtures hold
+for the wealth. It uses less information, and as $M \to \infty$ it recovers
+the Bayes factor of Proposition~\ref{prop:bayes}.
+
+Part (ii) holds on every path, with no assumption on the alternative: the
+monitor is never more than $d\log t$ behind the best fixed score in the class
+chosen in hindsight and evaluated on the same simulations. The argument is the
+standard one for Bayesian mixtures of log-concave likelihoods
+\citep{kakade2005online,grunwald2007minimum}, applied to the simulation
+likelihood, whose log is concave in $\theta$ and whose gradient is bounded by
+$2G$. Part (iii) turns this into growth at the rate of the best tilt in the
+class, up to the simulation cost of Theorem~\ref{thm:growth}(iii), and
+Ville's inequality then gives rejection after about
+$\{\log(1/\alpha) + d\log t\}/\sup_\theta g_M(\theta)$ steps.
 
 \subsection{Practical update rules}\label{sec:blr}\label{sec:algorithm}
 
@@ -1307,26 +1303,45 @@ NRE-C estimators \citep{miller2022contrastive}, are in the Supplement.
 
 \subsection{Auditing a language-model API with adaptively chosen prompts}\label{sec:exp-llm}
 
-The actions are the other half of the method. An API advertises a model $P$
-and may answer some queries with a cheaper substitute; the auditor can query
-the API and run $P$ locally, but evaluates neither likelihood. As in the
-routing audit of \citet{cortinovis2026slice}, the probes are prompts asking for
+The actions are the other half of the method, and an audit of a language
+model shows what they add. Many language models are used through an API, a
+service that receives a text, the prompt, and returns the model's reply; the
+user sees the replies but not the model that produced them. A provider may
+advertise a model $P$ and answer some queries with a cheaper substitute, such
+as the same model stored at lower numerical precision, or a smaller model. An
+audit checks the provider's claim from the outside: the auditor sends prompts
+to the API and compares its replies with replies of $P$ to the same prompts,
+generated on the auditor's own computer. The API is the real system, the local
+copy of $P$ is the simulator and the prompt is the action; neither gives the
+probability of a reply, only replies.
+
+As in the routing audit of \citet{cortinovis2026slice}, the prompts ask for
 random output (eight random digits, an integer between 1 and 100, a colour,
-six coin flips). The advertised model is Qwen2.5-1.5B-Instruct
-\citep{qwen2024qwen25} at 8 bits; the substitutes are the same model at 4 and 3
-bits and the smaller Qwen2.5-0.5B-Instruct. All replies are real outputs of
-\texttt{llama.cpp} \citep{gerganov2023llamacpp} at temperature one; only the
-routing is simulated. At each step the auditor chooses a prompt by an upper
-confidence bound on its realised log growth, keeping each prompt above a tenth
-of the queries (any rule that uses the past only would keep the monitor valid,
-and this one was not tuned), observes the reply and draws $M = 8$ replies of $P$ to the
-same prompt. The learned score is a logistic BLR on hashed character
-$n$-grams, one block of weights per prompt. We compare it with SLICE, with one
-routing fraction for all prompts, and with a score fitted in advance as in
-\citet{forre2026anytime}; both are given 500 replies per prompt of the 4-bit
-substitute, so their guess is wrong for the 3-bit and 0.5B substitutes. The
-routing sends 30\% of all queries to the substitute, or 50\% of the colour and
-number queries only, which lies outside SLICE's family.
+six coin flips), so that a substitute shows up as a change in the frequencies
+of the replies rather than as a wrong answer. The advertised model is
+Qwen2.5-1.5B-Instruct \citep{qwen2024qwen25} stored with 8 bits per weight;
+the substitutes are the same model with 4 and 3 bits and the smaller
+Qwen2.5-0.5B-Instruct. All replies are real outputs of \texttt{llama.cpp}
+\citep{gerganov2023llamacpp} at temperature one; only the routing, the choice
+of the queries that go to the substitute, is simulated. Either 30\% of all
+queries go to the substitute, or 50\% of the colour and number queries and
+none of the others.
+
+At each step the auditor chooses a prompt, sends it to the API and generates
+$M = 8$ replies of $P$ to the same prompt. The prompt is chosen by an upper
+confidence bound: prompts on which the bets have won more so far are asked
+more often, with a bonus for prompts asked less, and each prompt keeps at
+least a tenth of the queries (any rule that uses the past only would keep the
+monitor valid, and this one was not tuned). The learned score is a logistic
+BLR on hashed character $n$-grams, counts of short strings of characters in
+the reply, with one block of weights per prompt; it needs no reply of the
+substitute. We compare it with two scores that need replies of a guessed
+substitute before the audit starts: SLICE, which estimates one routing
+fraction for all prompts, and a score fitted in advance as in
+\citet{forre2026anytime}. Both are given 500 replies per prompt of the 4-bit
+substitute, so their guess is wrong when the substitute is the 3-bit or the
+0.5B model; routing only the colour and number queries lies outside SLICE's
+family, in which every prompt has the same routing fraction.
 
 \sbox{\widetab}{\begin{tabular}{lrrrrrrr}
 \toprule
@@ -1356,27 +1371,31 @@ run.}
 \begin{tabular}{@{}c@{}}\resizebox{\textwidth}{!}{\usebox{\widetab}}\end{tabular}
 \end{table}
 
-Adaptive prompts help every score (Table~\ref{tab:llm}): in our design both
-published scores need fewer queries than as published in every scenario, up
-to 61\% fewer, and the learned score gains up to 0.23 in power; the auditor
-moves towards the colour prompt, on which the substitutes differ most. Validity
-requires the conditioning: a twin that answers a random prompt rejects the
-true null in every run. Prior knowledge of the substitute pays when it is
-right, and the learned score needs none: with no reply of the substitute it
-matches SLICE on the 0.5B substitute and needs half as many queries when the
-routing depends on the prompt. The average of the two wealths is within 16
-queries of the faster component and keeps the learned score's power however
-wrong the guess.
+Choosing the prompts helps every score (Table~\ref{tab:llm}). With our
+adaptive design both published scores need fewer queries than with the
+uniformly drawn prompts of their papers, in every scenario and up to 61\%
+fewer, and the learned score gains up to 0.23 in power; the auditor learns to
+ask for a colour more often, because that is where the substitutes differ
+most. Validity requires the conditioning: comparing the API's reply with
+replies of $P$ to a random prompt, rather than to the same prompt, raises a
+false alarm in every run. Knowing the substitute in advance pays when the
+guess is right, but the learned score needs no such knowledge: without a
+single reply of the substitute it matches SLICE on the 0.5B substitute and
+needs half as many queries when the routing depends on the prompt. Averaging
+the wealths of the learned score and of the score fitted in advance gives
+another valid monitor, which needs at most 16 queries more than the faster of
+the two and keeps the power of the learned score however wrong the guess.
 
-The cost of the audit is the cost of the simulator: the $M = 8$ replies of $P$
-take 2 to 8 seconds per step on four CPU cores, whereas the bet and the update
-take 1 to 3~ms for every method, below 0.1\% of the running time. What matters
-is therefore the number of queries to an alarm. Our update costs the same at
-every step, $O((M+1)d^2)$ with rank-one updates, and needs only 200 replies of
-the twin to standardise the features; the baselines need replies of a guessed
-substitute, or an amortised training, before monitoring, and the refit and
-SLICE's estimate revisit the whole history, so their cost per step grows with
-$t$.
+Almost all the running time of the audit goes into the simulator: generating
+the $M = 8$ replies of $P$ takes 2 to 8 seconds per step on four CPU cores,
+whereas the bet and the update take 1 to 3~ms for every method, below 0.1\%
+of the total. The cost that matters is therefore the number of queries before
+an alarm. Our update costs the same at every step, $O((M+1)d^2)$ operations
+with rank-one updates, and needs beforehand only 200 replies of $P$ per
+prompt, to standardise the features. The baselines need replies of a guessed
+substitute before the audit starts, and SLICE re-estimates its routing
+fraction from all past replies at every step, so its cost per step grows with
+the number of queries.
 
 %======================================================================
 \section{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
@@ -1533,7 +1552,9 @@ the design: its divergence from the simulator under each action,
 $\KL(\tilde T_{t,a}\|P_{t,a})$, is the growth the monitor expects from that
 action, and choosing actions to maximise it is a model-based alternative to
 the upper confidence bound of Section~\ref{sec:exp-llm}, valid by
-Theorem~\ref{thm:valid} since it uses the past only.
+Theorem~\ref{thm:valid} since it uses the past only. It relies, however, on
+the score's own forecast, and pays only once that forecast is good, whereas the
+upper confidence bound uses the growth actually realised.
 
 Monte Carlo tests compare a fixed dataset with simulations from the null
 \citep{besag1989generalized}, and \citet{fischer2024sequential} make them
@@ -1618,7 +1639,7 @@ form of \citet{dawid1984present}, the Bayes universal code of minimum
 description length \citep{rissanen1984universal,grunwald2007minimum} and the
 basis of sequential Monte Carlo estimates of the evidence
 \citep{kong1994sequential,chopin2002sequential}, and it is related to
-cross-validation by \citet{fong2020marginal}; taking the predictives as the
+cross-validation by \citet{fong2020marginal} (Supplement, Section~S5); taking the predictives as the
 primitive is the approach of martingale posteriors
 \citep{fong2023martingale}. Prequential posteriors
 \citep{sinharoy2026prequential} calibrate generative forecasting models
@@ -1636,8 +1657,12 @@ silico and absent in the audit and the bandit, but must be inferred for a
 physical twin. Sampling the state from an exact filtering distribution keeps
 validity exact with respect to the observed history; plugging in a point
 estimate does not, and an approximate filter, like an MCMC-based simulator,
-makes exchangeability only approximate. Since the resulting bias recurs at
-every step, extending the guarantees of \citet{barber2026montecarlo} for a
+makes exchangeability only approximate. A persistent error, with divergence
+$\delta$ per step between the law of the real outcome and that of the
+simulations, can raise a false alarm, but not much before $\log(1/\alpha)/\delta$
+steps, since no score grows faster than $\delta$ per step
+(Corollary~\ref{cor:falsealarm}(ii)); it matters for long monitoring horizons.
+Since the resulting bias recurs at every step, extending the guarantees of \citet{barber2026montecarlo} for a
 single approximately exchangeable test to the sequential setting is an open
 problem. Theorem~\ref{thm:simlik} compares the monitor with the best score in
 a parametric class, not with the true density ratio, and its $d\log t$ regret
@@ -2004,7 +2029,9 @@ use 400 fresh replications, disjoint from these (seeds $5\cdot10^6+i$ under the
 null and $6\cdot10^6+i$ under the alternative); the variants in the Supplement
 use the original seeds. Expectations under the Gaussian
 posterior use 32 fixed antithetic nodes $m + L\xi_s$ with $LL^\top = S^{-1}$,
-and the bet is the average of $E_t(\theta)$ over the nodes.
+where $\xi_1, \ldots, \xi_{16}$ are standard normal vectors drawn once and
+$\xi_{17}, \ldots, \xi_{32}$ are their negatives, so that the nodes have mean
+exactly $m$; the bet is the average of $E_t(\theta)$ over the nodes.
 
 \paragraph{Language-model audit.} Each reply is mapped to 32 features: its
 character unigrams and bigrams hashed into 30 bins (CRC32), with counts divided
