@@ -1303,8 +1303,9 @@ NRE-C estimators \citep{miller2022contrastive}, are in the Supplement.
 
 \subsection{Auditing a language-model API with adaptively chosen prompts}\label{sec:exp-llm}
 
-The actions are the other half of the method, and an audit of a language
-model shows what they add. Many language models are used through an API, a
+Section~\ref{sec:exp-bandit} showed that actions chosen from the data leave
+the monitor valid. This section shows that choosing them well also makes it
+faster, in an audit of a language model. Many language models are used through an API, a
 service that receives a text, the prompt, and returns the model's reply; the
 user sees the replies but not the model that produced them. A provider may
 advertise a model $P$ and answer some queries with a cheaper substitute, such
