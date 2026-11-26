@@ -285,6 +285,9 @@ e4g/monitor.py      runs the competing e-processes side by side
 experiments/        exp1_generative_drift.py, exp2_adaptive_bandit.py,
                     exp3_simulation_budget.py, exp4_growth_rate.py,
                     exp5_bayesian_learning_rule.py, make_figures.py
+examples/llm_audit_minimal.py  one run of the language-model audit (Section 5.6)
+                    on the stored replies, a few seconds, no model needed
+data/llm_audit/     replies.json: real replies of the four models to the four prompts
 tests/              exactness tests (E[E_t] = 1 for arbitrary scores, etc.)
 results/            JSON results and run logs; figures/  PNG figures
 ```
@@ -292,6 +295,7 @@ results/            JSON results and run logs; figures/  PNG figures
 ```bash
 pip install -r requirements.txt
 python -m pytest -q tests                        # ~30 s
+python examples/llm_audit_minimal.py             # ~10 s, one audit, step by step
 python experiments/exp1_generative_drift.py      # ~10 min on 4 cores
 python experiments/exp2_adaptive_bandit.py       # ~2.5 min
 python experiments/exp3_simulation_budget.py     # ~4 min
