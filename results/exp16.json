@@ -1,8 +1,8 @@
 {
  "config": {
   "replies": "/home/user/evalues4generative/data/llm_audit/replies.json",
-  "scenarios": "null,all-q4,some-q4,all-q3,all-05b,some-05b,sharp",
-  "methods": "ours-bandit,ours-uniform,ours-mixed,combo-bandit",
+  "scenarios": "lowtemp",
+  "methods": "ours-bandit,ours-uniform,ours-mixed,slice,fb-pre,fb-bandit,combo-bandit,slice-bandit,fb-refit,fb-refit-bandit,ours-simlik,ours-simlik-bandit",
   "reps": 400,
   "horizon": 400,
   "m": 8,
@@ -946,6 +946,140 @@
     0.407
    ],
    "seconds": 35.0
+  }
+ },
+ "lowtemp": {
+  "ours-bandit": {
+   "reject": 0.4525,
+   "median_stop": 218.0,
+   "pulls": [
+    0.142,
+    0.256,
+    0.358,
+    0.244
+   ],
+   "seconds": 54.5
+  },
+  "ours-uniform": {
+   "reject": 0.2825,
+   "median_stop": 198.0,
+   "pulls": [
+    0.249,
+    0.248,
+    0.252,
+    0.251
+   ],
+   "seconds": 57.6
+  },
+  "ours-mixed": {
+   "reject": 1.0,
+   "median_stop": 46.0,
+   "pulls": [
+    0.177,
+    0.307,
+    0.31,
+    0.206
+   ],
+   "seconds": 9.7
+  },
+  "slice": {
+   "reject": 0.0,
+   "median_stop": null,
+   "pulls": [
+    0.249,
+    0.249,
+    0.251,
+    0.251
+   ],
+   "seconds": 72.1
+  },
+  "fb-pre": {
+   "reject": 0.0,
+   "median_stop": null,
+   "pulls": [
+    0.249,
+    0.249,
+    0.251,
+    0.251
+   ],
+   "seconds": 51.8
+  },
+  "fb-bandit": {
+   "reject": 0.0,
+   "median_stop": null,
+   "pulls": [
+    0.344,
+    0.214,
+    0.15,
+    0.293
+   ],
+   "seconds": 52.8
+  },
+  "combo-bandit": {
+   "reject": 0.225,
+   "median_stop": 243.0,
+   "pulls": [
+    0.259,
+    0.255,
+    0.232,
+    0.255
+   ],
+   "seconds": 107.4
+  },
+  "slice-bandit": {
+   "reject": 0.0,
+   "median_stop": null,
+   "pulls": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+   ],
+   "seconds": 71.4
+  },
+  "fb-refit": {
+   "reject": 0.71,
+   "median_stop": 246.0,
+   "pulls": [
+    0.249,
+    0.248,
+    0.252,
+    0.251
+   ],
+   "seconds": 173.7
+  },
+  "fb-refit-bandit": {
+   "reject": 0.8775,
+   "median_stop": 217.0,
+   "pulls": [
+    0.129,
+    0.28,
+    0.335,
+    0.256
+   ],
+   "seconds": 127.3
+  },
+  "ours-simlik": {
+   "reject": 0.31,
+   "median_stop": 289.0,
+   "pulls": [
+    0.249,
+    0.249,
+    0.253,
+    0.25
+   ],
+   "seconds": 90.1
+  },
+  "ours-simlik-bandit": {
+   "reject": 0.4725,
+   "median_stop": 275.0,
+   "pulls": [
+    0.12,
+    0.194,
+    0.4,
+    0.286
+   ],
+   "seconds": 85.3
   }
  }
 }

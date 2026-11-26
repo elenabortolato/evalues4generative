@@ -1,0 +1,12 @@
+lowtemp  ours-bandit   reject 0.453  median 218.0  pulls [0.142, 0.256, 0.358, 0.244]  54.5 s
+lowtemp  ours-uniform  reject 0.282  median 198.0  pulls [0.249, 0.248, 0.252, 0.251]  57.6 s
+lowtemp  ours-mixed    reject 1.000  median 46.0  pulls [0.177, 0.307, 0.31, 0.206]  9.7 s
+lowtemp  slice         reject 0.000  median None  pulls [0.249, 0.249, 0.251, 0.251]  72.1 s
+lowtemp  fb-pre        reject 0.000  median None  pulls [0.249, 0.249, 0.251, 0.251]  51.8 s
+lowtemp  fb-bandit     reject 0.000  median None  pulls [0.344, 0.214, 0.15, 0.293]  52.8 s
+lowtemp  combo-bandit  reject 0.225  median 243.0  pulls [0.259, 0.255, 0.232, 0.255]  107.4 s
+lowtemp  slice-bandit  reject 0.000  median None  pulls [0.25, 0.25, 0.25, 0.25]  71.4 s
+lowtemp  fb-refit      reject 0.710  median 246.0  pulls [0.249, 0.248, 0.252, 0.251]  173.7 s
+lowtemp  fb-refit-bandit reject 0.877  median 217.0  pulls [0.129, 0.28, 0.335, 0.256]  127.3 s
+lowtemp  ours-simlik   reject 0.310  median 289.0  pulls [0.249, 0.249, 0.253, 0.25]  90.1 s
+lowtemp  ours-simlik-bandit reject 0.472  median 275.0  pulls [0.12, 0.194, 0.4, 0.286]  85.3 s

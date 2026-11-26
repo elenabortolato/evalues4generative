@@ -1,0 +1,6 @@
+lowtemp slice-bandit {'reject': 0.0}
+lowtemp fb-bandit {'reject': 0.0}
+lowtemp fb-refit-bandit {'reject': 0.8775, 'median_stop': 217.0, 'median_compute_s': 0.809, 'median_replies': 2536.0}
+lowtemp combo-bandit {'reject': 0.225, 'median_stop': 243.0, 'median_compute_s': 0.679, 'median_replies': 8744.0}
+lowtemp ours-bandit {'reject': 0.4525, 'median_stop': 218.0, 'median_compute_s': 0.335, 'median_replies': 2544.0}
+lowtemp ours-simlik-bandit {'reject': 0.4725, 'median_stop': 275.0, 'median_compute_s': 0.629, 'median_replies': 3000.0}

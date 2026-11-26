@@ -33,7 +33,7 @@ import exp16_llm_audit as ex  # noqa: E402
 
 METHODS = ["slice-bandit", "fb-bandit", "fb-refit-bandit", "combo-bandit",
            "ours-bandit", "ours-simlik-bandit"]
-SCENARIOS = ["all-q4", "some-q4", "all-q3", "all-05b", "some-05b", "sharp"]
+SCENARIOS = ["all-q4", "some-q4", "all-q3", "all-05b", "some-05b", "sharp", "lowtemp"]
 PREPARED = {"slice-bandit": 6000, "fb-bandit": 6000, "fb-refit-bandit": 800,
             "combo-bandit": 6800, "ours-bandit": 800, "ours-simlik-bandit": 800}
 REPS, M = 400, 8
@@ -45,11 +45,17 @@ def one(seed, scenario, method, rho):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--scenarios", default=",".join(SCENARIOS))
+    args = ap.parse_args()
     path = ROOT / "data" / "llm_audit" / "replies.json"
     ex.init_worker(path)
     rho = ex.fit_log_rho(ex.BASELINE_SUB)
-    out = {"reps": REPS, "M": M, "prepared": PREPARED}
-    for sc in SCENARIOS:
+    out_path = ROOT / "results" / "exp16_cost.json"
+    out = json.loads(out_path.read_text()) if out_path.exists() else {}
+    out.update({"reps": REPS, "M": M, "prepared": PREPARED})
+    for sc in args.scenarios.split(","):
         for m in METHODS:
             seeds = [10**4 * list(ex.SCENARIOS).index(sc) + i for i in range(REPS)]
             with ProcessPoolExecutor(4, initializer=ex.init_worker, initargs=(path,)) as pool:
@@ -64,7 +70,7 @@ def main():
                          median_replies=float(PREPARED[m] + M * np.median(stops)))
             out.setdefault(sc, {})[m] = r
             print(sc, m, r, flush=True)
-            (ROOT / "results" / "exp16_cost.json").write_text(json.dumps(out, indent=1))
+            out_path.write_text(json.dumps(out, indent=1))
 
 
 if __name__ == "__main__":

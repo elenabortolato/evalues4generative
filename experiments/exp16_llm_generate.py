@@ -2,8 +2,10 @@
 
 The advertised model P is Qwen2.5-1.5B-Instruct quantised at 8 bits (q8_0);
 the substitutes are the same model at 4 bits (q4_k_m) and 3 bits (q3_k_m),
-and a different, smaller model, Qwen2.5-0.5B-Instruct at 4 bits (05b).
-Each reply is a separate call with no history, at temperature 1 and top-p 1,
+and a different, smaller model, Qwen2.5-0.5B-Instruct at 4 bits (05b); the
+last pool (q8_0_t07) is P itself at temperature 0.7, a provider that changes
+the sampling settings. Each reply is a separate call with no history, at
+temperature 1 (0.7 for q8_0_t07) and top-p 1,
 so the replies of one model and prompt are i.i.d. draws from its output law.
 The GGUF files are read from --models (download from the Hugging Face
 repositories Qwen/Qwen2.5-1.5B-Instruct-GGUF and
@@ -29,9 +31,11 @@ PROMPTS = {
     "coin": "Flip a fair coin 6 times. Output only the results as a string of H and T, "
             "no separators.",
 }
-SIZES = {"q8_0": 3000, "q4_k_m": 1500, "q3_k_m": 1500, "05b": 1500}
+SIZES = {"q8_0": 3000, "q4_k_m": 1500, "q3_k_m": 1500, "05b": 1500, "q8_0_t07": 1500}
 FILES = {q: f"qwen2.5-1.5b-instruct-{q}.gguf" for q in ["q8_0", "q4_k_m", "q3_k_m"]}
 FILES["05b"] = "qwen2.5-0.5b-instruct-q4_k_m.gguf"   # a different, smaller model
+FILES["q8_0_t07"] = FILES["q8_0"]                    # P itself, at a lower temperature
+TEMPERATURE = {"q8_0_t07": 0.7}                      # all others at temperature one
 OUT = Path(__file__).resolve().parents[1] / "data" / "llm_audit" / "replies.json"
 
 
@@ -51,7 +55,8 @@ def main() -> None:
             t0, reps = time.time(), []
             for i in range(n):
                 r = llm.create_chat_completion(
-                    messages=[{"role": "user", "content": prompt}], temperature=1.0, top_p=1.0,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=TEMPERATURE.get(q, 1.0), top_p=1.0,
                     max_tokens=24, seed=10**6 * (qi + 1) + 10**5 * pi + i)
                 reps.append(r["choices"][0]["message"]["content"].strip())
             out[key] = reps

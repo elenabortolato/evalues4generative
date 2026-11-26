@@ -25,6 +25,9 @@ Scenarios
              smaller model (Qwen2.5-0.5B), unexpected by the baselines,
              which were trained on the 4-bit model
   some-05b   as some-q4, with the 0.5B model as the substitute
+  lowtemp    every query is answered by P at temperature 0.7 instead of one
+             (real replies, exp16_llm_generate.py): a provider that changes the
+             sampling settings; closer to P than to the 4-bit model
   sharp      every query is answered by a sharpened P: P's replies drawn with
              probability proportional to the square of their frequency, as
              a lower temperature would do (the most frequent colour goes
@@ -107,7 +110,9 @@ SCENARIOS = {
     "all-05b": dict(sub="05b", frac={k: 0.3 for k in PROMPTS}),
     "some-05b": dict(sub="05b", frac={"color": 0.5, "number": 0.5}),
     "sharp": dict(sub="sharp", frac={k: 1.0 for k in PROMPTS}),
+    "lowtemp": dict(sub="q8_0_t07", frac={k: 1.0 for k in PROMPTS}),
 }
+EXTRA_POOLS = ["q8_0_t07"]       # pools added later, split with their own generator
 SHARPEN = 2.0                    # "sharp": P's replies drawn w.p. ~ frequency ** SHARPEN
 FB_TAU = 1.0                     # ridge of fb-refit, the prior variance of our learned score
 CLIP = 10.0                      # ours-simlik: standardised features clipped to [-CLIP, CLIP]
@@ -150,6 +155,15 @@ class Pools:
                     continue
                 reps = list(raw[f"{q}|{prompt}"])
                 rng.shuffle(reps)
+                n_train = len(reps) // 3
+                for part, chunk in [("train", reps[:n_train]), ("stream", reps[n_train:])]:
+                    self.idx[(k, q, part)] = np.arange(len(texts), len(texts) + len(chunk))
+                    texts.extend(chunk)
+            for q in EXTRA_POOLS:   # own generator: the pools above stay as they were
+                if f"{q}|{prompt}" not in raw:
+                    continue
+                reps = list(raw[f"{q}|{prompt}"])
+                np.random.default_rng(1 + k).shuffle(reps)
                 n_train = len(reps) // 3
                 for part, chunk in [("train", reps[:n_train]), ("stream", reps[n_train:])]:
                     self.idx[(k, q, part)] = np.arange(len(texts), len(texts) + len(chunk))
