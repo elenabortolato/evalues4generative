@@ -132,21 +132,12 @@ BACKMATTER = r"""
 \end{center}
 
 \begin{description}
-\item[Supplement:] the notation, the proofs, experimental details, the
-timing relative to concurrent work and further related work
-(Sections~%S_FIRST%--%S_LAST%); three
-further analyses, of a single patient under closed-loop control, a
-single-stage response-adaptive trial, and a comparison with the
-Besag--Clifford e-process (Sections~S1--S3); additional results for
-Sections~\ref{sec:experiments} and~\ref{sec:trial} (Section~S4); and the
-classical forms of the predictive factorisation (Section~S5) (PDF).
-\item[Code and data:] Python code for all methods, experiments, tables and
-figures, with the replies of the language models of
-Section~\ref{sec:exp-llm}%REPO%. The file \texttt{REPRODUCIBILITY.md} lists,
-for every table and figure, the script and command that produce it, the
-output file and an indication of the running time. Every replication is
-seeded, so the reported numbers are reproduced exactly with the stated library
-versions, up to the rounding differences across processors documented there.
+\item[Supplement:] notation, proofs, experimental details, timing relative to
+concurrent work and further related work (Sections~%S_FIRST%--%S_LAST%); further
+analyses and results (Sections~S1--S5) (PDF).
+\item[Code and data:] Python code and data for all methods, experiments, tables
+and figures%REPO%; \texttt{REPRODUCIBILITY.md} maps each table and figure to the
+command that produces it.
 \end{description}
 
 \section*{Disclosure statement}
@@ -157,6 +148,18 @@ No external data are used. The replies of the language models in
 Section~\ref{sec:exp-llm} were generated from the publicly released Qwen2.5
 models and are distributed with the code; all other data are simulated by the
 code.
+
+\section*{Declaration of generative AI use}
+The author used a generative AI assistant (Claude, Anthropic) during the
+research and the preparation of the manuscript: to write and debug parts of the
+code for the experiments, to run the experiments and check their results, to
+check proofs and references, to edit the English of the text, and to format the
+manuscript and the supplement. The author designed the methods and the
+experiments, verified all results, proofs and references, and takes full
+responsibility for the content of the manuscript. Separately, the open-weight
+language models Qwen2.5-1.5B-Instruct and Qwen2.5-0.5B-Instruct are objects of
+study in the audit of Section~\ref{sec:exp-llm}, where they generate the
+replies that are tested.
 
 \bibliographystyle{apalike}
 \bibliography{references}
