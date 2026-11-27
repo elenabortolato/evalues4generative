@@ -1953,7 +1953,12 @@ g_M = \frac{M}{M+1}\,\varepsilon^2\Big(\E_P[\tilde h\psi] - \tfrac12\E_P[\tilde 
 \]
 and $\E_P[\psi^2] - \E_P[(\psi - \tilde h)^2] = 2\E_P[\tilde h\psi] - \E_P[\tilde h^2]$.
 Finally $\KL(Q\|P) = \E_P[(1 + \varepsilon\psi)\log(1 + \varepsilon\psi)]
-= \frac{\varepsilon^2}{2}\E_P[\psi^2] + O(\varepsilon^3)$.
+= \frac{\varepsilon^2}{2}\E_P[\psi^2] + O(\varepsilon^3)$. Similarly,
+$\log(d\tilde T/dP) = \varepsilon\tilde h - \frac{\varepsilon^2}{2}\mathrm{Var}_P(h)
++ O(\varepsilon^3)$, so
+$\KL(Q\|\tilde T) = \KL(Q\|P) - \E_Q[\log(d\tilde T/dP)]
+= \frac{\varepsilon^2}{2}\E_P[(\psi - \tilde h)^2] + O(\varepsilon^3)$, which
+gives the efficiency display after the theorem.
 
 \paragraph{Proof of Proposition~\ref{prop:necessary}.}
 Given $\G_t$, $T$ is fixed, $X \sim P_a$ and $Y_1, \ldots, Y_M$ are i.i.d.\
