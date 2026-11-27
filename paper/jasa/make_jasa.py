@@ -538,6 +538,29 @@ rejection rate and, in brackets, median participant-days to the first alarm.
 Middle: share of trials with each arm active at the end. Bottom: share of
 trials in which e-BH flags each arm ($\alpha = 0.05$).}"""
 
+# Citations that are not indispensable in the article (they stay in the
+# supplement where it cites them); JASA counts the references in its 35 pages.
+DROP_CITES = {"chaney2018algorithmic", "jiang2019degenerate", "shi2019virtual", "zhao2020sim",
+              "dulacarnold2021challenges", "whitehead1997design", "trippa2012bayesian",
+              "bowden2017unbiased", "ma2018noise", "grunwald2007minimum",
+              "fortini2000exchangeability", "dallaman2007meal"}
+
+
+def drop_cites(body: str) -> str:
+    old = "the conditionally identically distributed sequences of \\citet{berti2004limit}."
+    assert old in body, "berti"
+    body = body.replace(old, "the conditionally identically distributed sequences.")
+
+    def rep(m):
+        keys = [k.strip() for k in m.group(2).split(",") if k.strip() not in DROP_CITES]
+        return m.group(1) + "{" + ",".join(keys) + "}" if keys else "\x00"
+    body = re.sub(r"(\\cite[pt]?)\{([^}]*)\}", rep, body)
+    body = re.sub(r"\s*\x00", "", body)
+    for k in DROP_CITES | {"berti2004limit"}:
+        assert k not in body, k
+    return body
+
+
 def replace_between(text: str, start: str, end: str, new: str, keep_end: bool = True) -> str:
     """Replace text from `start` up to `end` (kept unless keep_end is False)."""
     i = text.index(start)
@@ -585,6 +608,7 @@ def cut(body: str) -> tuple[str, str]:
     for start, end, text in TRIM:
         body = trim(body, start, end, text)
     body, _ = related(body)
+    body = drop_cites(body)
     # Section 6: shorter description of the trial and of its table
     body = replace_between(body, "Insulin-dosing algorithms for type~1 diabetes",
                            "\\subsection{Results}", CUT_61)

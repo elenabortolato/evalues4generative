@@ -90,7 +90,7 @@ digital twins; adaptive designs
 A digital twin is useful only as long as it behaves like the system it
 copies. Checking this is hard when the system is being steered while we
 watch. Consider a multi-arm multi-stage (MAMS) trial of insulin-dosing
-strategies \citep{whitehead1997design,magirr2012generalized}. At each interim
+strategies \citep{magirr2012generalized}. At each interim
 analysis some arms are dropped and their participants move to other arms,
 taking their glucose history with them. A simulator of each participant's
 glucose dynamics is available, and the question is whether, and when, the
@@ -98,12 +98,12 @@ real participants stop behaving like simulated ones.
 
 The same question comes up with multi-armed bandits
 \citep{lattimore2020bandit}, response-adaptive clinical designs
-\citep{trippa2012bayesian,villar2015multi}, and AI systems that act in
+\citep{villar2015multi}, and AI systems that act in
 environments shaped by their own past decisions
-\citep{perdomo2020performative,dulacarnold2021challenges}. For example, a ranking or moderation system changes what users post and hence
-what the platform observes next \citep{chaney2018algorithmic,jiang2019degenerate},
+\citep{perdomo2020performative}. For example, a ranking or moderation system changes what users post and hence
+what the platform observes next,
 and such systems are tuned on simulators of user behaviour whose fidelity is
-exactly what is in doubt \citep{ie2019recsim,shi2019virtual,zhao2020sim}. In these settings, as we choose
+exactly what is in doubt \citep{ie2019recsim}. In these settings, as we choose
 actions based on past observations, can we continuously test whether the
 resulting stream of outcomes is still consistent with a simulator, and sound
 an alarm as soon as it is not, while controlling false alarms under optional
@@ -112,7 +112,7 @@ what has been seen; the null is a simulator whose likelihood we
 cannot write down; and we want to look at the evidence after
 every observation. Fixed-sample tests lose
 their guarantees under repeated looks, and the corrections developed for
-adaptive trials \citep{bowden2017unbiased,magirr2012generalized} assume a
+adaptive trials \citep{magirr2012generalized} assume a
 pre-specified adaptation rule. Bayesian updating copes with adaptive sampling
 but does not, by itself, control the type~I error under optional stopping.
 
@@ -789,7 +789,7 @@ score assigns to the real outcome among the $M+1$
 constant is a sum over the simulations, always computable. We call
 $L_t(\theta) = \prod_{i \le t} E_i(\theta)$ the \emph{simulation likelihood};
 its logarithm is the InfoNCE objective of contrastive learning
-\citep{oord2018representation,ma2018noise}, which \citet{durkan2020contrastive}
+\citep{oord2018representation}, which \citet{durkan2020contrastive}
 use to estimate likelihood ratios in simulation-based inference. With a prior $\pi_0$ on $\theta$
 and posterior $\pi_t \propto \pi_0 L_t$, the \emph{posterior-predictive bet}
 is
@@ -852,7 +852,7 @@ Part (ii) holds on every path, with no assumption on the alternative: the
 monitor is never more than $d\log t$ behind the best fixed score in the class
 chosen in hindsight and evaluated on the same simulations. The argument is the
 standard one for Bayesian mixtures of log-concave likelihoods
-\citep{kakade2005online,grunwald2007minimum}, applied to the simulation
+\citep{kakade2005online}, applied to the simulation
 likelihood, whose log is concave in $\theta$ and whose gradient is bounded by
 $2G$. Part (iii) turns this into growth at the rate of the best tilt in the
 class, up to the simulation cost of Theorem~\ref{thm:growth}(iii), and
@@ -949,7 +949,7 @@ $m_{t+1} = \mathcal U_t(m_t, X_t)$ and recovers uncertainty by
 \emph{predictive resampling}, drawing future outcomes from the current
 predictive and updating; this converges when imputing one more outcome does
 not move the forecast on average, $\E_{X \sim m_t}[\mathcal U_t(m_t, X)] = m_t$,
-the conditionally identically distributed sequences of \citet{berti2004limit}.
+the conditionally identically distributed sequences.
 Here the learner carries the predictive itself, $\sigma(z^\top\theta_t)$ for
 the logistic loss or the softmax $e^{\theta_t^\top z_k}/\sum_{k'} e^{\theta_t^\top z_{k'}}$
 over the $M+1$ outcomes for the simulation likelihood, and updates it by
@@ -1149,7 +1149,7 @@ shrinkage keeps its bets small for longer when the signal is weak. Ours cost a
 third as much and carry the pathwise guarantee of Theorem~\ref{thm:simlik}.
 They average over the uncertainty about the score's parameter, whereas a sequence of refits at a maximiser is in general not the
 predictive sequence of any exchangeable model
-\citep{fortini2000exchangeability,fortini2024exchangeability}.
+\citep{fortini2024exchangeability}.
 
 \begin{remark}[Inside and outside the family]\label{rem:family}
 SLICE bets with $s_t = \log (p_{\hat\theta_{t-1}}/p_{\theta_0})$ within a
