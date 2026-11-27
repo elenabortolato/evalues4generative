@@ -561,6 +561,48 @@ def drop_cites(body: str) -> str:
     return body
 
 
+# Sentences shortened by at least 20% (paper/jasa/proposta_frasi.md, those
+# that lose nothing): (current sentence, shorter sentence).
+SENTENCES = [
+    ('In these settings, as we choose actions based on past observations, can we continuously test whether the resulting stream of outcomes is still consistent with a simulator, and sound an alarm as soon as it is not, while controlling false alarms under optional stopping?',
+     'With actions chosen from past observations, can we test continuously whether the outcomes remain consistent with a simulator, raising an alarm as soon as they do not, with false alarms controlled under optional stopping?'),
+    ('We first recall why the Bayes factor is a product of forecasts and show that the Monte Carlo e-process has the same structure, with the score in place of the model (Section~\\ref{sec:scores}); we then derive an update rule for the score with a pathwise guarantee (Section~\\ref{sec:simlik}), and its practical version (Section~\\ref{sec:blr}).',
+     'We show that the Monte Carlo e-process has the structure of the Bayes factor, with the score in place of the model (Section~\\ref{sec:scores}), and derive an update rule for the score with a pathwise guarantee (Section~\\ref{sec:simlik}) and its practical version (Section~\\ref{sec:blr}).'),
+    ('The real system then produces an outcome $X_t$ with conditional law $Q_t(\\cdot \\mid \\F_{t-1}, A_t)$, and the analyst can draw samples from a simulator with conditional law $P_t(\\cdot \\mid \\F_{t-1}, A_t)$; for a digital twin this means re-initialising the twin at the current state and running it under action $A_t$.',
+     'The real system then produces $X_t$ with law $Q_t(\\cdot \\mid \\F_{t-1}, A_t)$, and a simulator can be sampled from $P_t(\\cdot \\mid \\F_{t-1}, A_t)$; a digital twin is re-initialised at the current state and run under $A_t$.'),
+    ("The theorem involves no density, no property of the score and no restriction on the policy, which may depend on the data and on the wealth itself; in a MAMS trial the action $A_t$ is the arm assigned to a participant for a period, chosen after interim analyses and re-assignments, and the conditional law $P_t$ is that of the participant's outcome given their history.",
+     "The theorem needs no density, no property of the score and no restriction on the policy, which may depend on the data and the wealth; in a MAMS trial $A_t$ is the arm assigned after interim analyses and re-assignments, and $P_t$ the law of the outcome given the participant's history."),
+    ("A score can only forecast within the family of its tilted nulls, so the features determine which departures can be detected: for a score built from the simulator's own parameters, as in SLICE, the tilted nulls belong to that parametric family, and a departure outside it is invisible however accurate the score (Section~\\ref{sec:exp-concurrent}), whereas a score learned on features of the outcome reweights the simulator in directions that need not correspond to any parameter.",
+     "A score can only forecast within the family of its tilted nulls, so the features determine which departures are detectable: a score built from the simulator's parameters, as in SLICE, misses any departure outside that family (Section~\\ref{sec:exp-concurrent}), whereas features of the outcome reweight the simulator in directions that need not correspond to any parameter."),
+    ('The conditioned e-process stays valid, with 2.8\\% false alarms (Table~\\ref{tab:bandit}), whereas the same e-process with the twin run on uniformly random arms, the setting of Proposition~\\ref{prop:necessary}, rejects the true null in every run, and a per-arm $t$-test recomputed every ten steps in 39\\% of runs.',
+     'The conditioned e-process stays valid, with 2.8\\% false alarms (Table~\\ref{tab:bandit}); with the twin on random arms (Proposition~\\ref{prop:necessary}) it rejects the true null in every run, and a per-arm $t$-test recomputed every ten steps in 39\\%.'),
+    ('Scores that know where the departure lies are fastest inside the family, SLICE after 67 steps on the drift and a score fitted on the true alternative after 58, against about 210 for scores learned from the data; but outside the family their power falls to 0.01 on the drift (Remark~\\ref{rem:family}), while every score learned from real against simulated outcomes keeps it.',
+     'Scores that know where the departure lies are fastest inside the family (SLICE after 67 steps on the drift, a score fitted on the true alternative after 58, learned scores after about 210), but outside it their power falls to 0.01 (Remark~\\ref{rem:family}), while every learned score keeps it.'),
+    ("The score fitted in advance and SLICE learn $R$ before the audit from 500 replies per prompt of the 4-bit model, so they guess wrong for the 3-bit and 0.5B substitutes; routing that depends on the prompt lies outside SLICE's family, and the sharpened $P$ lies outside it in a stronger sense, since it is closer to $P$ than to $R$.",
+     "The score fitted in advance and SLICE learn $R$ from 500 replies per prompt of the 4-bit model, so they guess wrong for the other substitutes; routing that depends on the prompt lies outside SLICE's family, and the sharpened $P$, closer to $P$ than to $R$, lies further outside."),
+    ('Choosing the prompts helps every score (Table~\\ref{tab:llm}): with our adaptive design every score needs fewer queries than with uniformly drawn prompts, in every scenario in which it rejects and up to 61\\% fewer, and our scores gain up to 0.24 in power; the auditor learns to ask for a colour more often, because that is where the substitutes differ most.',
+     'Choosing the prompts helps every score (Table~\\ref{tab:llm}): every score needs fewer queries than with uniform prompts wherever it rejects, up to 61\\% fewer, and our scores gain up to 0.24 in power; the auditor learns to ask for colours, where the substitutes differ most.'),
+    ('In exchange our rule carries the guarantee of Theorem~\\ref{thm:simlik}, through Proposition~\\ref{prop:approx} for the one-step update, and its computing time per query does not grow with the history: 2.1 and 2.2~ms over 400 and 1600 queries, against 8.0 and 53~ms for the refit, which revisits the whole history at every refit.',
+     'In exchange our rule carries the guarantee of Theorem~\\ref{thm:simlik}, through Proposition~\\ref{prop:approx}, and its cost per query does not grow with the history: 2.1 and 2.2~ms over 400 and 1600 queries, against 8.0 and 53~ms for the refit.'),
+    ('The cost of an alarm is therefore counted in generated replies: SLICE and the score fitted in advance prepare 6000 replies before the audit and reach the alarm after 6200 to 6900, whereas the learned scores prepare 800, only to standardise the features, and reach it after 1100 to 2500 (Supplement, Section~S4, which also reports the computing time to the alarm).',
+     'The cost of an alarm is therefore counted in generated replies: SLICE and the score fitted in advance prepare 6000 and reach the alarm after 6200 to 6900, the learned scores prepare 800, to standardise the features, and reach it after 1100 to 2500 (Supplement, Section~S4).'),
+    ('The monitor rejects when its forecasts, the tilted nulls of its scores, have predicted reality better than the simulator; as the posterior concentrates, the tilted null approaches the reweighting of the simulator closest to reality, $\\arg\\min_\\theta \\KL(Q\\|Q_\\theta)$, and its log ratio to the simulator, $\\theta^\\top\\phi - \\log Z(\\theta)$, shows where reality puts more or less mass than the simulator: a shift in the mean, an excess of variance, a particular arm.',
+     'The monitor rejects when its forecasts have predicted reality better than the simulator; as the posterior concentrates, the tilted null approaches the closest reweighting of the simulator, $\\arg\\min_\\theta \\KL(Q\\|Q_\\theta)$, whose log ratio $\\theta^\\top\\phi - \\log Z(\\theta)$ shows where reality puts more or less mass: a shift in the mean, an excess of variance, a particular arm.'),
+    ("Relative to them, ours treats actions chosen from the data and simulators with state, shows that the conditioning is necessary and quantifies the failure without it, reads arbitrary scores through the tilted null with the local efficiency $M/(M+1)$, and updates the score by Bayes' rule on the simulation likelihood, with a pathwise regret bound, where the concurrent papers bet at a point estimate.",
+     'Ours adds actions chosen from the data and simulators with state, the necessity of the conditioning, the reading of any score through its tilted null with local efficiency $M/(M+1)$, and Bayesian updating of the score with a pathwise regret bound, where the concurrent papers bet at a point estimate.'),
+    ('Once the simulator is run under the action taken, the design may be chosen to gather evidence where it accumulates fastest: in the audit this makes every score faster, ours and the concurrent ones alike, by 8\\% to 61\\% in the number of queries, while without the conditioning on the action the concurrent methods lose validity altogether.',
+     'Once the simulator is run under the action taken, the design may gather evidence where it accumulates fastest: in the audit this saves every score, ours and the concurrent ones, 8\\% to 61\\% of the queries, whereas without the conditioning the concurrent methods lose validity.'),
+]
+
+
+def shorten(body: str) -> str:
+    for old, new in SENTENCES:
+        m = re.search(loose(old), body)
+        assert m, old[:50]
+        body = body[:m.start()] + new + body[m.end():]
+    return body
+
+
 def replace_between(text: str, start: str, end: str, new: str, keep_end: bool = True) -> str:
     """Replace text from `start` up to `end` (kept unless keep_end is False)."""
     i = text.index(start)
@@ -609,6 +651,7 @@ def cut(body: str) -> tuple[str, str]:
         body = trim(body, start, end, text)
     body, _ = related(body)
     body = drop_cites(body)
+    body = shorten(body)
     # Section 6: shorter description of the trial and of its table
     body = replace_between(body, "Insulin-dosing algorithms for type~1 diabetes",
                            "\\subsection{Results}", CUT_61)
