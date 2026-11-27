@@ -367,6 +367,18 @@ $Q$. Details, and the choice between the NRE-A and NRE-C estimators
 # Second round (paper/jasa/proposta_tagli_2.md, points 1-11), and Table 1,
 # Figure 1 and Algorithm 1 moved to the supplement.
 TRIM = [
+    ("SLICE \\citep{cortinovis2026slice} answers a different question", "we leave this to future work.",
+     r"""SLICE \citep{cortinovis2026slice} answers a different question: which values
+of a simulator's parameter are compatible with the data. It is the fastest
+method we compared when the departure lies inside its parametrised family, and
+loses its power when the departure projects onto the null
+(Remark~\ref{rem:family}). A score learned from real against simulated outcomes
+needs no family, and pays with a slower start when the alternative is known in
+advance: in the audit, a score fitted on the right substitute stops after 30 to
+41 queries, the learned score after 136 to 218. A pretrained score could be the
+centre of the prior of the online update, so that the monitor starts as fast as
+the pretrained score and corrects it where the guess is wrong; the average of
+the two wealths in Section~\ref{sec:exp-llm} is a cruder version of this."""),
     ("For example, a content-ranking", "\\citep{zhao2020sim}.", r"""For example, a ranking or moderation system changes what users post and hence
 what the platform observes next \citep{chaney2018algorithmic,jiang2019degenerate},
 and such systems are tuned on simulators of user behaviour whose fidelity is

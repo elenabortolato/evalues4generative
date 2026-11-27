@@ -1475,28 +1475,16 @@ with a pathwise regret bound, where the concurrent papers bet at a point
 estimate.
 
 SLICE \citep{cortinovis2026slice} answers a different question: which values
-of a simulator's parameter are compatible with the data. When the departure lies inside its parametrised family it is
-the fastest method we compared; when it does not, its power depends on where
-the departure projects onto the family and vanishes when the projection is
-the null itself (Remark~\ref{rem:family}), and it needs an amortised training
-on the family, of the order of $10^7$ simulations in
-\citet{cortinovis2026slice}. A score learned from real against simulated
-outcomes needs neither, and pays for this with a slower start when prior
-knowledge of the alternative exists: in the audit, a score fitted in advance
-on the right substitute stops after 30 to 41 queries, the learned score after
-136 to 218. The natural synthesis is to use a pretrained score as the centre
-of the prior of the online update, so that the monitor starts as fast as the
-pretrained score and corrects it where the guess is wrong, with the guarantees
-of Theorems~\ref{thm:valid} and~\ref{thm:simlik} relative to that prior; the
-average of the two wealths in Section~\ref{sec:exp-llm}, within 16 queries of
-the faster component, is a cruder version of it. In the other direction,
-since SLICE bets at the plug-in forecast $P_{\hat\theta_{t-1}}$, its confidence
-sequences are a likelihood-free version of the running-estimate confidence
-sequences of universal inference \citep{wasserman2020universal}. Averaging the
-bets over a posterior instead keeps validity, and a pathwise regret bound for
-such confidence sequences would need a posterior computed for each candidate
-null from its own simulation likelihood, with scores log-linear in their
-parameter; we leave this to future work.
+of a simulator's parameter are compatible with the data. It is the fastest
+method we compared when the departure lies inside its parametrised family, and
+loses its power when the departure projects onto the null
+(Remark~\ref{rem:family}). A score learned from real against simulated outcomes
+needs no family, and pays with a slower start when the alternative is known in
+advance: in the audit, a score fitted on the right substitute stops after 30 to
+41 queries, the learned score after 136 to 218. A pretrained score could be the
+centre of the prior of the online update, so that the monitor starts as fast as
+the pretrained score and corrects it where the guess is wrong; the average of
+the two wealths in Section~\ref{sec:exp-llm} is a cruder version of this.
 
 Once the simulator is run under the action taken, the design may be chosen to gather
 evidence where it accumulates fastest: in the audit this makes every score
