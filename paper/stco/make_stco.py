@@ -64,6 +64,29 @@ digital twins, adaptive designs, prequential inference}
 """
 
 BACKMATTER = r"""
+
+\section*{Declarations}
+
+\begin{itemize}
+%\item \textbf{Funding.} [To be completed.]
+%\item \textbf{Competing interests.} The author has no competing interests to
+%declare.
+%\item \textbf{Ethics approval and consent to participate.} Not applicable.
+%\item \textbf{Consent for publication.} Not applicable.
+%\item \textbf{Data availability.} No external data are used. The replies of the language models in
+%Section~\ref{sec:exp-llm} were generated with the code below from the publicly
+%released Qwen2.5 models and are in the \texttt{data} folder of the code
+%repository; all other data are simulated by the code below.
+%\item \textbf{Materials availability.} Not applicable.
+\item \textbf{Code availability.} All methods, experiments, tables and figures are implemented in Python and
+available at \url{https://github.com/elenabortolato/evalues4generative}. The
+file \texttt{REPRODUCIBILITY.md} in that repository lists, for every table
+and figure, the script and command that produce it, the output file and an
+indication of the running time. Every replication is seeded, so the reported
+numbers are reproduced exactly with the stated library versions.
+%\item \textbf{Author contribution.} The author is the sole contributor.
+\end{itemize}
+
 \backmatter
 
 \bmhead{Supplementary information}
@@ -71,25 +94,6 @@ The online supplement contains three further analyses (a single patient under
 closed-loop control, a single-stage response-adaptive trial, and a comparison
 with the Besag--Clifford e-process) and additional results for Sections 5
 and 6.
-
-\bmhead{Acknowledgements}
-% TO BE COMPLETED BY THE AUTHOR. Check the journal's policy on generative-AI
-% tools; if it requires disclosure, state here how such tools were used.
-[To be completed.]
-
-\section*{Declarations}
-
-\begin{itemize}
-\item \textbf{Funding.} [To be completed.]
-\item \textbf{Competing interests.} The author has no competing interests to
-declare.
-\item \textbf{Ethics approval and consent to participate.} Not applicable.
-\item \textbf{Consent for publication.} Not applicable.
-\item \textbf{Data availability.} %DATA%
-\item \textbf{Materials availability.} Not applicable.
-\item \textbf{Code availability.} %CODE%
-\item \textbf{Author contribution.} The author is the sole contributor.
-\end{itemize}
 
 """
 
@@ -128,8 +132,6 @@ def main() -> None:
     src = SRC.read_text()
     abstract = section(src, r"\begin{abstract}", r"\end{abstract}")
     body = src[src.index(r"\section{Introduction}"):src.index(r"\section*{Data availability}")]
-    data = section(src, r"\section*{Data availability}", r"\section*{Code availability}")
-    code = section(src, r"\section*{Code availability}", r"\section*{Disclosure statement}")
     appendix = src[src.index(r"\appendix") + len(r"\appendix"):src.index(r"\end{document}")]
     # one-line reference to the repository README instead of the closing
     # sentence of the Discussion, which the Declarations now cover
@@ -140,7 +142,7 @@ def main() -> None:
     # the Springer text block is narrower: scale down the tables that overflow it
     body, appendix = shrink_wide_tables(body), shrink_wide_tables(appendix)
     out = (PREAMBLE.replace("%ABSTRACT%", abstract) + body
-           + BACKMATTER.replace("%DATA%", data).replace("%CODE%", code)
+           + BACKMATTER
            + "\\begin{appendices}\n" + appendix.strip() + "\n\\end{appendices}\n\n"
            + "\\bibliography{references}\n\n\\end{document}\n")
     (HERE / "manuscript.tex").write_text(out)
