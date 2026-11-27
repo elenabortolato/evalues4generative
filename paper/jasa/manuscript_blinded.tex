@@ -1333,49 +1333,37 @@ computing time to the alarm).
 
 Insulin-dosing algorithms for type~1 diabetes are designed and tested on the
 UVA/Padova simulator \citep{dallaman2007meal,kovatchev2009insilico,dallaman2014uva},
-accepted by the US Food and Drug Administration for preclinical testing, and
-the same simulator is used to design trials of dosing strategies. We use the
-open-source \texttt{simglucose} \citep{xie2018simglucose}, a 13-dimensional
-model of meal absorption, glucose kinetics and insulin absorption, with three
-sources of randomness: insulin sensitivity fluctuating every five minutes,
-variable carbohydrate absorption, and the CGM error of
-\citet{breton2008analysis}. The state is hidden and the perturbations enter
-the dynamics nonlinearly, so the law of a day's CGM trace has no tractable
-density.
+accepted by the US Food and Drug Administration for preclinical testing. We use
+its open-source implementation \texttt{simglucose} \citep{xie2018simglucose},
+a 13-dimensional model with randomness in insulin sensitivity, carbohydrate
+absorption and the CGM error \citep{breton2008analysis}; the state is hidden,
+so the law of a day's CGM trace has no tractable density.
 
-The trial compares five closed-loop strategies, a control (A) and four
-variants of its bolus, correction target and suspension threshold:
-aggressive (B), conservative (C), intensified (D) and tight correction (E);
-details are in Section~S8 of the Supplement. The outcome is the time in range
-(70--180~mg/dL) over a day with three meals. By the simulator, B and C are
-worse than control (time in range 0.79 and 0.84 against 0.91) and D and E
-equivalent to it. In each of three stages, 50 new participants, each one of
-ten virtual adults, are allocated in permuted blocks among the active arms,
-and every enrolled participant is observed for one more day, carrying their
-physiological state from one day to the next. After stages 1 and 2 each
-experimental arm is dropped for futility when its $z$-statistic against
-control falls below $-1$ and $0$ respectively, and its participants are
-re-assigned to the best active arm. The trial has 150 participants and 300
+The trial compares a control strategy (A) with four variants of its bolus,
+correction target and suspension threshold (B to E; details in
+Section~S8 of the Supplement); the outcome is the time in range (70--180~mg/dL)
+over a day with three meals. By the simulator, B and C are worse than control
+and D and E equivalent to it. In each of three stages, 50 new participants are
+allocated among the active arms, and every enrolled participant is observed for
+one more day, carrying their physiological state over. After stages 1 and 2 an
+experimental arm is dropped for futility and its participants are re-assigned
+to the best active arm. The trial has 150 participants and 300
 participant-days, and every element of the design is chosen from the data.
 
 The twin re-initialises the simulator at each participant's current state and
-runs it $M = 16$ times under the arm assigned for that day. The score is the
-logistic BLR of Section~\ref{sec:blr} on six summaries of the day relative to
-the twin's noise-free path. We compare it with the plug-in bet; a
-\emph{stateless} twin, started from rest under the assigned arm, which ignores
-the participant's history; a \emph{pooled} twin, started from rest under a
-random arm, the pre-trial prediction; and a $t$-test recomputed after every
-participant-day. To say under which arm the twin fails, we also run one
-e-process per arm, betting only on that arm's participant-days; whether a day
-is spent on arm $k$ is decided before its outcome, so each is a test martingale
-by Theorem~\ref{thm:valid}, and e-BH \citep{wang2022false} across the arms,
-with each arm stopped at $K/\alpha$, controls the false discovery rate under
-the dependence created by the shared interim decisions, as in
-\citet{xu2021unified}. Under the null the participants are the simulator. Under
+runs it $M = 16$ times under the arm assigned for that day; the score is the
+logistic BLR of Section~\ref{sec:blr} on six summaries of the day. We compare
+it with the plug-in bet, a \emph{stateless} twin started from rest under the
+assigned arm, a \emph{pooled} twin started from rest under a random arm, and a
+$t$-test recomputed after every participant-day. To say under which arm the
+twin fails, we also run one e-process per arm, betting only on that arm's
+participant-days; each is a test martingale by Theorem~\ref{thm:valid}, and
+e-BH \citep{wang2022false} across the arms controls the false discovery rate
+under the dependence created by the shared interim decisions
+\citep{xu2021unified}. Under the null the participants are the simulator. Under
 \emph{insulin resistance}, insulin sensitivity is 25\% lower in every arm;
 under \emph{defensive snacking}, participants on the intensified arms B and D
-eat an unannounced 20~g snack at bedtime, while A, C and E remain exactly as
-the twin predicts.
+eat an unannounced 20~g snack at bedtime.
 
 \subsection{Results}
 
@@ -1384,10 +1372,9 @@ the twin predicts.
 \centering
 \caption{A three-stage MAMS trial checked against its in-silico twin (150
 participants, 300 participant-days, 100 replications per scenario). Top:
-rejection rate and, in brackets, median number of participant-days to the
-first alarm. Middle: share of trials with each arm active at the end, and mean
-number of re-assigned participants. Bottom: share of trials in which e-BH
-flags each arm, at $\alpha = 0.05$.}
+rejection rate and, in brackets, median participant-days to the first alarm.
+Middle: share of trials with each arm active at the end. Bottom: share of
+trials in which e-BH flags each arm ($\alpha = 0.05$).}
 \label{tab:trial}
 \begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lrrr}
@@ -1402,7 +1389,6 @@ $t$-test, recomputed & 0.46 & 1.00 (17) & 1.00 (22) \\
 \midrule
 \multicolumn{4}{l}{\emph{design: share of trials with the arm active at the end}} \\
 B / C / D / E & 0.00 / 0.01 / 0.27 / 0.50 & 1.00 / 0.00 / 1.00 / 0.79 & 0.02 / 0.01 / 0.93 / 0.42 \\
-participants re-assigned (mean) & 65 & 14 & 43 \\
 \midrule
 \multicolumn{4}{l}{\emph{per-arm e-processes and e-BH: share of trials in which each arm is flagged}} \\
 A / B / C / D / E & 0 / 0 / 0 / 0 / 0.01 & 1 / 1 / 1 / 1 / 1 & 0 / 0.64 / 0 / 0.99 / 0.01 \\
@@ -1413,30 +1399,25 @@ A / B / C / D / E & 0 / 0 / 0 / 0 / 0.01 & 1 / 1 / 1 / 1 / 1 & 0 / 0.64 / 0 / 0.
 
 Only the monitor that conditions on both the allocation and the history is
 valid, with 2\% false alarms (Table~\ref{tab:trial}). The stateless twin raises
-a false alarm in 95\% of trials, because after the first day participants no
-longer start from rest and after a re-assignment their state reflects a
-treatment they no longer receive; the pooled twin does so in every trial, and
-the recomputed $t$-test and the plug-in bet in 46\% and 47\%. Insulin
-resistance is detected after a median of four participant-days. Defensive
-snacking is detected in 99\% of trials after 32, and it changes the design: the
-snack protects arm D from night-time lows, so D survives to the end in 93\% of
-trials instead of 27\% and receives 41\% of the participant-days instead of
-17\%, for a reason its in-silico justification does not contain. e-BH names
-the arm, flagging D in 99\% of trials and B in 64\%, with a false discovery
-rate of 0.3\%; B is found less often because the design usually drops it after
-about ten participant-days. With the simulation-likelihood learner the
-conclusions are the same and detection slower (51 participant-days instead of
-32); the other learners are valid as well (Supplement, Section~S4).
+a false alarm in 95\% of trials, because participants no longer start from rest
+and re-assigned participants carry the state of a treatment they no longer
+receive; the pooled twin does so in every trial, the recomputed $t$-test and
+the plug-in bet in 46\% and 47\%. Insulin resistance is detected after a median
+of four participant-days, defensive snacking in 99\% of trials after 32. The
+snack also changes the design: it protects arm D from night-time lows, so D
+survives to the end in 93\% of trials instead of 27\%, for a reason its
+in-silico justification does not contain. e-BH flags D in 99\% of trials and B
+in 64\%, with a false discovery rate of 0.3\%; B is found less often because
+the design usually drops it after about ten participant-days. With the
+simulation-likelihood learner the conclusions are the same and detection
+slower (51 participant-days instead of 32; Supplement, Section~S4).
 
 The twin is re-initialised at the participant's true state, which in a real
-trial would have to be estimated from CGM and insulin records; plugging in an
-estimated state, or sampling it from an approximate filtering distribution,
-breaks exact exchangeability, and the guarantees of
-\citet{barber2026montecarlo} for approximately exchangeable samples are the
-natural tool. An alarm says that the in-silico justification of the design
-has failed, not that an arm is unsafe; it would be reported to the data
-monitoring committee. A single-stage version with Thompson sampling and the
-monitoring of a single patient are in the Supplement.
+trial would have to be estimated from CGM and insulin records
+(Section~\ref{sec:discussion}). An alarm says that the in-silico justification
+of the design has failed, not that an arm is unsafe. A single-stage version
+with Thompson sampling and the monitoring of a single patient are in the
+Supplement.
 
 %======================================================================
 \section{Discussion}\label{sec:discussion}\label{sec:related}

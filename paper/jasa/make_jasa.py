@@ -460,6 +460,72 @@ def related(body: str) -> tuple[str, str]:
     return body[:m.start()] + RELATED_POINTER + body[m.end():], text
 
 
+CUT_61 = r"""Insulin-dosing algorithms for type~1 diabetes are designed and tested on the
+UVA/Padova simulator \citep{dallaman2007meal,kovatchev2009insilico,dallaman2014uva},
+accepted by the US Food and Drug Administration for preclinical testing. We use
+its open-source implementation \texttt{simglucose} \citep{xie2018simglucose},
+a 13-dimensional model with randomness in insulin sensitivity, carbohydrate
+absorption and the CGM error \citep{breton2008analysis}; the state is hidden,
+so the law of a day's CGM trace has no tractable density.
+
+The trial compares a control strategy (A) with four variants of its bolus,
+correction target and suspension threshold (B to E; details in
+Appendix~\ref{app:details}); the outcome is the time in range (70--180~mg/dL)
+over a day with three meals. By the simulator, B and C are worse than control
+and D and E equivalent to it. In each of three stages, 50 new participants are
+allocated among the active arms, and every enrolled participant is observed for
+one more day, carrying their physiological state over. After stages 1 and 2 an
+experimental arm is dropped for futility and its participants are re-assigned
+to the best active arm. The trial has 150 participants and 300
+participant-days, and every element of the design is chosen from the data.
+
+The twin re-initialises the simulator at each participant's current state and
+runs it $M = 16$ times under the arm assigned for that day; the score is the
+logistic BLR of Section~\ref{sec:blr} on six summaries of the day. We compare
+it with the plug-in bet, a \emph{stateless} twin started from rest under the
+assigned arm, a \emph{pooled} twin started from rest under a random arm, and a
+$t$-test recomputed after every participant-day. To say under which arm the
+twin fails, we also run one e-process per arm, betting only on that arm's
+participant-days; each is a test martingale by Theorem~\ref{thm:valid}, and
+e-BH \citep{wang2022false} across the arms controls the false discovery rate
+under the dependence created by the shared interim decisions
+\citep{xu2021unified}. Under the null the participants are the simulator. Under
+\emph{insulin resistance}, insulin sensitivity is 25\% lower in every arm;
+under \emph{defensive snacking}, participants on the intensified arms B and D
+eat an unannounced 20~g snack at bedtime.
+
+"""
+
+CUT_62 = r"""Only the monitor that conditions on both the allocation and the history is
+valid, with 2\% false alarms (Table~\ref{tab:trial}). The stateless twin raises
+a false alarm in 95\% of trials, because participants no longer start from rest
+and re-assigned participants carry the state of a treatment they no longer
+receive; the pooled twin does so in every trial, the recomputed $t$-test and
+the plug-in bet in 46\% and 47\%. Insulin resistance is detected after a median
+of four participant-days, defensive snacking in 99\% of trials after 32. The
+snack also changes the design: it protects arm D from night-time lows, so D
+survives to the end in 93\% of trials instead of 27\%, for a reason its
+in-silico justification does not contain. e-BH flags D in 99\% of trials and B
+in 64\%, with a false discovery rate of 0.3\%; B is found less often because
+the design usually drops it after about ten participant-days. With the
+simulation-likelihood learner the conclusions are the same and detection
+slower (51 participant-days instead of 32; Supplement, Section~S4).
+
+The twin is re-initialised at the participant's true state, which in a real
+trial would have to be estimated from CGM and insulin records
+(Section~\ref{sec:discussion}). An alarm says that the in-silico justification
+of the design has failed, not that an arm is unsafe. A single-stage version
+with Thompson sampling and the monitoring of a single patient are in the
+Supplement.
+
+"""
+
+CUT_TRIAL_CAPTION = r"""\caption{A three-stage MAMS trial checked against its in-silico twin (150
+participants, 300 participant-days, 100 replications per scenario). Top:
+rejection rate and, in brackets, median participant-days to the first alarm.
+Middle: share of trials with each arm active at the end. Bottom: share of
+trials in which e-BH flags each arm ($\alpha = 0.05$).}"""
+
 def replace_between(text: str, start: str, end: str, new: str, keep_end: bool = True) -> str:
     """Replace text from `start` up to `end` (kept unless keep_end is False)."""
     i = text.index(start)
@@ -507,6 +573,15 @@ def cut(body: str) -> tuple[str, str]:
     for start, end, text in TRIM:
         body = trim(body, start, end, text)
     body, _ = related(body)
+    # Section 6: shorter description of the trial and of its table
+    body = replace_between(body, "Insulin-dosing algorithms for type~1 diabetes",
+                           "\\subsection{Results}", CUT_61)
+    body = replace_between(body, "\\caption{A three-stage MAMS trial", "\\label{tab:trial}",
+                           CUT_TRIAL_CAPTION + "\n")
+    row = "participants re-assigned (mean) & 65 & 14 & 43 \\\\\n"
+    assert row in body, "trial row"
+    body = body.replace(row, "")
+    body = replace_between(body, "Only the monitor that conditions on both", "%=====", CUT_62)
     # Section 4.3: Table 1, Figure 1 and Algorithm 1 move to the supplement
     rules = []
     for lab in ("tab:rules", "fig:workflow"):
