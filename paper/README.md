@@ -8,6 +8,20 @@ Standard LaTeX (natbib, amsthm). Figures are read from `../figures/`.
 cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
 ```
 
+## Journal versions
+
+Both are generated from `main.tex`, so edits belong there; each folder is
+self-contained and can be uploaded to Overleaf as it is.
+
+- `stco/`: *Statistics and Computing* (Springer Nature template `sn-jnl`).
+  `cd paper/stco && python make_stco.py`.
+- `jcgs/`: *Journal of Computational and Graphical Statistics* (ASA template:
+  12pt, 1-inch margins, line spacing 1.45, Chicago author-year references).
+  `cd paper/jcgs && python make_jcgs.py`. Set `\blind` to 1 in
+  `manuscript.tex` for the anonymised version.
+
+Then `pdflatex manuscript && bibtex manuscript && pdflatex manuscript && pdflatex manuscript`.
+
 `main.pdf` (25 pages) was **not** produced by pdflatex: no TeX distribution
 could be installed in the drafting container. `build_pdf.py` renders it
 instead, LaTeX → HTML → Chromium print-to-PDF, with KaTeX setting the
