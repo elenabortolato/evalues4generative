@@ -16,3 +16,6 @@ paper/*.out
 paper/*.blg
 paper/*.blg.txt
 paper/*.bbl
+paper/arxiv/
+paper/arxiv.zip
+paper/arxiv_test/

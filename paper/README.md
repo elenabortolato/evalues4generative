@@ -22,6 +22,13 @@ self-contained and can be uploaded to Overleaf as it is.
 
 Then `pdflatex manuscript && bibtex manuscript && pdflatex manuscript && pdflatex manuscript`.
 
+## arXiv
+
+`cd paper && python make_arxiv.py` writes `arxiv.zip`: `main.tex` without
+comment lines, `main.bbl`, the figures, and the compiled supplement as an
+ancillary file (`anc/supplement.pdf`). The script also checks that the zip
+builds on its own without BibTeX, as arXiv builds it.
+
 `main.pdf` (25 pages) was **not** produced by pdflatex: no TeX distribution
 could be installed in the drafting container. `build_pdf.py` renders it
 instead, LaTeX → HTML → Chromium print-to-PDF, with KaTeX setting the
