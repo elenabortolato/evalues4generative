@@ -7,6 +7,7 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{adjustbox}
 \usepackage[round,authoryear]{natbib}
 \usepackage[hidelinks]{hyperref}
 
@@ -255,6 +256,7 @@ before the first alarm. Allocation: share of participants assigned to the
 aggressive arm B after the burn-in. The last block reports which arms e-BH
 flags at $\alpha = 0.05$ at the end of the trial.}
 \label{tab:trial3}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lrrr}
 \toprule
 monitor & null & insulin resistance & rescue carbohydrates \\
@@ -274,6 +276,7 @@ arm C (conservative) & 0.000 & 1.00 & 0.005 \\
 rescue events per trial on A / B / C & -- & -- & 3.7 / 155 / 0.2 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 \paragraph{Results.} Table~\ref{tab:trial3} summarises 200 replications of
@@ -344,6 +347,7 @@ strategies on identical data and identical simulator draws ($M = 16$).
 strategies on the drift task (400 replications). Entries: false-alarm rate,
 power, median stopping time.}
 \label{tab:bc}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{llrrr}
 \toprule
 statistic (requires) & betting & false alarms & power & median stop \\
@@ -359,6 +363,7 @@ BLR predictive (simulator samples only) & all-in & 0.028 & 0.405 & -- \\
  & mixture & 0.018 & 0.983 & 209 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 Table~\ref{tab:bc} quantifies the price of not knowing the model.
@@ -473,6 +478,7 @@ Bayesian-bootstrap forest: trees fitted with Dirichlet weights (the martingale
 posterior of the empirical predictive) on the raw outcomes, refitted every 25
 steps from step 20.}
 \label{tab:blr-full}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{llrrr}
 \toprule
 task & score & false alarms & power & median stop \\
@@ -508,6 +514,7 @@ bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
  & Bayesian-bootstrap forest, mixture over trees & 0.020 & 0.998 & 63 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 
@@ -583,6 +590,7 @@ Null: false-alarm rate of the monitor and of the stateless twin with the same
 learner. Snacking: detection rate, median participant-days to the first alarm,
 and the share of trials in which e-BH flags arms D and B.}
 \label{tab:trial-learners}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{lrrrrr}
 \toprule
  & \multicolumn{2}{c}{null} & \multicolumn{3}{c}{defensive snacking} \\
@@ -597,6 +605,7 @@ predictive, simulation likelihood, resampling & 0.01 & 0.97 & 0.99 (51) & 0.99 &
 Bayesian-bootstrap forest & 0.02 & 0.98 & 0.99 (59) & 0.98 & 0.31 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 \subsection{Comparison with concurrent methods: all variants}
@@ -624,6 +633,7 @@ replications per scenario). Rate: share of runs that reject; median: median
 stopping time under the alternative.}
 \label{tab:concurrent-full}
 \small
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{llrrrr}
 \toprule
 scenario & score & false alarms & power & median & time (s) \\
@@ -656,6 +666,7 @@ bandit, out of family & ours, BLR logistic & 0.020 & 1.000 & 112 & 40 \\
  & SLICE, neural ratio & 0.033 & 0.562 & 258 & 81 \\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{table}
 
 Two times are omitted because they measure our code rather than the method:

@@ -10,8 +10,9 @@ cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
 
 ## Journal versions
 
-Both are generated from `main.tex`, so edits belong there; each folder is
-self-contained and can be uploaded to Overleaf as it is.
+All are generated from `main.tex` (and, for JASA, `supplement.tex`), so edits
+belong there; each folder is self-contained and can be uploaded to Overleaf as
+it is.
 
 - `stco/`: *Statistics and Computing* (Springer Nature template `sn-jnl`).
   `cd paper/stco && python make_stco.py`.
@@ -19,8 +20,17 @@ self-contained and can be uploaded to Overleaf as it is.
   12pt, 1-inch margins, line spacing 1.45, Chicago author-year references).
   `cd paper/jcgs && python make_jcgs.py`. Set `\blind` to 1 in
   `manuscript.tex` for the anonymised version.
+- `jasa/`: *Journal of the American Statistical Association*, Theory and
+  Methods (ASA template, double-blind review). `cd paper/jasa && python
+  make_jasa.py` writes and compiles the article and the supplement, each with
+  and without the author (`manuscript.tex`, `manuscript_blinded.tex`,
+  `supplement.tex`, `supplement_blinded.tex`), and the Author Contributions
+  Checklist (`ACC_form.md`, `ACC_form.pdf`). The abstract is shortened to 200
+  words, and the appendices of `main.tex` become Sections S6 to S9 of the
+  supplement; references between the two documents are written as numbers.
 
-Then `pdflatex manuscript && bibtex manuscript && pdflatex manuscript && pdflatex manuscript`.
+For `stco/` and `jcgs/`, then run
+`pdflatex manuscript && bibtex manuscript && pdflatex manuscript && pdflatex manuscript`.
 
 ## arXiv
 

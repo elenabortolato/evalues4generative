@@ -50,7 +50,7 @@ about 10 minutes.
 
 | path | content |
 |---|---|
-| `e4g/monitor.py` | the Monte Carlo e-process (eq. 3) and the hedged wealth (eq. 4) |
+| `e4g/monitor.py` | the Monte Carlo e-process (eq. 2) and the hedged wealth (eq. 3) |
 | `e4g/learners.py` | score learners: ridge logistic (`OnlineRatio`), Gaussian Bayesian learning rule on the logistic loss (`BLRRatio`) and on the simulation likelihood (`ChoiceBLR`), predictive-first updates (`MartingalePredictive`), Bayesian-bootstrap forest (`ForestMP`) |
 | `experiments/` | one script per experiment (below) |
 | `data/` | the processed public data, with sources in `data/README.md` |
@@ -73,8 +73,8 @@ about 10 minutes.
 | Table 5, drift columns | the same on fresh seeds (null 5·10⁶+i, alternative 6·10⁶+i) | `python experiments/exp15_concurrent_methods.py --task drift,drift-mis --seed-offset 5000000 --out results/exp15_fresh.json` | `results/exp15_fresh.json` | ~20 min |
 | Table 6 | auditing a language-model API with adaptive prompts | replies: `python experiments/exp16_llm_generate.py --models DIR` (needs `llama-cpp-python` and the GGUF files of Qwen2.5-1.5B-Instruct at q8_0, q4_k_m, q3_k_m and Qwen2.5-0.5B-Instruct at q4_k_m; the replies used are in `data/llm_audit/replies.json`); audit, all methods (SLICE; Forré & Brenner fitted in advance and refitted; ours, logistic and simulation likelihood; the average) and scenarios (including the sharpened P): `python experiments/exp16_llm_audit.py`; computing time per query: `python experiments/exp16_timing.py`; LaTeX of Tables 6 and 7: `python experiments/exp16_tables.py` | `results/exp16.json`, `results/exp16_timing.json` | ~3 h for the replies on 4 CPU cores; ~1 h for the audit; ~25 min for the timing |
 | Table 7 | cost of reaching the alarm in the audit (replies generated and computing time, our design) | `python experiments/exp16_cost.py` (repeats the runs of Table 6 with the same seeds and records the computing time up to the alarm); timing per query as for Table 6 | `results/exp16_cost.json`, `results/exp16_timing.json` | ~45 min |
-| Table 7 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
-| Table 8 | notation | none (text) | | |
+| Table 8 | MAMS trial, default learner | `python experiments/exp11_mams_trial.py` | `results/exp11.json` | ~30 min |
+| Table 9 | notation | none (text) | | |
 
 The experiment numbers in the file names follow the order in which the
 experiments were written, not the order of the paper.
