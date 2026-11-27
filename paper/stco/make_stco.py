@@ -99,7 +99,7 @@ and 6.
 """
 
 
-WIDE = ["tab:rules", "tab:objects", "tab:concurrent", "tab:llm", "tab:llmcost", "tab:trial"]
+WIDE = ["tab:rules", "tab:objects", "tab:concurrent", "tab:llm", "tab:llmcost", "tab:trial", "tab:notation"]
 
 
 def shrink_wide_tables(tex: str) -> str:
@@ -112,8 +112,8 @@ def shrink_wide_tables(tex: str) -> str:
     """
     for lab in WIDE:
         k = tex.find("\\label{" + lab + "}")
-        if k < 0:
-            continue
+        if k < 0 or tex.rfind("\\begin{longtable}", 0, k) > tex.rfind("\\end{longtable}", 0, k):
+            continue  # missing, or a longtable, which breaks across pages instead
         start = tex.rindex("\\begin{table}", 0, k)
         i = tex.index("\\begin{tabular}", k)
         j = tex.index("\\end{tabular}", i) + len("\\end{tabular}")

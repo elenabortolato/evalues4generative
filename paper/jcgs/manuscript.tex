@@ -1862,71 +1862,67 @@ code.
 \appendix
 
 %======================================================================
+
+
 \section{Notation}\label{app:notation}
 
-Laws are written with fixed letters: $P$ for the simulator, $Q$ for the truth,
-$\tilde T$ for the tilted null of a score $T$ and $m$ for a Bayesian posterior
-predictive. Lower-case letters are densities, except that $\tilde T$ denotes
-both the tilted null and its density $T p/Z$. Table~\ref{tab:notation} lists
-the symbols that recur across sections; those used in a single result or
-paragraph, such as the quantities of the practical update rules in
-Section~\ref{sec:blr}, are defined where they appear.
 
-{\spacingset{1}\small
-\setlength{\LTpre}{6pt}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.26\textwidth}
->{\raggedright\arraybackslash}p{0.51\textwidth}
->{\raggedright\arraybackslash}p{0.15\textwidth}@{}}
-\caption{Notation.}\label{tab:notation}\\
+\begin{table}[h]
+\centering
+\caption{Notation. }
+\label{tab:notation}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{lll}
 \toprule
 symbol & meaning & where \\
 \midrule
-\endfirsthead
-\multicolumn{3}{@{}l}{\emph{Table~\ref{tab:notation}, continued}} \\
-\toprule
-symbol & meaning & where \\
-\midrule
-\endhead
-\midrule
-\multicolumn{3}{r@{}}{\emph{continued on the next page}} \\
-\endfoot
-\bottomrule
-\endlastfoot
-\multicolumn{3}{@{}l}{\emph{Data and design}} \\*
-$t$; $\F_t$; $\G_t = \F_{t-1} \vee \sigma(A_t)$ & time; information after step $t$; information when the bet at $t$ is placed & Sec.~\ref{sec:setting} \\
+$t$, $\F_t$, $\G_t = \F_{t-1} \vee \sigma(A_t)$ & time; information after step $t$; information when the bet at $t$ is placed & Sec.~\ref{sec:setting} \\
 $A_t$, $a$ & action chosen by the design (arm, dose, prompt) & Sec.~\ref{sec:setting} \\
 $X_t$ & real outcome at time $t$ & Sec.~\ref{sec:setting} \\
 $Y_{t,1}, \ldots, Y_{t,M}$; $M$ & simulator draws under $A_t$ from the current state; their number & \eqref{eq:mc} \\
 $U_{t,0}, \ldots, U_{t,M}$ & pooled outcomes $(X_t, Y_{t,1}, \ldots, Y_{t,M})$ & Sec.~\ref{sec:simlik} \\
 $H_0$ & the simulator reproduces the conditional law under the actions taken & Sec.~\ref{sec:setting} \\
-\addlinespace
-\multicolumn{3}{@{}l}{\emph{Laws}} \\*
+\midrule
 $P_t$, $p_t$ & simulator law and density of the next outcome (the null) & Sec.~\ref{sec:setting} \\
 $Q_t$, $q_t$ & true law and density of the next real outcome & Sec.~\ref{sec:power} \\
 $\tilde T_t$ & tilted null of the score (its forecast), with density $T_t p_t / Z_t$ & \eqref{eq:tilt} \\
-$P_a$, $\bar P$; $R_a$ & law under action $a$; simulator law that ignores the action; $dP_a/d\bar P$ & Prop.~\ref{prop:necessary} \\
 $Q_\theta$, $q_\theta$ & model for the truth: the tilt of $P$ by $\theta^\top\phi$ & Sec.~\ref{sec:exactbayes} \\
-$\pi_0$, $\pi_t$; $m_t$ & prior and posterior on $\theta$; posterior predictive & Sec.~\ref{sec:exactbayes} \\
-\addlinespace
-\multicolumn{3}{@{}l}{\emph{Scores and bets}} \\*
-$s_t$, $T_t = e^{s_t}$; $B$ & score, chosen from $\G_t$; bound $|s_t| \le B$ & \eqref{eq:mc} \\
-$Z_t$; $Z(\theta)$ & $\E_{P_t}[T_t]$; $\E_P[e^{\theta^\top\phi}]$ & \eqref{eq:tilt}; Sec.~\ref{sec:exactbayes} \\
-$E_t$; $E^{(M)}$; $E^\infty$ & Monte Carlo factor; the same in the one-step analysis; its limit as $M \to \infty$ & \eqref{eq:mc} \\
-$E_t(\theta)$; $\bar E_t$ & factor of the score $\theta^\top\phi_t$; its posterior mixture & Sec.~\ref{sec:simlik} \\
+$\pi_0$, $\pi_t$ & prior and posterior on $\theta$ & Sec.~\ref{sec:exactbayes} \\
+$m_t$; $m(x_{1:t})$ & posterior predictive; marginal likelihood & \eqref{eq:prequential} \\
+$\nu_t = \mathcal N(\bar\theta_t, S_t^{-1})$ & Gaussian approximation of the posterior (BLR) & \eqref{eq:blr} \\
+$P_a$, $\bar P$ & law under action $a$; action-ignoring simulator law & Prop.~\ref{prop:necessary} \\
+$\mathbb P_n$ & empirical predictive & Sec.~\ref{sec:blr} \\
+\midrule
+$s_t$, $T_t = e^{s_t}$ & score, chosen from $\G_t$ & \eqref{eq:mc} \\
+$Z_t$; $\widehat Z_t$; $Z(\theta)$ & $\E_{P_t}[T_t]$; its Monte Carlo estimate; $\E_P[e^{\theta^\top\phi}]$ & \eqref{eq:tilt}; Sec.~\ref{sec:exactbayes} \\
+$B$ & bound on the score, $|s_t| \le B$ & Cor.~\ref{cor:cumulative} \\
+$E_t$; $E^{(M)}$; $E_t^\infty$ & Monte Carlo factor; the same in the one-step analysis; its limit as $M \to \infty$ & \eqref{eq:mc} \\
+$E_t(\theta)$; $\bar E_t$; $E_t^{\nu}$ & factor of the score $\theta^\top\phi_t$; posterior mixture; mixture under $\nu_{t-1}$ & Sec.~\ref{sec:simlik} \\
 $\lambda$, $\Lambda$; $\alpha$ & betting fraction and its grid; level & \eqref{eq:wealth} \\
 $W_t$; $\bar W_t$ & wealth; mixture wealth over $\theta$ & \eqref{eq:wealth}; Thm.~\ref{thm:simlik} \\
-\addlinespace
-\multicolumn{3}{@{}l}{\emph{Growth rate}} \\*
-$g_M$; $g_\infty$ & growth rate with $M$ simulations; its limit as $M \to \infty$ & \eqref{eq:growthrate} \\
+\midrule
+$g_M = g_M(Q, P, T)$; $g_M(\lambda)$ & growth rate with $M$ simulations; with fraction $\lambda$ & \eqref{eq:growthrate} \\
+$g_{M,t}$; $g_\infty$ & conditional growth rate at $t$; limit as $M \to \infty$ & \eqref{eq:growthrate} \\
 $\rho$ & $\E_Q[T]/Z$ & Thm.~\ref{thm:growth} \\
-$\varepsilon$, $\psi$; $h$, $\tilde h$ & local alternative $dQ/dP = 1 + \varepsilon\psi$; score $T = e^{\varepsilon h}$, with $\tilde h = h - \E_P[h]$ & Thm.~\ref{thm:growth} \\
-$\KL$, $\chi^2$ & Kullback--Leibler and chi-squared divergences & Sec.~\ref{sec:power} \\
-\addlinespace
-\multicolumn{3}{@{}l}{\emph{Learning the score}} \\*
-$\theta$; $\phi_t$; $z(x)$; $d$ & parameter; features; standardised features; dimension & Sec.~\ref{sec:simlik} \\
+$\varepsilon$, $\psi$, $h$, $\tilde h$ & local alternative $dQ/dP = 1 + \varepsilon\psi$; score $T = e^{\varepsilon h}$; $h - \E_P[h]$ & Thm.~\ref{thm:growth} \\
+$R_a$ & likelihood ratio $dP_a/d\bar P$ & Prop.~\ref{prop:necessary} \\
+$\varpi_a$; $u_b$; $K$ & long-run fraction of steps playing $a$; weights of a randomised twin; number of arms & Cor.~\ref{cor:falsealarm} \\
+\midrule
+$\theta$, $\phi_t$, $z(x)$, $d$ & parameter; features; standardised features; dimension & Sec.~\ref{sec:simlik} \\
 $\Theta$, $D$, $G$; $L_t(\theta)$ & parameter set, half its diameter, feature bound; simulation likelihood & Thm.~\ref{thm:simlik} \\
-$\theta_t$ & parameter of the predictive-first rule & \eqref{eq:mp} \\
-\end{longtable}}
+$\bar\theta_t$, $S_t$; $\Sigma_t$; $\theta_t$ & mean and precision of $\nu_t$; covariance of an approximate posterior; parameter of the predictive-first rule & \eqref{eq:blr}; \eqref{eq:mp} \\
+$\bar\eta$, $v$, $\kappa$ & predictive mean and variance of the logit $z^\top\theta$; $(1 + \pi v/8)^{-1/2}$ & Sec.~\ref{sec:blr} \\
+$\ell_t$, $\nabla_t$, $J_t$; $I_t$ & per-step loss, its gradient and Fisher information; accumulated information & \eqref{eq:mp} \\
+$w_k$ & weights of the outcomes: one for $X_t$, $1/M$ for each $Y_{t,j}$ & Sec.~\ref{sec:algorithm} \\
+$\mathcal U_t$ & update rule of the predictive & Sec.~\ref{sec:rules} \\
+$N$; $h_{\max}$ & number of trees, posterior nodes or resampling paths; truncation & Sec.~\ref{sec:blr} \\
+\midrule
+$\KL$, $\chi^2$ & Kullback--Leibler and chi-squared divergences & Sec.~\ref{sec:power} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
 
 \section{Proofs}\label{app:proofs}
 %======================================================================
