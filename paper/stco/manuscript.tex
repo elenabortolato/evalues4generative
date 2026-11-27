@@ -85,8 +85,8 @@ actions based on past observations, can we continuously test whether the
 resulting stream of outcomes is still consistent with a simulator, and sound
 an alarm as soon as it is not, while controlling false alarms under optional
 stopping? The data are dependent, because what is observed next depends on
-what has been seen; the null is a simulator, which we can run but whose
-likelihood we cannot write down; and we want to look at the evidence after
+what has been seen; the null is a simulator whose likelihood we
+cannot write down; and we want to look at the evidence after
 every observation. Fixed-sample tests lose
 their guarantees under repeated looks, and the corrections developed for
 adaptive trials \citep{bowden2017unbiased,magirr2012generalized} assume a
@@ -209,7 +209,7 @@ train a neural ratio estimator before the data arrive, over the simulator's own
 parametric family, so that their score can forecast only departures that the
 family contains; our scores reweight the simulator by features of the outcome,
 and detect departures that its designers did not build into it.
-Section~\ref{sec:discussion} states in detail which of our results coincide
+Section~\ref{sec:discussion} lists in detail which of our results coincide
 with theirs.
 
 Section~\ref{sec:method} gives the method and its validity,
@@ -217,8 +217,7 @@ Section~\ref{sec:power} its power, and Section~\ref{sec:predictive} the
 predictive view and the update rules (Algorithm~1). Section~\ref{sec:experiments}
 contains simulations, the comparison with concurrent methods and the
 language-model audit, and Section~\ref{sec:trial} the trial.
-Section~\ref{sec:discussion} relates the method to earlier and concurrent
-work and discusses its limitations.
+Section~\ref{sec:discussion} discusses limitations.
 
 %======================================================================
 \section{Monte Carlo e-processes under adaptive control}\label{sec:method}
@@ -281,8 +280,8 @@ The ratios $T(U_k)/\sum_{k'} T(U_{k'})$ sum to one and, by exchangeability,
 have equal expectations, each equal to $1/(M+1)$.
 \end{proof}
 
-The factor has a simple reading. With $U_0 = X_t$ and $U_k = Y_{t,k}$, the
-normalised scores $T_t(U_k)/\sum_{j} T_t(U_j)$ are the probabilities that the
+The normalised scores $T_t(U_k)/\sum_{j} T_t(U_j)$ can be viewed as the
+probabilities that the
 score assigns to each of the $M+1$ outcomes being the real one, and $E_t$ is
 $M+1$ times the probability it assigns to the outcome that is actually real.
 The bet pays when the score picks out the real outcome better than a uniform
@@ -340,7 +339,7 @@ trial the action $A_t$ is the arm assigned to a participant for a period,
 chosen after interim analyses and re-assignments, and the conditional law
 $P_t$ is that of the participant's outcome given their history. The policy
 enters only through the requirement that the simulator be run under the action
-actually taken, and Proposition~\ref{prop:necessary} shows that this
+actually taken. Proposition~\ref{prop:necessary} shows that this
 requirement cannot be dropped.
 
 \begin{proposition}[Conditioning on the action cannot be dropped]\label{prop:necessary}
@@ -1190,9 +1189,8 @@ gives 14--74\% false alarms. The logistic Bayesian learning rule is the
 fastest and makes the method insensitive to the flexibility of the features
 (power 0.97 with degree-6 features, against 0.84 for the refit). The
 simulation-likelihood learner, the one with the guarantee of
-Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. Its bound
-holds on every path, against the best score in hindsight, and the Bayesian
-mixture pays for it with cautious early bets; the logistic learner bets more
+Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. The bound of
+Theorem~\ref{thm:simlik} holds on every path, and the Bayesian mixture pays for it with cautious early bets; the logistic learner bets more
 aggressively, with no such bound, and on these tasks this pays. All variants
 are in the Supplement (Section~S4), and a comparison with the Besag--Clifford
 e-process of \citet{dombowsky2026besag} in Section~S3.
