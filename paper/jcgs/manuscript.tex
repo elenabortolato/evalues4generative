@@ -1891,7 +1891,6 @@ $\pi_0$, $\pi_t$ & prior and posterior on $\theta$ & Sec.~\ref{sec:exactbayes} \
 $m_t$; $m(x_{1:t})$ & posterior predictive; marginal likelihood & \eqref{eq:prequential} \\
 $\nu_t = \mathcal N(\bar\theta_t, S_t^{-1})$ & Gaussian approximation of the posterior (BLR) & \eqref{eq:blr} \\
 $P_a$, $\bar P$ & law under action $a$; action-ignoring simulator law & Prop.~\ref{prop:necessary} \\
-$\mathbb P_n$ & empirical predictive & Sec.~\ref{sec:blr} \\
 \midrule
 $s_t$, $T_t = e^{s_t}$ & score, chosen from $\G_t$ & \eqref{eq:mc} \\
 $Z_t$; $\widehat Z_t$; $Z(\theta)$ & $\E_{P_t}[T_t]$; its Monte Carlo estimate; $\E_P[e^{\theta^\top\phi}]$ & \eqref{eq:tilt}; Sec.~\ref{sec:exactbayes} \\
@@ -1915,7 +1914,7 @@ $\bar\eta$, $v$, $\kappa$ & predictive mean and variance of the logit $z^\top\th
 $\ell_t$, $\nabla_t$, $J_t$; $I_t$ & per-step loss, its gradient and Fisher information; accumulated information & \eqref{eq:mp} \\
 $w_k$ & weights of the outcomes: one for $X_t$, $1/M$ for each $Y_{t,j}$ & Sec.~\ref{sec:algorithm} \\
 $\mathcal U_t$ & update rule of the predictive & Sec.~\ref{sec:rules} \\
-$N$; $h_{\max}$ & number of trees, posterior nodes or resampling paths; truncation & Sec.~\ref{sec:blr} \\
+$N$ & number of posterior nodes or predictive-resampling paths & Sec.~\ref{sec:blr} \\
 \midrule
 $\KL$, $\chi^2$ & Kullback--Leibler and chi-squared divergences & Sec.~\ref{sec:power} \\
 \bottomrule
