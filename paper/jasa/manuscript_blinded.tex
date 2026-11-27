@@ -251,7 +251,7 @@ Section~\ref{sec:discussion} discusses limitations.
 
 \subsection{Setting}\label{sec:setting}
 
-The symbols used throughout are collected in Table~S8 of the
+The symbols used throughout are collected in Table~S10 of the
 Supplement.
 
 At each time $t = 1, 2, \ldots$ an action (or context) $A_t$ is chosen,
@@ -1037,52 +1037,33 @@ $z_k = z(U_{t,k})$; $s_{t-1}$ is the score fixed at the end of step $t-1$, the
 $s_t$ of \eqref{eq:mc}.
 \begin{enumerate}
   \item \textbf{Action.} Observe the action $A_t$ chosen by the design from the
-        past (arm, prompt, dose). --- It defines the null law $P_t$.
+        past (arm, prompt, dose).
   \item \textbf{Simulate.} Draw $Y_{t,1}, \ldots, Y_{t,M}$ from the simulator
         under $A_t$ from the current state, and observe $X_t$.
-        --- Exchangeable with $X_t$ under $H_0$.
   \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
-        \[
-        \begin{gathered}
-        \bar\eta = z(x)^\top \bar\theta_{t-1}, \qquad v = z(x)^\top S_{t-1}^{-1} z(x), \\
-        \kappa = (1 + \pi v/8)^{-1/2}, \qquad
-        s_{t-1}(x) = \mathrm{clip}(\kappa\,\bar\eta,\, -B,\, B) .
-        \end{gathered}
-        \]
-        --- $s_{t-1}$ is the predictive log-odds of ``real'' against
-        ``simulated'', an estimate of $\log(q/p)$ shrunk where the posterior is
-        uncertain; it forecasts $\tilde T_t \propto p_t\, e^{s_{t-1}}$
-        \eqref{eq:tilt}. Clipping at $B$ (we use $B = 30$) keeps the score
-        predictable, so validity is unaffected, and makes
-        Corollary~\ref{cor:cumulative}(ii) apply.
+        $\bar\eta = z(x)^\top \bar\theta_{t-1}$, $v = z(x)^\top S_{t-1}^{-1} z(x)$,
+        $\kappa = (1 + \pi v/8)^{-1/2}$ and
+        $s_{t-1}(x) = \mathrm{clip}(\kappa\,\bar\eta,\, -B,\, B)$, the predictive
+        log-odds of ``real'' against ``simulated''. Clipping at $B$ (we use
+        $B = 30$) keeps validity and makes Corollary~\ref{cor:cumulative}(ii)
+        apply.
   \item \textbf{Bet.}
-        \[
-        E_t = \frac{(M+1)\, e^{s_{t-1}(X_t)}}{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}} .
-        \]
-        --- Exactly fair under $H_0$ (Theorem~\ref{thm:valid}); close to
-        $\tilde T_t(X_t)/p_t(X_t)$ for large $M$.
+        $E_t = (M+1)\, e^{s_{t-1}(X_t)}/\{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}\}$.
   \item \textbf{Wealth.} $W_t = |\Lambda|^{-1}\sum_{\lambda\in\Lambda}
         \prod_{i\le t}(1-\lambda+\lambda E_i)$; reject $H_0$ when
-        $W_t \ge 1/\alpha$. --- A test martingale; its log is the
-        prequential likelihood ratio \eqref{eq:prequential-wealth} of the
-        forecasts against the simulator, and it grows at about
-        $\frac{M}{M+1}\{\KL(Q\|P) - \KL(Q\|\tilde T)\}$ per step
-        (Theorem~\ref{thm:growth}).
-  \item \textbf{Learn.} Only now, with labels $y_0 = 1$ for $X_t$ and $y_j = 0$
-        for $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
+        $W_t \ge 1/\alpha$.
+  \item \textbf{Learn.} With labels $y_0 = 1$ for $X_t$ and $y_j = 0$ for
+        $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
         $p_k = \sigma(s_{t-1}(U_{t,k}))$, update
         \[
         \begin{gathered}
         \nabla_t = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
         J_t = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \\
-        S_t = S_{t-1} + J_t, \qquad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t .
+        S_t = S_{t-1} + J_t, \qquad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t ,
         \end{gathered}
         \]
-        --- One step of the Bayesian learning rule \eqref{eq:blr}, with $\kappa_k$
-        as in step 3 for $z_k$: $\kappa_k p_k(1-p_k)$ is the derivative of the
-        probit approximation $\sigma(\kappa_k\bar\eta_k)$ with respect to
-        $\bar\eta_k$, which approximates $\E_\nu[\sigma'(z_k^\top\theta)]$; the score
-        stays predictable.
+        one step of the Bayesian learning rule \eqref{eq:blr}, with $\kappa_k$
+        as in step 3 for $z_k$.
 \end{enumerate}
 \textbf{Variants.} With the simulation likelihood, steps 3--4 are replaced by
 the posterior-predictive mixture $\bar E_t = N^{-1}\sum_b E_t(\theta_b)$ over
@@ -1191,62 +1172,23 @@ alarms 1.5--3.5\%), and the median stopping time at $M = 1$ is 1.8 times that
 at $M = 64$, close to the factor 2 of Theorem~\ref{thm:growth}(iv). With
 $P = \mathcal N(0,1)$, $Q = \mathcal N(\delta, 1)$ and $T(x) = e^{\theta x}$,
 where everything is explicit, the bounds of Theorem~\ref{thm:growth} hold in
-all 56 configurations, and the efficiency $g_M/g_\infty$ follows $M/(M+1)$
-closely for perfect, under- and overconfident scores alike
-(Figure~\ref{fig:growth}). The regret bound of Theorem~\ref{thm:simlik},
-checked by computing the mixture exactly on a grid for four scenarios
-including a change point, holds on every path and at every time, with largest
-regret 7.5 against a bound of 21.5 at $t = 2000$ and slopes close to the
-interior rate $(d/2)\log t$ (Supplement, Section~S4).
-
-\begin{figure}[tp]
-\spacingset{1}
-\centering
-\includegraphics[width=\textwidth]{exp4_growth_rate.png}
-\caption{Growth rate $g_M$ relative to $g_\infty$ for $P = \mathcal N(0,1)$,
-$Q = \mathcal N(\delta, 1)$ and score $T(x) = e^{\theta x}$, estimated from
-$4 \times 10^5$ draws (two standard errors shown). Dashed: $M/(M+1)$ from
-Theorem~\ref{thm:growth}(iv).}
-\label{fig:growth}
-\end{figure}
+all 56 configurations, and $g_M/g_\infty$ follows $M/(M+1)$ closely for
+perfect, under- and overconfident scores alike. The regret bound of
+Theorem~\ref{thm:simlik} holds on every path, with largest regret 7.5 against
+a bound of 21.5 at $t = 2000$ (Supplement, Section~S4, with the figure).
 
 \subsection{Update rules}\label{sec:exp-blr}
 
-Table~\ref{tab:blr} compares the refitted point estimate with three update
-rules of Section~\ref{sec:predictive}, updated at every step with no burn-in.
-All are valid, whereas using the logistic posterior odds directly as the bet
-gives 14--74\% false alarms. The logistic Bayesian learning rule is the
-fastest and makes the method insensitive to the flexibility of the features
-(power 0.97 with degree-6 features, against 0.84 for the refit). The
-simulation-likelihood learner, the one with the guarantee of
-Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. The bound of
-Theorem~\ref{thm:simlik} holds on every path, and the Bayesian mixture pays for it with cautious early bets; the logistic learner bets more
-aggressively, with no such bound, and on these tasks this pays. All variants
-are in the Supplement (Section~S4), and a comparison with the Besag--Clifford
-e-process of \citet{dombowsky2026besag} in Section~S3.
-
-\begin{table}[tp]
-\spacingset{1}
-\centering
-\caption{Update rules (Section~\ref{sec:blr}), MC e-process throughout. BLR
-on the simulation likelihood uses the posterior-predictive mixture bet (prior
-variance 0.03); the predictive update is the rule \eqref{eq:mp} on the
-simulation likelihood, averaged over predictive-resampling paths.}
-\label{tab:blr}
-\begin{tabular}{llrrr}
-\toprule
-task & score & false alarms & power & median stop \\
-\midrule
-drift & refitted point estimate & 0.020 & 0.995 & 202 \\
- & BLR, logistic & 0.022 & 0.985 & 214.5 \\
- & BLR, simulation likelihood & 0.018 & 0.958 & 228.5 \\
- & predictive update, simulation likelihood & 0.028 & 0.897 & 234 \\
-bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
- & BLR, logistic & 0.030 & 1.000 & 38 \\
- & predictive update, simulation likelihood & 0.013 & 1.000 & 57 \\
-\bottomrule
-\end{tabular}
-\end{table}
+All the update rules of Section~\ref{sec:predictive}, updated at every step
+with no burn-in, give valid tests, with 1.3 to 3\% false alarms, whereas using
+the logistic posterior odds directly as the bet gives 14 to 74\%. The logistic
+Bayesian learning rule is the fastest and makes the method insensitive to the
+flexibility of the features (power 0.97 with degree-6 features, against 0.84
+for the refit). The simulation-likelihood learner, the one with the guarantee
+of Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task: the
+Bayesian mixture pays for its pathwise bound with cautious early bets. All
+variants are in the Supplement (Section~S4), and a comparison with the
+Besag--Clifford e-process of \citet{dombowsky2026besag} in Section~S3.
 
 \subsection{Comparison with concurrent methods}\label{sec:exp-concurrent}
 
@@ -1318,17 +1260,15 @@ predictive sequence of any exchangeable model
 \begin{remark}[Inside and outside the family]\label{rem:family}
 SLICE bets with $s_t = \log (p_{\hat\theta_{t-1}}/p_{\theta_0})$ within a
 parametrised family $\{P_\theta\}$ with null $\theta_0$, so its tilted null is
-$P_{\hat\theta_{t-1}}$. Outside the family, $\hat\theta_t$ converges to the
-projection $\theta^* = \arg\min_\theta \KL(Q\|P_\theta)$ and the growth tends to
-$\KL(Q\|P_{\theta_0}) - \KL(Q\|P_{\theta^*})$ (Theorem~\ref{thm:growth}(ii)).
-When $\theta^* = \theta_0$ the score tends to zero and the wealth stops
-growing, however large the departure and however good the network. Both
-out-of-family alternatives are of this kind: in the drift no curvature $b$
-produces a wider first coordinate and the projection is the null itself, and
-in the bandit a location shift cannot produce a larger noise. Our features
-contain $x_1^2$ and the squared outcome of each arm, so a change of scale moves
-the tilted null towards $Q$. Details, and the choice between the NRE-A and
-NRE-C estimators \citep{miller2022contrastive}, are in the Supplement.
+$P_{\hat\theta_{t-1}}$. Outside the family, $\hat\theta_t$ converges to
+$\theta^* = \arg\min_\theta \KL(Q\|P_\theta)$, and by
+Theorem~\ref{thm:growth}(ii) the growth tends to
+$\KL(Q\|P_{\theta_0}) - \KL(Q\|P_{\theta^*})$, which is zero when
+$\theta^* = \theta_0$, however large the departure. Both out-of-family
+alternatives are of this kind, whereas our features contain $x_1^2$ and the
+squared outcome of each arm, so a change of scale moves the tilted null towards
+$Q$. Details, and the choice between the NRE-A and NRE-C estimators
+\citep{miller2022contrastive}, are in the Supplement.
 \end{remark}
 
 \subsection{Auditing a language-model API with adaptively chosen prompts}\label{sec:exp-llm}
@@ -1448,52 +1388,6 @@ ours, simulation likelihood & all & 193 (0.92) & 138 (0.99) & 83 & 130 & 1.5\% &
 \end{adjustbox}
 \end{table}
 
-\begin{table}[tp]
-\spacingset{1}
-\centering
-\caption{Cost of reaching the alarm in the audit of
-Section~\ref{sec:exp-llm}, with the prompts chosen by UCB: medians over the
-runs of Table~\ref{tab:llm} that reject (lowest in bold). Replies: replies
-generated by language models, those prepared before the audit (thousands,
-column 9) plus $M = 8$ per query. Computing: time spent on the bets and the
-updates up to the alarm, on one core. Milliseconds per query: computing time
-over 400 and 1600 queries under the null; it grows with the history for the
-refit, which revisits the whole history at every refit, and more slowly for
-SLICE, which re-estimates its routing fraction from all past replies.
-Generating the replies takes 2 to 8 seconds per query on four CPU cores.
-$^\ddagger$As in Table~\ref{tab:llm}.}
-\label{tab:llmcost}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{llrrrrrrrrr}
-\toprule
- & & \multicolumn{2}{c}{4-bit} & 3-bit & \multicolumn{2}{c}{0.5B} & sharpened & prepared & \multicolumn{2}{c}{ms per query} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-5}\cmidrule(lr){6-7}\cmidrule(lr){8-8}\cmidrule(lr){10-11}
-score & to the alarm & all & two & all & all & two & $P$, all & ($10^3$) & 400 & 1600 \\
-\midrule
-SLICE & replies ($10^3$) & 6.6 & 6.5 & 6.9 & 6.8 & 6.5 & never & 6.0 & 1.6 & 2.3 \\
- & computing (s) & 0.12 & 0.09 & 0.17 & 0.15 & 0.09 & never & & & \\
-\addlinespace[3pt]
-F\&B, fitted in advance & replies ($10^3$) & 6.3 & 6.2 & 6.4 & 6.4 & 6.2 & never & 6.0 & 1.0 & 1.2 \\
- & computing (s) & \textbf{0.05} & \textbf{0.06} & \textbf{0.07} & \textbf{0.06} & \textbf{0.03} & never & & & \\
-\addlinespace[3pt]
-F\&B, refitted & replies ($10^3$) & \textbf{2.2} & \textbf{1.7} & \textbf{1.8} & 1.5 & 1.2 & \textbf{1.4} & 0.8 & 8.0 & 53.4 \\
- & computing (s) & 0.60 & 0.29 & 0.34 & 0.17 & 0.07 & 0.12 & & & \\
-\addlinespace[3pt]
-average$^\ddagger$ & replies ($10^3$) & 7.2 & 7.1 & 7.3 & 7.2 & 7.0 & 7.6 & 6.8 & 2.5 & 2.7 \\
- & computing (s) & 0.15 & 0.12 & 0.20 & 0.17 & 0.08 & 0.27 & & & \\
-\addlinespace[3pt]
-ours, logistic BLR & replies ($10^3$) & 2.5 & 1.9 & 2.1 & 1.7 & 1.2 & \textbf{1.4} & 0.8 & 1.4 & 1.3 \\
- & computing (s) & 0.33 & 0.21 & 0.24 & 0.15 & 0.08 & \textbf{0.11} & & & \\
-\addlinespace[3pt]
-ours, simulation likelihood & replies ($10^3$) & 2.3 & 1.8 & 1.9 & \textbf{1.5} & \textbf{1.1} & 1.8 & 0.8 & 2.1 & 2.2 \\
- & computing (s) & 0.48 & 0.30 & 0.33 & 0.19 & 0.08 & 0.30 & & & \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
-
 Choosing the prompts helps every score (Table~\ref{tab:llm}): with our
 adaptive design every score needs fewer queries than with uniformly drawn
 prompts, in every scenario in which it rejects and up to 61\% fewer, and our
@@ -1524,23 +1418,18 @@ substitutes and 40\% fewer on the sharpened $P$ (78 against 130), whereas our
 rule needs 12 and 29\% fewer on the 0.5B substitute (83 against 94, and 36
 against 51); our logistic rule ties with the refit on the sharpened $P$. In
 exchange our rule carries the guarantee of Theorem~\ref{thm:simlik}, through
-Proposition~\ref{prop:approx} for the one-step update, and its computing time
-per query does not grow with the history (Table~\ref{tab:llmcost}): 2.1 and
+Proposition~\ref{prop:approx} for the one-step update, and its computing time per query does not grow with the history: 2.1 and
 2.2~ms over 400 and 1600 queries, against 8.0 and 53~ms for the refit, which
 revisits the whole history at every refit.
 
 Almost all the running time of the audit goes into the simulator: generating
 the $M = 8$ replies of $P$ takes 2 to 8 seconds per query on four CPU cores,
-whereas the bet and the update take at most 8~ms over 400 queries, less than
-0.5\% of the running time. In these short audits the computing time to the
-alarm is therefore at most 0.6~s for every score, and the cost of an alarm is
-counted in generated replies, those prepared before the audit plus eight per
-query. SLICE and the score fitted in advance prepare 6000 replies, more than
-a whole audit, and reach the alarm after 6200 to 6900 replies; the learned
-scores prepare 800 replies of $P$, only to standardise the features, and
-reach it after 1100 to 2500 (Table~\ref{tab:llmcost}). If one preparation
-serves several audits, its cost is shared among them; the growth of the
-refit's cost matters instead for long audits and for cheap simulators.
+whereas the bet and the update take at most 8~ms. The cost of an alarm is
+therefore counted in generated replies: SLICE and the score fitted in advance
+prepare 6000 replies before the audit and reach the alarm after 6200 to 6900,
+whereas the learned scores prepare 800, only to standardise the features, and
+reach it after 1100 to 2500 (Supplement, Section~S4, which also reports the
+computing time to the alarm).
 
 %======================================================================
 \section{A multi-arm multi-stage trial designed in silico}\label{sec:trial}
@@ -1710,27 +1599,17 @@ Monte Carlo tests compare a fixed dataset with simulations from the null
 \citep{besag1989generalized}, and \citet{fischer2024sequential} make them
 anytime-valid in the number of simulations; here the data themselves arrive
 over time, with fresh simulations for each observation. The closest work is
-\citet{dombowsky2026besag}, who normalise an arbitrary statistic into an
-e-value with exchangeable samples, including MCMC samples, and give the
-Besag--Clifford e-process for an i.i.d.\ stream; their results on the
-likelihood-ratio score are used, with attribution, in
-Section~\ref{sec:power}.
-
-Two concurrent papers use a similar betting strategy
-for independent data. \citet{forre2026anytime} show that the
-likelihood ratio is the optimal score for every $M$, bound the loss from a
-finite $M$, and refit the score online by maximising its empirical growth,
-leaving dependent streams open. \citet{cortinovis2026slice} invert the
-e-process into confidence sequences for the parameters of a simulator, with
-amortised neural ratio scores, prove validity given i.i.d.\ covariates, and
-note in an appendix that the construction extends to dependent data by
-simulating conditionally on the history. Relative to these papers, ours treats
-actions chosen from the data and simulators with state, shows that the
-conditioning is necessary and quantifies the failure without it, reads
-arbitrary scores through the tilted null with the local efficiency
-$M/(M+1)$, and updates the score's parameter by Bayes' rule on the simulation
-likelihood, with a pathwise regret bound, where both concurrent papers bet at
-a point estimate.
+\citet{dombowsky2026besag}, whose results on the likelihood-ratio score are
+used, with attribution, in Section~\ref{sec:power}; \citet{forre2026anytime}
+show that the likelihood ratio is the optimal score for every $M$, and
+\citet{cortinovis2026slice} invert the e-process into confidence sequences for
+the parameters of a simulator. All three treat independent data. Relative to
+them, ours treats actions chosen from the data and simulators with state,
+shows that the conditioning is necessary and quantifies the failure without
+it, reads arbitrary scores through the tilted null with the local efficiency
+$M/(M+1)$, and updates the score by Bayes' rule on the simulation likelihood,
+with a pathwise regret bound, where the concurrent papers bet at a point
+estimate.
 
 SLICE \citep{cortinovis2026slice} answers a different question: which values
 of a simulator's parameter are compatible with the data. When the departure lies inside its parametrised family it is
@@ -1779,21 +1658,11 @@ covariate from its known law; two-sample tests
 discrepancy tests \citep{martinez2025sequential} and conformal test
 martingales \citep{vovk2003testing,vovk2021testing,prinster2025watch} address
 other nulls: two streams compared with each other, a model whose score
-function is available, or exchangeability with no reference model.
-
-Computing a marginal likelihood as a product of one-step predictives is the prequential
-form of \citet{dawid1984present}, the Bayes universal code of minimum
-description length \citep{rissanen1984universal,grunwald2007minimum} and the
-basis of sequential Monte Carlo estimates of the evidence
-\citep{kong1994sequential,chopin2002sequential}, and it is related to
-cross-validation by \citet{fong2020marginal} (Supplement, Section~S5); taking the predictives as the
-primitive is the approach of martingale posteriors
-\citep{fong2023martingale}. Prequential posteriors
-\citep{sinharoy2026prequential} calibrate generative forecasting models
-through a scoring-rule loss estimated from simulations. Their aim is to
-calibrate a simulator and ours to test it, and the simulation likelihood is
-the instance of their construction whose loss, the logarithm of an exactly
-fair bet, makes the posterior mixture a test martingale.
+function is available, or exchangeability with no reference model. The product of one-step predictives behind
+Section~\ref{sec:predictive} has classical forms in prequential analysis,
+minimum description length and sequential Monte Carlo (Supplement,
+Section~S5); prequential posteriors \citep{sinharoy2026prequential} use
+simulations to calibrate a simulator, where we use them to test it.
 
 Several limitations remain. The null is a simple conditional null; simulators
 with unknown calibration parameters need composite-null constructions, such

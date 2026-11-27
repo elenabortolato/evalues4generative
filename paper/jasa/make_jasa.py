@@ -242,9 +242,180 @@ def resolve(text: str, numbers: dict[str, str], local: set[str]) -> str:
     return REF.sub(rep, text)
 
 
+
+# ---------------------------------------------------------------------------
+# Cuts for JASA (paper/jasa/proposta_tagli.md, points 1-7): shorter texts in
+# Sections 4.3, 5.3, 5.4, 5.5, 5.6 and 7; Figure 2 and Tables 4 and 7 of
+# ../main.tex move to the end of Section S4 of the supplement.
+
+CUT_53 = r"""On the drift task, validity holds at every budget, including $M = 1$ (false
+alarms 1.5--3.5\%), and the median stopping time at $M = 1$ is 1.8 times that
+at $M = 64$, close to the factor 2 of Theorem~\ref{thm:growth}(iv). With
+$P = \mathcal N(0,1)$, $Q = \mathcal N(\delta, 1)$ and $T(x) = e^{\theta x}$,
+where everything is explicit, the bounds of Theorem~\ref{thm:growth} hold in
+all 56 configurations, and $g_M/g_\infty$ follows $M/(M+1)$ closely for
+perfect, under- and overconfident scores alike. The regret bound of
+Theorem~\ref{thm:simlik} holds on every path, with largest regret 7.5 against
+a bound of 21.5 at $t = 2000$ (Supplement, Section~S4, with the figure).
+
+"""
+
+CUT_54 = r"""All the update rules of Section~\ref{sec:predictive}, updated at every step
+with no burn-in, give valid tests, with 1.3 to 3\% false alarms, whereas using
+the logistic posterior odds directly as the bet gives 14 to 74\%. The logistic
+Bayesian learning rule is the fastest and makes the method insensitive to the
+flexibility of the features (power 0.97 with degree-6 features, against 0.84
+for the refit). The simulation-likelihood learner, the one with the guarantee
+of Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task: the
+Bayesian mixture pays for its pathwise bound with cautious early bets. All
+variants are in the Supplement (Section~S4), and a comparison with the
+Besag--Clifford e-process of \citet{dombowsky2026besag} in Section~S3.
+
+"""
+
+CUT_COST_SENTENCE = r"""and its computing time per query does not grow with the history: 2.1 and
+2.2~ms over 400 and 1600 queries, against 8.0 and 53~ms for the refit, which
+revisits the whole history at every refit."""
+
+CUT_RUNNING = r"""Almost all the running time of the audit goes into the simulator: generating
+the $M = 8$ replies of $P$ takes 2 to 8 seconds per query on four CPU cores,
+whereas the bet and the update take at most 8~ms. The cost of an alarm is
+therefore counted in generated replies: SLICE and the score fitted in advance
+prepare 6000 replies before the audit and reach the alarm after 6200 to 6900,
+whereas the learned scores prepare 800, only to standardise the features, and
+reach it after 1100 to 2500 (Supplement, Section~S4, which also reports the
+computing time to the alarm).
+
+"""
+
+CUT_LITERATURE = r"""Monte Carlo tests compare a fixed dataset with simulations from the null
+\citep{besag1989generalized}, and \citet{fischer2024sequential} make them
+anytime-valid in the number of simulations; here the data themselves arrive
+over time, with fresh simulations for each observation. The closest work is
+\citet{dombowsky2026besag}, whose results on the likelihood-ratio score are
+used, with attribution, in Section~\ref{sec:power}; \citet{forre2026anytime}
+show that the likelihood ratio is the optimal score for every $M$, and
+\citet{cortinovis2026slice} invert the e-process into confidence sequences for
+the parameters of a simulator. All three treat independent data. Relative to
+them, ours treats actions chosen from the data and simulators with state,
+shows that the conditioning is necessary and quantifies the failure without
+it, reads arbitrary scores through the tilted null with the local efficiency
+$M/(M+1)$, and updates the score by Bayes' rule on the simulation likelihood,
+with a pathwise regret bound, where the concurrent papers bet at a point
+estimate.
+
+"""
+
+CUT_PREQUENTIAL = r""" The product of one-step predictives behind
+Section~\ref{sec:predictive} has classical forms in prequential analysis,
+minimum description length and sequential Monte Carlo (Supplement,
+Section~S5); prequential posteriors \citep{sinharoy2026prequential} use
+simulations to calibrate a simulator, where we use them to test it.
+
+"""
+
+CUT_ALGORITHM = r"""\begin{enumerate}
+  \item \textbf{Action.} Observe the action $A_t$ chosen by the design from the
+        past (arm, prompt, dose).
+  \item \textbf{Simulate.} Draw $Y_{t,1}, \ldots, Y_{t,M}$ from the simulator
+        under $A_t$ from the current state, and observe $X_t$.
+  \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
+        $\bar\eta = z(x)^\top \bar\theta_{t-1}$, $v = z(x)^\top S_{t-1}^{-1} z(x)$,
+        $\kappa = (1 + \pi v/8)^{-1/2}$ and
+        $s_{t-1}(x) = \mathrm{clip}(\kappa\,\bar\eta,\, -B,\, B)$, the predictive
+        log-odds of ``real'' against ``simulated''. Clipping at $B$ (we use
+        $B = 30$) keeps validity and makes Corollary~\ref{cor:cumulative}(ii)
+        apply.
+  \item \textbf{Bet.}
+        $E_t = (M+1)\, e^{s_{t-1}(X_t)}/\{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}\}$.
+  \item \textbf{Wealth.} $W_t = |\Lambda|^{-1}\sum_{\lambda\in\Lambda}
+        \prod_{i\le t}(1-\lambda+\lambda E_i)$; reject $H_0$ when
+        $W_t \ge 1/\alpha$.
+  \item \textbf{Learn.} With labels $y_0 = 1$ for $X_t$ and $y_j = 0$ for
+        $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
+        $p_k = \sigma(s_{t-1}(U_{t,k}))$, update
+        \[
+        \begin{gathered}
+        \nabla_t = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
+        J_t = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \\
+        S_t = S_{t-1} + J_t, \qquad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t ,
+        \end{gathered}
+        \]
+        one step of the Bayesian learning rule \eqref{eq:blr}, with $\kappa_k$
+        as in step 3 for $z_k$.
+\end{enumerate}
+"""
+
+CUT_REMARK = r"""\begin{remark}[Inside and outside the family]\label{rem:family}
+SLICE bets with $s_t = \log (p_{\hat\theta_{t-1}}/p_{\theta_0})$ within a
+parametrised family $\{P_\theta\}$ with null $\theta_0$, so its tilted null is
+$P_{\hat\theta_{t-1}}$. Outside the family, $\hat\theta_t$ converges to
+$\theta^* = \arg\min_\theta \KL(Q\|P_\theta)$, and by
+Theorem~\ref{thm:growth}(ii) the growth tends to
+$\KL(Q\|P_{\theta_0}) - \KL(Q\|P_{\theta^*})$, which is zero when
+$\theta^* = \theta_0$, however large the departure. Both out-of-family
+alternatives are of this kind, whereas our features contain $x_1^2$ and the
+squared outcome of each arm, so a change of scale moves the tilted null towards
+$Q$. Details, and the choice between the NRE-A and NRE-C estimators
+\citep{miller2022contrastive}, are in the Supplement.
+\end{remark}"""
+
+
+def replace_between(text: str, start: str, end: str, new: str, keep_end: bool = True) -> str:
+    """Replace text from `start` up to `end` (kept unless keep_end is False)."""
+    i = text.index(start)
+    j = text.index(end, i)
+    if not keep_end:
+        j += len(end)
+    return text[:i] + new + text[j:]
+
+
+def float_with(text: str, label: str) -> tuple[str, str]:
+    """Remove the float containing \\label{label}; return the text and the float."""
+    k = text.index("\\label{" + label + "}")
+    env = "figure" if label.startswith("fig:") else "table"
+    i = text.rindex("\\begin{" + env + "}", 0, k)
+    j = text.index("\\end{" + env + "}", k) + len("\\end{" + env + "}")
+    return text[:i] + text[j:].lstrip("\n"), text[i:j]
+
+
+def cut(body: str) -> tuple[str, str]:
+    """Apply the cuts; return the shorter body and the floats moved to S4."""
+    moved = []
+    for lab in ("fig:growth", "tab:blr", "tab:llmcost"):
+        body, f = float_with(body, lab)
+        # in the supplement they stay in their subsection
+        moved.append(re.sub(r"\\begin\{(table|figure)\}\[t\]", r"\\begin{\1}[H]", f, count=1))
+    head53 = "\\subsection{Empirical growth rates}\\label{sec:exp-budget}\n\n"
+    body = replace_between(body, head53, "\\subsection{Update rules}", head53 + CUT_53)
+    head54 = "\\subsection{Update rules}\\label{sec:exp-blr}\n\n"
+    body = replace_between(body, head54, "\\subsection{Comparison with concurrent methods}",
+                           head54 + CUT_54)
+    body = replace_between(body, "and its computing time\nper query does not grow",
+                           "at every refit.", CUT_COST_SENTENCE, keep_end=False)
+    body = replace_between(body, "Almost all the running time", "%=====", CUT_RUNNING)
+    body = replace_between(body, "Monte Carlo tests compare a fixed dataset",
+                           "SLICE \\citep{cortinovis2026slice} answers", CUT_LITERATURE)
+    i = body.index("\n\nComputing a marginal likelihood")
+    j = body.index("Several limitations remain.")
+    body = body[:i] + CUT_PREQUENTIAL + body[j:]
+    body = replace_between(body, "\\begin{enumerate}\n  \\item \\textbf{Action.}",
+                           "\\end{enumerate}\n", CUT_ALGORITHM, keep_end=False)
+    body = replace_between(body, "\\begin{remark}[Inside and outside the family]",
+                           "\\end{remark}", CUT_REMARK, keep_end=False)
+    for lab in ("fig:growth", "tab:blr", "tab:llmcost"):
+        assert "\\ref{" + lab + "}" not in body, lab
+    moved_tex = ("\\subsection{Figure and tables of the main text}\\label{sec:moved}\n\n"
+                 "Figure~\\ref{fig:growth} illustrates Section~5.3 of the main text, "
+                 "Table~\\ref{tab:blr} Section~5.4 and Table~\\ref{tab:llmcost} Section~5.6.\n\n"
+                 + "\n\n".join(moved) + "\n\n")
+    return body, moved_tex
+
+
 def manuscript(src: str, blind: int, sup: dict[str, str]) -> str:
     body = src[src.index(r"\section{Introduction}"):src.index(r"\section*{Data availability}")]
     body = body.replace("Code, results and figures are in the repository \\texttt{evalues4generative};\nall runs are seeded.\n", "")
+    body, _ = cut(body)
     old = "Table~\\ref{tab:notation} in the\nAppendix."
     assert old in body, "notation sentence"
     body = body.replace(old, f"Table~{sup['tab:notation']} of the\nSupplement.")
@@ -277,6 +448,11 @@ def supplement(sup_src: str, appendix: str, blind: int, main: dict[str, str] | N
     assert SUP_INTRO_OLD in rest, "supplement introduction"
     rest = rest.replace(SUP_INTRO_OLD, SUP_INTRO_NEW)
     body = rest[:rest.index("\\bibliographystyle{plainnat}")]
+    main_body = MAIN_SRC[MAIN_SRC.index(r"\section{Introduction}"):MAIN_SRC.index(r"\section*{Data availability}")]
+    _, moved = cut(main_body)
+    k = body.index("\\section{Classical forms of the predictive factorisation}")
+    k = body.rindex("%=====", 0, k) if "%=====" in body[k-200:k] else k
+    body = body[:k] + moved + body[k:]
     app = appendix.replace("Appendix~\\ref{", "Section~\\ref{")
     old = "the variants in the Supplement\nuse the original seeds"
     assert old in app, "seeds sentence"
@@ -291,6 +467,7 @@ def supplement(sup_src: str, appendix: str, blind: int, main: dict[str, str] | N
     if main is not None:
         local = set(re.findall(r"\\label\{([^}]*)\}", body + app))
         app = resolve(app, main, local)
+        body = body.replace(moved, resolve(moved, main, local))
     return (pre + "\\begin{document}" + body.rstrip() + "\n\n" + app.strip() + "\n\n"
             "\\bibliographystyle{chicago}\n\\bibliography{references}\n\n\\end{document}\n")
 
@@ -306,8 +483,11 @@ def acc_form() -> None:
     check(run_latex("ACC_form", bibtex=False, passes=2), "ACC_form")
 
 
+MAIN_SRC = (PAPER / "main.tex").read_text()
+
+
 def main() -> None:
-    src = (PAPER / "main.tex").read_text()
+    src = MAIN_SRC
     sup_src = (PAPER / "supplement.tex").read_text()
     appendix = src[src.index("\\appendix") + len("\\appendix"):src.index("\\end{document}")]
 
