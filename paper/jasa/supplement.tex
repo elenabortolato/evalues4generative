@@ -46,7 +46,8 @@ This supplement contains three analyses referred to in the main text
 (Sections~S1--S3), additional results for Sections~5 and~6 (Section~S4), the
 classical forms of the predictive factorisation used in Section~4
 (Section~S5), and the notation, the proofs, experimental details and the timing
-relative to concurrent work (Sections~\ref{app:notation}--\ref{app:timeline}).
+relative to concurrent work (Sections~\ref{app:notation}--\ref{app:timeline}), and
+further related work (Section~\ref{app:related}).
 Theorem, section, equation and table numbers without an S refer to the main
 text.
 
@@ -377,7 +378,7 @@ Table~\ref{tab:bc} quantifies the price of not knowing the model.
 \begin{itemize}
   \item When the likelihood ratio is available, the Monte Carlo normalisation
         costs almost nothing: the median stopping time with $M = 16$ is 36,
-        against 35 for the exact oracle (Table~2), as their
+        against 35 for the exact oracle (Table~1), as their
         Theorem~1 predicts.
   \item Knowing the parametric family of the drift is worth a factor of about
         3.5 in stopping time over learning it from samples (58 against 209).
@@ -393,7 +394,7 @@ a black box, only a learned score is available, and the results of
 Sections~3--4.1 govern its power. In adaptive
 designs their i.i.d.\ formulation does not apply: simulating without
 conditioning on the action rejects a true null in every run
-(Table~3).
+(Table~2).
 
 %======================================================================
 
@@ -710,9 +711,96 @@ is already close to the exact ratio (67 against 69 steps on the drift, 35
 against 35 on the bandit), but not outside it, where the exact ratio itself has
 power 0.01 on the drift.
 
-\subsection{Figure and tables of the main text}\label{sec:moved}
+\subsection{Tables, figures and algorithm of the main text}\label{sec:moved}
 
-Figure~\ref{fig:growth} illustrates Section~5.3 of the main text, Table~\ref{tab:blr} Section~5.4 and Table~\ref{tab:llmcost} Section~5.6.
+Table~\ref{tab:rules}, Figure~\ref{fig:workflow} and Algorithm~S1 belong to Section~4.3 of the main text, Figure~\ref{fig:growth} to Section~5.3, Table~\ref{tab:blr} to Section~5.4 and Table~\ref{tab:llmcost} to Section~5.6.
+
+\begin{table}[H]
+\centering
+\caption{Update rules for the score (Sections~4.2
+and~4.3). All give exactly valid bets; they differ in the source of
+uncertainty about the score and in the guarantee they carry beyond validity.
+Further variants are in the Supplement.}
+\label{tab:rules}
+\small
+\begin{tabular}{lll}
+\toprule
+rule & uncertainty from & guarantee beyond validity \\
+\midrule
+Bayes on the simulation likelihood & exact posterior & pathwise regret (Theorem~3) \\
+BLR on the simulation likelihood & Gaussian approximation & Theorem~3 up to Proposition~4 \\
+BLR on the logistic loss (default) & Gaussian approximation & none \\
+predictive-first (9) & predictive resampling & none \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{workflow.png}
+\caption{One step of the procedure. The design chooses the action from the
+past (1); the real system and the simulator are run under that action and
+from the current state (2a, 2b); the current score, fixed before $X_t$ is
+seen, turns the $M+1$ outcomes into the bet $E_t$ (3--4), which updates the
+wealth (5); the null is rejected when the wealth reaches $1/\alpha$, and
+otherwise the learner updates the score with the new outcomes (6) and the
+next step begins. Validity rests on the shaded block alone; the learner
+affects only power. Algorithm~S1 gives the
+formulas of each step.}
+\label{fig:workflow}
+\end{figure}
+
+Algorithm~S1 puts the default rule together, the logistic Bayesian learning
+rule with the probability-scale predictive; its steps are numbered as in
+Figure~\ref{fig:workflow}.
+
+\paragraph{Algorithm S1 (Monte Carlo e-process with a predictive score).}
+\textbf{Input:} a simulator that can be run under any action from any state; a
+feature map $z(x)$; the number of simulations $M$; the level $\alpha$; the grid
+$\Lambda$ of betting fractions. \textbf{Initialise:} standardise $z$ with
+simulator draws only; set $\bar\theta_0 = 0$, $S_0 = I$ (vaguer on the intercept), and
+$W_0 = 1$. \textbf{Notation:} $U_{t,0} = X_t$, $U_{t,j} = Y_{t,j}$,
+$z_k = z(U_{t,k})$; $s_{t-1}$ is the score fixed at the end of step $t-1$, the
+$s_t$ of (2).
+\begin{enumerate}
+  \item \textbf{Action.} Observe the action $A_t$ chosen by the design from the
+        past (arm, prompt, dose).
+  \item \textbf{Simulate.} Draw $Y_{t,1}, \ldots, Y_{t,M}$ from the simulator
+        under $A_t$ from the current state, and observe $X_t$.
+  \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
+        $\bar\eta = z(x)^\top \bar\theta_{t-1}$, $v = z(x)^\top S_{t-1}^{-1} z(x)$,
+        $\kappa = (1 + \pi v/8)^{-1/2}$ and
+        $s_{t-1}(x) = \mathrm{clip}(\kappa\,\bar\eta,\, -B,\, B)$, the predictive
+        log-odds of ``real'' against ``simulated''. Clipping at $B$ (we use
+        $B = 30$) keeps validity and makes Corollary~1(ii)
+        apply.
+  \item \textbf{Bet.}
+        $E_t = (M+1)\, e^{s_{t-1}(X_t)}/\{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}\}$.
+  \item \textbf{Wealth.} $W_t = |\Lambda|^{-1}\sum_{\lambda\in\Lambda}
+        \prod_{i\le t}(1-\lambda+\lambda E_i)$; reject $H_0$ when
+        $W_t \ge 1/\alpha$.
+  \item \textbf{Learn.} With labels $y_0 = 1$ for $X_t$ and $y_j = 0$ for
+        $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
+        $p_k = \sigma(s_{t-1}(U_{t,k}))$, update
+        \[
+        \begin{gathered}
+        \nabla_t = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
+        J_t = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \\
+        S_t = S_{t-1} + J_t, \qquad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t ,
+        \end{gathered}
+        \]
+        one step of the Bayesian learning rule (8), with $\kappa_k$
+        as in step 3 for $z_k$.
+\end{enumerate}
+\textbf{Variants.} With the simulation likelihood, steps 3--4 are replaced by
+the posterior-predictive mixture $\bar E_t = N^{-1}\sum_b E_t(\theta_b)$ over
+posterior nodes $\theta_b$, and step 6 by (8) with
+$\ell_t = -\log E_t(\theta)$; Theorem~3 and
+Proposition~4 then apply. With the predictive-first rule,
+steps 3 and 6 are replaced by (9) and step 4 by the average of the
+factor over predictive-resampling paths. In a multi-arm design, one copy of the
+algorithm per arm, betting only on that arm's observations, is combined by e-BH
+at the end (Section~6).
 
 \begin{figure}[H]
 \centering
@@ -750,7 +838,7 @@ bandit & refitted point estimate & 0.028 & 1.000 & 49 \\
 \centering
 \caption{Cost of reaching the alarm in the audit of
 Section~5.6, with the prompts chosen by UCB: medians over the
-runs of Table~5 that reject (lowest in bold). Replies: replies
+runs of Table~4 that reject (lowest in bold). Replies: replies
 generated by language models, those prepared before the audit (thousands,
 column 9) plus $M = 8$ per query. Computing: time spent on the bets and the
 updates up to the alarm, on one core. Milliseconds per query: computing time
@@ -758,7 +846,7 @@ over 400 and 1600 queries under the null; it grows with the history for the
 refit, which revisits the whole history at every refit, and more slowly for
 SLICE, which re-estimates its routing fraction from all past replies.
 Generating the replies takes 2 to 8 seconds per query on four CPU cores.
-$^\ddagger$As in Table~5.}
+$^\ddagger$As in Table~4.}
 \label{tab:llmcost}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -1142,7 +1230,7 @@ $[-30, 30]$.
 \paragraph{Simulation-likelihood BLR.} Prior $\mathcal N(0, \tau I)$ on the
 standardised coefficients (no intercept, which cancels in $E_t(\theta)$), with
 $\tau = 1$ or $\tau = 0.03$; the latter was chosen on 24 alternative runs of the
-drift task. The drift results in Tables~\ref{tab:blr} and~4
+drift task. The drift results in Tables~\ref{tab:blr} and~3
 use 400 fresh replications, disjoint from these (seeds $5\cdot10^6+i$ under the
 null and $6\cdot10^6+i$ under the alternative); the variants in Section~\ref{sec:more}
 use the original seeds. Expectations under the Gaussian
@@ -1186,7 +1274,7 @@ sharpened scenario each reply of $P$ is drawn with probability proportional
 to the square of its frequency among $P$'s replies to that prompt. Computing
 times are measured on one core, over 20 runs of 400 and 5 runs of 1600
 queries under the null; the computing time to the alarm in
-Table~\ref{tab:llmcost} is measured on the same runs as Table~5.
+Table~\ref{tab:llmcost} is measured on the same runs as Table~4.
 
 \paragraph{MAMS trial.} The twin is \texttt{simglucose}
 \citep{xie2018simglucose}, the open-source implementation of the 2008 academic
@@ -1238,7 +1326,31 @@ and the use of adaptive actions as a source of power are developed here. The com
 Sections~5.5 and~5.6, and the remarks
 attributing shared results to them, were added after they appeared.
 
-\bibliographystyle{chicago}
+%======================================================================
+\section{Further related work}\label{app:related}
+
+Several anytime-valid methods handle adaptively
+collected data, through randomisation tests and e-processes
+\citep{nair2023randomization,zampieri2025sequential}, off-policy inference
+\citep{waudbysmith2024anytime} or adaptive audits of AI systems
+\citep{zhou2026adaptive}, but none uses a simulator as the null; digital-twin
+validation by re-initialising the twin from observed states
+\citep{ghasemloo2026subtrace} uses the same conditioning with fixed-sample
+tests. In bandit multiple testing, one e-process per arm combined by e-BH
+controls the false discovery rate under adaptive sampling
+\citep{xu2021unified}; there the hypotheses concern the arms' effects and the
+sampling is chosen to make the tests powerful, whereas our per-arm monitors
+test the twin under the allocation fixed by the trial. Among sequential tests
+that bet with a learned predictor, Model-X tests of conditional independence
+\citep{shaer2023modelx} use the same mechanism with $M = 1$, drawing a dummy
+covariate from its known law; two-sample tests
+\citep{podkopaev2023sequential,shekhar2023nonparametric}, kernelised Stein
+discrepancy tests \citep{martinez2025sequential} and conformal test
+martingales \citep{vovk2003testing,vovk2021testing,prinster2025watch} address
+other nulls: two streams compared with each other, a model whose score
+function is available, or exchangeability with no reference model.
+
+\bibliographystyle{apalike}
 \bibliography{references}
 
 \end{document}

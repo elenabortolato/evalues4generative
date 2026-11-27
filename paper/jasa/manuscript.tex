@@ -79,7 +79,7 @@ monitors that ignore the allocation or the participants' history do not.
 
 \noindent%
 {\it Keywords:} e-values; anytime-valid inference; simulation-based inference;
-digital twins; adaptive designs; prequential inference
+digital twins; adaptive designs
 \vfill
 
 \newpage
@@ -100,13 +100,10 @@ The same question comes up with multi-armed bandits
 \citep{lattimore2020bandit}, response-adaptive clinical designs
 \citep{trippa2012bayesian,villar2015multi}, and AI systems that act in
 environments shaped by their own past decisions
-\citep{perdomo2020performative,dulacarnold2021challenges}. For example, a
-content-ranking or moderation system changes what users post and what the
-platform observes next, so the data distribution depends on the policy
-deployed so far \citep{chaney2018algorithmic,jiang2019degenerate}; such
-systems are routinely designed and tuned on simulators of user behaviour
-\citep{ie2019recsim,shi2019virtual}, whose fidelity to the real platform is
-exactly what is in doubt \citep{zhao2020sim}. In these settings, as we choose
+\citep{perdomo2020performative,dulacarnold2021challenges}. For example, a ranking or moderation system changes what users post and hence
+what the platform observes next \citep{chaney2018algorithmic,jiang2019degenerate},
+and such systems are tuned on simulators of user behaviour whose fidelity is
+exactly what is in doubt \citep{ie2019recsim,shi2019virtual,zhao2020sim}. In these settings, as we choose
 actions based on past observations, can we continuously test whether the
 resulting stream of outcomes is still consistent with a simulator, and sound
 an alarm as soon as it is not, while controlling false alarms under optional
@@ -206,14 +203,11 @@ simulations keep a fraction $M/(M+1)$ of it for local alternatives
 (Theorem~\ref{thm:growth}).
 \end{enumerate}
 
-Validity and power are separate questions in this construction. Validity
-comes from how the simulator is run, not from the score, so any score fixed
-before the new outcome is seen gives a valid test, and a network trained in
-advance can be used in the same adaptive design. Our update rules are what we
-recommend when nothing is known about the alternative, which is the usual
-situation when a simulator is validated: a twin tends to fail in ways its
-designers did not anticipate, and a score tuned to a guessed departure has no
-power against another.
+Validity comes from how the simulator is run, not from the score, so any score
+fixed before the new outcome is seen, including a network trained in advance,
+gives a valid test. Our update rules are meant for the usual situation in which
+nothing is known about the alternative: a twin tends to fail in ways its
+designers did not anticipate.
 
 In the insulin trial, with five strategies over three stages, only the monitor
 that runs the twin from each participant's state under the assigned arm
@@ -240,7 +234,7 @@ with theirs.
 
 Section~\ref{sec:method} gives the method and its validity,
 Section~\ref{sec:power} its power, and Section~\ref{sec:predictive} the
-predictive view and the update rules (Algorithm~1). Section~\ref{sec:experiments}
+predictive view and the update rules (Algorithm~S1 in the Supplement). Section~\ref{sec:experiments}
 contains simulations, the comparison with concurrent methods and the
 language-model audit, and Section~\ref{sec:trial} the trial.
 Section~\ref{sec:discussion} discusses limitations.
@@ -251,7 +245,7 @@ Section~\ref{sec:discussion} discusses limitations.
 
 \subsection{Setting}\label{sec:setting}
 
-The symbols used throughout are collected in Table~S10 of the
+The symbols used throughout are collected in Table~S11 of the
 Supplement.
 
 At each time $t = 1, 2, \ldots$ an action (or context) $A_t$ is chosen,
@@ -555,9 +549,7 @@ Proposition~\ref{prop:necessary}) shows that their average tends to zero
 almost surely.
 \end{proof}
 
-Part (i) needs no assumption on the scores: for $\lambda < 1$ each increment
-$\log(1-\lambda+\lambda E_i)$ lies in $[\log(1-\lambda), \log(1+\lambda M)]$,
-whatever the learner. Since $1-\lambda+\lambda E$ is a weighted average of 1
+ Since $1-\lambda+\lambda E$ is a weighted average of 1
 and $E$, concavity of the logarithm gives $\log(1-\lambda+\lambda E) \ge \lambda\log E$,
 so $g_{M,i}(\lambda) \ge \lambda\, g_{M,i}$: betting a fraction $\lambda$ keeps
 at least a fraction $\lambda$ of the growth rate. Part (ii) needs
@@ -730,8 +722,7 @@ on the score; the second is the error of the score's forecast, which by
 Gibbs' inequality is nonnegative and vanishes only when $\tilde T_t = Q_t$,
 that is, when $T_t$ is the true ratio up to a constant. This is
 Theorem~\ref{thm:growth}(ii), and a finite $M$ multiplies the growth by about
-$M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). A learned score therefore pays, at
-every step, for its error as a forecaster, and only in power.
+$M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). 
 
 Reading the score as a forecast scored by the logarithmic loss turns the
 choice of the score into a problem of sequential prediction, which
@@ -742,10 +733,7 @@ a score built from the simulator's own parameters, as in SLICE, the tilted
 nulls belong to that parametric family, and a departure outside it is
 invisible however accurate the score (Section~\ref{sec:exp-concurrent}),
 whereas a score learned on features of the outcome reweights the simulator in
-directions that need not correspond to any parameter. And since a forecast
-need only be issued before the outcome it is scored on, any learner, exact or
-approximate, trained online or in advance, keeps the validity of
-Theorem~\ref{thm:valid}.
+directions that need not correspond to any parameter. 
 
 \subsection{From Bayes to the simulation likelihood}\label{sec:rules}\label{sec:exactbayes}\label{sec:simlik}
 
@@ -852,17 +840,13 @@ at most $2D$.
 \end{enumerate}
 \end{theorem}
 
-Part (i) says that the score can be updated by Bayes' rule exactly, even
-though the normalising constant $Z(\theta)$ of the tilt is unknown. This is
-because the simulation likelihood is not the density of the real outcome under
-the tilt, which would need $Z(\theta)$, an integral over all possible
-outcomes. It answers the simpler question of Section~\ref{sec:method}: among
-the $M+1$ outcomes at hand, which one is the real one? The answer compares the
-scores of these $M+1$ outcomes only, so it needs no integral, and its
-posterior predictive is the bet itself: updating $\theta$ by Bayes' rule and
-betting are the same operation, so the guarantees of Bayesian mixtures hold
-for the wealth. It uses less information, and as $M \to \infty$ it recovers
-the Bayes factor of Proposition~\ref{prop:bayes}.
+Part (i) says that the score can be updated by Bayes' rule exactly, although
+the normalising constant $Z(\theta)$ of the tilt is unknown. The simulation
+likelihood is not the density of the real outcome under the tilt; it answers
+the question of Section~\ref{sec:method}, which of the $M+1$ outcomes at hand
+is the real one, and needs only their scores. Its posterior predictive is the
+bet itself, so the guarantees of Bayesian mixtures hold for the wealth, and as
+$M \to \infty$ it recovers the Bayes factor of Proposition~\ref{prop:bayes}.
 
 Part (ii) holds on every path, with no assumption on the alternative: the
 monitor is never more than $d\log t$ behind the best fixed score in the class
@@ -881,7 +865,7 @@ Exact Bayesian updating needs the posterior $\pi_{t-1}$ at every step. We
 replace it by a Gaussian approximation updated in one step per observation,
 on either of two losses, or update the forecast directly as martingale
 posteriors do. All give valid bets; they differ in where uncertainty comes from
-and in the guarantees they carry (Table~\ref{tab:rules}).
+and in the guarantees they carry (Table~S8 of the Supplement).
 
 The integral in $\bar E_t$ is over $\theta$ only, and any $\G_t$-measurable
 distribution $\nu_{t-1}$ on $\theta$, an approximate posterior, in place of
@@ -986,107 +970,17 @@ with the empirical predictive, predictive resampling is the Bayesian
 bootstrap, and a random forest fitted with Dirichlet weights on the past steps
 is valid as well (Supplement, Section~S4).
 
-\begin{table}[tp]
-\spacingset{1}
-\centering
-\caption{Update rules for the score (Sections~\ref{sec:simlik}
-and~\ref{sec:blr}). All give exactly valid bets; they differ in the source of
-uncertainty about the score and in the guarantee they carry beyond validity.
-Further variants are in the Supplement.}
-\label{tab:rules}
-\small
-\begin{tabular}{lll}
-\toprule
-rule & uncertainty from & guarantee beyond validity \\
-\midrule
-Bayes on the simulation likelihood & exact posterior & pathwise regret (Theorem~\ref{thm:simlik}) \\
-BLR on the simulation likelihood & Gaussian approximation & Theorem~\ref{thm:simlik} up to Proposition~\ref{prop:approx} \\
-BLR on the logistic loss (default) & Gaussian approximation & none \\
-predictive-first \eqref{eq:mp} & predictive resampling & none \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Algorithm~1 puts the default rule together, the logistic Bayesian learning
-rule with the probability-scale predictive; its steps are numbered as in
-Figure~\ref{fig:workflow}, and each is followed by the role it plays.
-
-\begin{figure}[tp]
-\spacingset{1}
-\centering
-\includegraphics[width=\textwidth]{workflow.png}
-\caption{One step of the procedure. The design chooses the action from the
-past (1); the real system and the simulator are run under that action and
-from the current state (2a, 2b); the current score, fixed before $X_t$ is
-seen, turns the $M+1$ outcomes into the bet $E_t$ (3--4), which updates the
-wealth (5); the null is rejected when the wealth reaches $1/\alpha$, and
-otherwise the learner updates the score with the new outcomes (6) and the
-next step begins. Validity rests on the shaded block alone; the learner
-affects only power. Algorithm~1 gives the
-formulas of each step.}
-\label{fig:workflow}
-\end{figure}
-
-\paragraph{Algorithm 1 (Monte Carlo e-process with a predictive score).}
-\textbf{Input:} a simulator that can be run under any action from any state; a
-feature map $z(x)$; the number of simulations $M$; the level $\alpha$; the grid
-$\Lambda$ of betting fractions. \textbf{Initialise:} standardise $z$ with
-simulator draws only; set $\bar\theta_0 = 0$, $S_0 = I$ (vaguer on the intercept), and
-$W_0 = 1$. \textbf{Notation:} $U_{t,0} = X_t$, $U_{t,j} = Y_{t,j}$,
-$z_k = z(U_{t,k})$; $s_{t-1}$ is the score fixed at the end of step $t-1$, the
-$s_t$ of \eqref{eq:mc}.
-\begin{enumerate}
-  \item \textbf{Action.} Observe the action $A_t$ chosen by the design from the
-        past (arm, prompt, dose).
-  \item \textbf{Simulate.} Draw $Y_{t,1}, \ldots, Y_{t,M}$ from the simulator
-        under $A_t$ from the current state, and observe $X_t$.
-  \item \textbf{Score.} For each of the $M+1$ outcomes $x$, compute
-        $\bar\eta = z(x)^\top \bar\theta_{t-1}$, $v = z(x)^\top S_{t-1}^{-1} z(x)$,
-        $\kappa = (1 + \pi v/8)^{-1/2}$ and
-        $s_{t-1}(x) = \mathrm{clip}(\kappa\,\bar\eta,\, -B,\, B)$, the predictive
-        log-odds of ``real'' against ``simulated''. Clipping at $B$ (we use
-        $B = 30$) keeps validity and makes Corollary~\ref{cor:cumulative}(ii)
-        apply.
-  \item \textbf{Bet.}
-        $E_t = (M+1)\, e^{s_{t-1}(X_t)}/\{e^{s_{t-1}(X_t)} + \sum_{j=1}^{M} e^{s_{t-1}(Y_{t,j})}\}$.
-  \item \textbf{Wealth.} $W_t = |\Lambda|^{-1}\sum_{\lambda\in\Lambda}
-        \prod_{i\le t}(1-\lambda+\lambda E_i)$; reject $H_0$ when
-        $W_t \ge 1/\alpha$.
-  \item \textbf{Learn.} With labels $y_0 = 1$ for $X_t$ and $y_j = 0$ for
-        $Y_{t,j}$, weights $w_0 = 1$ and $w_j = 1/M$, and
-        $p_k = \sigma(s_{t-1}(U_{t,k}))$, update
-        \[
-        \begin{gathered}
-        \nabla_t = \sum_{k=0}^{M} w_k (p_k - y_k)\, z_k, \qquad
-        J_t = \sum_{k=0}^{M} w_k \kappa_k\, p_k (1 - p_k)\, z_k z_k^\top, \\
-        S_t = S_{t-1} + J_t, \qquad \bar\theta_t = \bar\theta_{t-1} - S_t^{-1} \nabla_t ,
-        \end{gathered}
-        \]
-        one step of the Bayesian learning rule \eqref{eq:blr}, with $\kappa_k$
-        as in step 3 for $z_k$.
-\end{enumerate}
-\textbf{Variants.} With the simulation likelihood, steps 3--4 are replaced by
-the posterior-predictive mixture $\bar E_t = N^{-1}\sum_b E_t(\theta_b)$ over
-posterior nodes $\theta_b$, and step 6 by \eqref{eq:blr} with
-$\ell_t = -\log E_t(\theta)$; Theorem~\ref{thm:simlik} and
-Proposition~\ref{prop:approx} then apply. With the predictive-first rule,
-steps 3 and 6 are replaced by \eqref{eq:mp} and step 4 by the average of the
-factor over predictive-resampling paths. In a multi-arm design, one copy of the
-algorithm per arm, betting only on that arm's observations, is combined by e-BH
-at the end (Section~\ref{sec:trial}).
+Algorithm~S1 in the Supplement puts the default rule together step by step,
+with a diagram of one step of the procedure.
 
 %======================================================================
 \section{Simulation studies}\label{sec:experiments}
 %======================================================================
 
-The experiments ask whether a learned score can break validity
-(Section~\ref{sec:exp-drift}); whether adaptive allocation can
-(Section~\ref{sec:exp-bandit}); whether the growth rates of
-Section~\ref{sec:power} and the regret of Theorem~\ref{thm:simlik} are what
-one observes (Section~\ref{sec:exp-budget}); how the update rules and the
-scores of concurrent methods compare (Sections~\ref{sec:exp-blr}
-and~\ref{sec:exp-concurrent}); and what adaptive actions add in an audit with
-real model outputs (Section~\ref{sec:exp-llm}). Throughout, $\alpha = 0.05$,
+The experiments check validity with learned scores and adaptive allocation,
+the theory of Sections~\ref{sec:power} and~\ref{sec:predictive}, the update
+rules and the concurrent methods, and the gain from adaptive actions in an
+audit with real model outputs. Throughout, $\alpha = 0.05$,
 $M = 16$ unless stated otherwise, and the betting fraction is mixed over 20
 values from 0.05 to 1. Each table reports, over 400 replications on data
 shared by all methods, the share of runs that reject a true null within the
@@ -1398,7 +1292,7 @@ prompt, rather than to the same prompt, raises a false alarm in every run,
 whereas the conditioned monitors raise false alarms in at most 5.3\% of the
 runs, within Monte Carlo error of the nominal 5\%.
 
-Knowing the substitute pays when the guess is right and fails when it is not.
+
 With our design the score fitted in advance is the fastest in the five
 routing scenarios, after 23 to 50 queries against 36 to 218 for the scores
 learned during the audit. When the API sharpens $P$, however, a score fitted
@@ -1549,20 +1443,12 @@ monitoring of a single patient are in the Supplement.
 %======================================================================
 
 The Monte Carlo e-process separates validity, the control of false alarms,
-from power, the speed at which a wrong simulator is detected; in a classical
-test both depend on the test statistic, and learning the statistic from the
-data spoils its calibration. Here validity comes only from how the simulator
-is run, through exchangeability with fresh simulations under the action taken
-and from the current state, and holds for any score and any policy, including
-interim analyses and re-assignments. Power comes only from the score, a
-sequence of one-step forecasts. Theorem~\ref{thm:growth} measures it by the
-distance between the tilted null and the truth, scaled by $M/(M+1)$.
-Theorem~\ref{thm:simlik} shows that exact Bayesian updating on the simulation
-likelihood loses at most $d\log t$ against the best score of a class chosen in
-hindsight, on every path, so that it grows at that score's rate, and since the
-posterior-predictive bets multiply to the Bayesian mixture, the wealth is
-updated in one step per observation and never recomputed from the past.
-Approximations in the score therefore cost power but never validity.
+from power. Validity comes only from how the simulator is run, through
+exchangeability with fresh simulations under the action taken and from the
+current state, and holds for any score and any policy, including interim
+analyses and re-assignments. Power comes only from the score, through the
+distance between its tilted null and the truth (Theorem~\ref{thm:growth});
+approximations in the score therefore cost power but never validity.
 
 The tilted null also makes a rejection informative. The monitor rejects when
 its forecasts, the tilted nulls of its scores, have predicted reality better
@@ -1578,14 +1464,10 @@ does not prove, that the simulator fails on that feature. A claim with error
 control about one aspect needs its own e-process: a score that depends on the
 outcome only through a statistic $f$ is valid for the narrower null that the
 simulator reproduces the law of $f$, and several such e-processes, or one per
-arm as in the trial, can be combined by e-BH. For a single patient with
-unannounced meals, for instance, three such monitors, on night-time fasting
-windows, on windows after declared meals and on daytime windows away from
-them, test the twin's basal physiology, its model of meal absorption and the
-absence of hidden meals. Combined by e-BH, a rejection by the third monitor
-alone points to unannounced meals rather than to an inadequate twin, whereas a
-rejection on the fasting windows points to the physiology; a monitor that does
-not reject, however, gives no evidence that its part of the twin is right.
+arm as in the trial, can be combined by e-BH. For a single patient, for instance, monitors on fasting windows and on windows
+after declared meals test the twin's basal physiology and its model of meal
+absorption separately; a monitor that does not reject gives no evidence that
+its part of the twin is right.
 The tilted null might also drive the design. Under each action $a$, its
 divergence from the simulator, $\KL(\tilde T_{t,a}\|P_{t,a})$, is the growth
 the monitor expects from that action if its forecast is right, so choosing the
@@ -1639,26 +1521,7 @@ Once the simulator is run under the action taken, the design may be chosen to ga
 evidence where it accumulates fastest: in the audit this makes every score
 faster, ours and the concurrent ones alike, by 8\% to 61\% in the number of
 queries, while without the conditioning on the action the concurrent methods
-lose validity altogether. Other anytime-valid methods handle adaptively
-collected data, through randomisation tests and e-processes
-\citep{nair2023randomization,zampieri2025sequential}, off-policy inference
-\citep{waudbysmith2024anytime} or adaptive audits of AI systems
-\citep{zhou2026adaptive}, but none uses a simulator as the null; digital-twin
-validation by re-initialising the twin from observed states
-\citep{ghasemloo2026subtrace} uses the same conditioning with fixed-sample
-tests. In bandit multiple testing, one e-process per arm combined by e-BH
-controls the false discovery rate under adaptive sampling
-\citep{xu2021unified}; there the hypotheses concern the arms' effects and the
-sampling is chosen to make the tests powerful, whereas our per-arm monitors
-test the twin under the allocation fixed by the trial. Among sequential tests
-that bet with a learned predictor, Model-X tests of conditional independence
-\citep{shaer2023modelx} use the same mechanism with $M = 1$, drawing a dummy
-covariate from its known law; two-sample tests
-\citep{podkopaev2023sequential,shekhar2023nonparametric}, kernelised Stein
-discrepancy tests \citep{martinez2025sequential} and conformal test
-martingales \citep{vovk2003testing,vovk2021testing,prinster2025watch} address
-other nulls: two streams compared with each other, a model whose score
-function is available, or exchangeability with no reference model. The product of one-step predictives behind
+lose validity altogether. Other anytime-valid methods for adaptively collected data, and sequential tests that bet with a learned predictor, are discussed in Section~S10 of the Supplement; none of them uses a simulator as the null. The product of one-step predictives behind
 Section~\ref{sec:predictive} has classical forms in prequential analysis,
 minimum description length and sequential Monte Carlo (Supplement,
 Section~S5); prequential posteriors \citep{sinharoy2026prequential} use
@@ -1667,33 +1530,23 @@ simulations to calibrate a simulator, where we use them to test it.
 Several limitations remain. The null is a simple conditional null; simulators
 with unknown calibration parameters need composite-null constructions, such
 as universal inference or reverse information projections
-\citep{grunwald2024safe}, adapted to samplers. Exact validity requires the
-simulator to be run from the state of the real system, which is known in
-silico and absent in the audit and the bandit, but must be inferred for a
-physical twin. Sampling the state from an exact filtering distribution keeps
-validity exact with respect to the observed history; plugging in a point
-estimate does not, and an approximate filter, like an MCMC-based simulator,
-makes exchangeability only approximate. A persistent error, with divergence
-$\delta$ per step between the law of the real outcome and that of the
-simulations, can raise a false alarm, but not much before $\log(1/\alpha)/\delta$
-steps, since no score grows faster than $\delta$ per step
-(Corollary~\ref{cor:falsealarm}(ii)); it matters for long monitoring horizons.
+\citep{grunwald2024safe}, adapted to samplers. Exact validity requires the simulator to be run from the state of the real
+system, which is known in silico but must be inferred for a physical twin; an
+approximate filter makes exchangeability only approximate. A persistent error
+of divergence $\delta$ per step can then raise a false alarm, but not much
+before $\log(1/\alpha)/\delta$ steps (Corollary~\ref{cor:falsealarm}(ii)).
 Since the resulting bias recurs at every step, extending the guarantees of \citet{barber2026montecarlo} for a
 single approximately exchangeable test to the sequential setting is an open
 problem. Theorem~\ref{thm:simlik} compares the monitor with the best score in
 a parametric class, not with the true density ratio, and its $d\log t$ regret
-is not known to be optimal. It holds for the exact posterior, whereas the
-one-step Gaussian update used in practice is covered only through
-Proposition~\ref{prop:approx}; and in our experiments the logistic learner,
-which has no regret guarantee, is faster than the simulation-likelihood
-learner that has one, by about 6\% in stopping time on the drift task and
-about 60\% in the trial, because the latter's bets are too cautious. A
-tempered posterior $\pi_t \propto \pi_0 L_t^{\gamma}$ with $\gamma > 1$, as in
-the prequential posteriors of \citet{sinharoy2026prequential}, would bet more
-and is valid for every $\gamma$, since any posterior computed from the past
-gives a fair bet; what is lost is the exact factorisation behind
-Theorem~\ref{thm:simlik}, and a regret bound for it is the most useful next
-step.
+is not known to be optimal. It holds for the exact posterior, whereas the one-step Gaussian update used in
+practice is covered only through Proposition~\ref{prop:approx}; and the
+logistic learner, which has no regret guarantee, is faster than the
+simulation-likelihood learner, by about 6\% on the drift task and 60\% in the
+trial, because the latter bets cautiously. A tempered posterior
+$\pi_t \propto \pi_0 L_t^{\gamma}$ with $\gamma > 1$
+\citep{sinharoy2026prequential} would bet more and stays valid; a regret bound
+for it is the most useful next step.
 Theorem~\ref{thm:simlik} and Proposition~\ref{prop:approx} also assume bounded
 features, whereas our experiments standardise polynomial features without
 bounding them and clip only the score; the guarantees apply exactly once the
@@ -1711,8 +1564,9 @@ comparisons anytime-valid as data accumulate.
 \end{center}
 
 \begin{description}
-\item[Supplement:] the notation, the proofs, experimental details and the
-timing relative to concurrent work (Sections~S6--S9); three
+\item[Supplement:] the notation, the proofs, experimental details, the
+timing relative to concurrent work and further related work
+(Sections~S6--S10); three
 further analyses, of a single patient under closed-loop control, a
 single-stage response-adaptive trial, and a comparison with the
 Besag--Clifford e-process (Sections~S1--S3); additional results for
@@ -1736,7 +1590,7 @@ Section~\ref{sec:exp-llm} were generated from the publicly released Qwen2.5
 models and are distributed with the code; all other data are simulated by the
 code.
 
-\bibliographystyle{chicago}
+\bibliographystyle{apalike}
 \bibliography{references}
 
 \end{document}
