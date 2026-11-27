@@ -83,10 +83,10 @@ exactly what is in doubt \citep{zhao2020sim}. In these settings, as we choose
 actions based on past observations, can we continuously test whether the
 resulting stream of outcomes is still consistent with a simulator, and sound
 an alarm as soon as it is not, while controlling false alarms under optional
-stopping? Three features make it difficult. The data are dependent, because
-what is observed next depends on what has been seen. The null model is a
-simulator, which we can run but whose likelihood we cannot write down. And we
-want to look at the evidence after every observation. Fixed-sample tests lose
+stopping? The data are dependent, because what is observed next depends on
+what has been seen; the null is a simulator, which we can run but whose
+likelihood we cannot write down; and we want to look at the evidence after
+every observation. Fixed-sample tests lose
 their guarantees under repeated looks, and the corrections developed for
 adaptive trials \citep{bowden2017unbiased,magirr2012generalized} assume a
 pre-specified adaptation rule. Bayesian updating copes with adaptive sampling
@@ -245,9 +245,9 @@ H_0:\quad Q_t(\cdot \mid \F_{t-1}, A_t) = P_t(\cdot \mid \F_{t-1}, A_t)
 \]
 the simulator reproduces the conditional behaviour of the system under every
 action that is actually taken. $H_0$ is composite in the policy, which is left
-unrestricted. This composite null costs nothing: because each factor is fair
-conditionally on the past and on the action, one e-process is valid for every
-policy simultaneously, with no infimum over the class. The policy may depend
+unrestricted. Because each factor is fair conditionally on the past and on
+the action, one e-process is valid for every policy at once, with no infimum
+over the class. The policy may depend
 on past outcomes and on the monitor's own wealth; the price is that
 the null concerns only the actions actually taken, so the monitor cannot
 detect failures of the simulator under actions the policy never chooses. A nonnegative process $(W_t)$ with $W_0 = 1$ is a \emph{test
@@ -339,7 +339,8 @@ trial the action $A_t$ is the arm assigned to a participant for a period,
 chosen after interim analyses and re-assignments, and the conditional law
 $P_t$ is that of the participant's outcome given their history. The policy
 enters only through the requirement that the simulator be run under the action
-actually taken, and this requirement is essential.
+actually taken, and Proposition~\ref{prop:necessary} shows that this
+requirement cannot be dropped.
 
 \begin{proposition}[Conditioning on the action cannot be dropped]\label{prop:necessary}
 Suppose that $H_0$ holds and that at time $t$ the policy takes an action $a$,
@@ -390,10 +391,10 @@ sufficient for fairness (Theorem~\ref{thm:valid}) but necessary for the bet to
 be fair against every score, and that $1 + \chi^2(P_a\|\bar P)$ is the exact
 limit of the expected bet of the likelihood-ratio score.
 
-The contrast with a single Monte Carlo test is instructive. There, simulations
-drawn from a law within total variation $\varepsilon$ of the right one inflate
-the level by at most $\varepsilon$ \citep[Theorem~2]{barber2026montecarlo}. In
-a sequential e-process the bias of every factor compounds: the expected bet is
+For a single Monte Carlo test, simulations drawn from a law within total
+variation $\varepsilon$ of the right one inflate the level by at most
+$\varepsilon$ \citep[Theorem~2]{barber2026montecarlo}. In a sequential
+e-process the bias of every factor compounds instead: the expected bet is
 governed by the $\chi^2$ divergence and the growth of the wealth by the
 Kullback--Leibler divergence (Corollary~\ref{cor:falsealarm}), and
 $2\,\mathrm{TV}^2 \le \KL \le \log(1+\chi^2)$, so any departure, however small in
@@ -585,8 +586,8 @@ have the same law, and with $K$ arms it can never exceed $\log K$ per step.
 \section{Betting is predicting}\label{sec:predictive}
 %======================================================================
 
-Theorem~\ref{thm:growth} says what a good score is: one whose tilted null is
-close to the truth. Choosing such a score is therefore a problem of
+By Theorem~\ref{thm:growth}, a good score is one whose tilted null is close
+to the truth. Choosing such a score is therefore a problem of
 sequential prediction: before each real outcome is seen, forecast it as well
 as possible from the past. When the null density is known, this problem has a
 classical solution, the Bayes factor, and we build on it. We first recall why
@@ -704,26 +705,25 @@ Gibbs' inequality is nonnegative and vanishes only when $\tilde T_t = Q_t$,
 that is, when $T_t$ is the true ratio up to a constant. This is
 Theorem~\ref{thm:growth}(ii), and a finite $M$ multiplies the growth by about
 $M/(M+1)$ (Theorem~\ref{thm:growth}(iv)). A learned score therefore pays, at
-every step, for its error as a forecaster: validity comes from
-exchangeability; power is a matter of prediction.
+every step, for its error as a forecaster, and only in power.
 
-This reading says where power comes from. A score can only forecast within
-the family of its tilted nulls, so the features determine which departures
-can be detected. For a score built from the simulator's own parameters, as in
-SLICE, the tilted nulls are members of that parametric family, and a departure
-outside it is invisible however accurate the score; a score learned on
-features of the outcome reweights the simulator in directions that need not
-correspond to any parameter. This is the contrast between departures inside
-and outside a parametric family in Section~\ref{sec:exp-concurrent}. And since a forecast
+Reading the score as a forecast scored by the logarithmic loss turns the
+choice of the score into a problem of sequential prediction, which
+Section~\ref{sec:rules} solves with a Bayesian mixture. The reading also says
+where power comes from. A score can only forecast within the family of its
+tilted nulls, so the features determine which departures can be detected: for
+a score built from the simulator's own parameters, as in SLICE, the tilted
+nulls belong to that parametric family, and a departure outside it is
+invisible however accurate the score (Section~\ref{sec:exp-concurrent}),
+whereas a score learned on features of the outcome reweights the simulator in
+directions that need not correspond to any parameter. And since a forecast
 need only be issued before the outcome it is scored on, any learner, exact or
 approximate, trained online or in advance, keeps the validity of
-Theorem~\ref{thm:valid}; when the monitor rejects, the forecasts that beat the
-simulator indicate where it fails.
+Theorem~\ref{thm:valid}.
 
 \subsection{From Bayes to the simulation likelihood}\label{sec:rules}\label{sec:exactbayes}\label{sec:simlik}
 
-Section~\ref{sec:scores} turns the choice of the score into sequential
-prediction under the logarithmic loss. The update rule must fix the bet on
+An update rule for the score must fix the bet on
 $X_t$ before $X_t$ is seen, should hedge early on, since an overconfident
 forecast can lose all the growth (Theorem~\ref{thm:growth}), and must use
 simulations alone, since $p_t$ can only be sampled.
@@ -1099,8 +1099,9 @@ gives 10\% false alarms with the regularised learner and 59\% with the
 overfitting one, while the Monte Carlo e-process gives 3\% with both
 (Table~\ref{tab:drift}): a worse learner costs power, not validity. A
 Kolmogorov--Smirnov test recomputed every ten steps gives 32\%. The oracle
-likelihood-ratio e-process, unavailable in practice, stops after 35 steps,
-which is the price of learning the discrepancy online.
+likelihood-ratio e-process, unavailable in practice, stops after 35 steps;
+the gap to the 198 steps of the learned score is the price of learning the
+discrepancy online.
 
 \begin{table}[t]
 \centering
@@ -1187,11 +1188,10 @@ gives 14--74\% false alarms. The logistic Bayesian learning rule is the
 fastest and makes the method insensitive to the flexibility of the features
 (power 0.97 with degree-6 features, against 0.84 for the refit). The
 simulation-likelihood learner, the one with the guarantee of
-Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. This is the
-price of the guarantee rather than a contradiction: the bound holds on every
-path, against the best score in hindsight, and the Bayesian mixture pays for
-it with cautious early bets, whereas the logistic learner bets more
-aggressively with no such bound, which pays on these tasks. All variants
+Theorem~\ref{thm:simlik}, is about 6\% slower on the drift task. Its bound
+holds on every path, against the best score in hindsight, and the Bayesian
+mixture pays for it with cautious early bets; the logistic learner bets more
+aggressively, with no such bound, and on these tasks this pays. All variants
 are in the Supplement (Section~S4), and a comparison with the Besag--Clifford
 e-process of \citet{dombowsky2026besag} in Section~S3.
 
@@ -1262,8 +1262,8 @@ F\&B, twin on random arms & -- & -- & \multicolumn{2}{c}{false alarms 100\%} & -
 \end{adjustbox}
 \end{table}
 
-Table~\ref{tab:concurrent} shows three things. Conditioning on the action is
-necessary for every score: run as published, the refitted score of
+In Table~\ref{tab:concurrent}, conditioning on the action is necessary for
+every score: run as published, the refitted score of
 \citet{forre2026anytime} rejects the true null in every bandit run. Scores
 that know where the departure lies are fastest inside the family, SLICE after
 67 steps on the drift and a score fitted on the true alternative after 58,
@@ -1273,14 +1273,13 @@ score learned from real against simulated outcomes keeps it. Among the learned
 scores, the refit of \citet{forre2026anytime} is slightly more powerful on the
 drift task, markedly so against our logistic learner outside the family (0.91
 against 0.73), and ours are faster on the bandit (38 against 61 steps inside
-the family, 112 against 167 outside). The gap outside the family is the
-logistic learner's rather than the method's: on the simulation likelihood,
-the objective that the refit maximises, our update has the same median
-stopping time as the refit (228 steps), plausibly because the logistic
-learner's probit shrinkage keeps its bets small for longer when the signal is
-weak. Ours cost a third as much and carry the pathwise guarantee of
-Theorem~\ref{thm:simlik}: they average over the uncertainty about the score's
-parameter, whereas a sequence of refits at a maximiser is in general not the
+the family, 112 against 167 outside). The gap outside the family comes from
+the logistic learner, not from the method. On the simulation likelihood, the
+objective that the refit maximises, our update has the same median stopping
+time as the refit (228 steps), plausibly because the logistic learner's probit
+shrinkage keeps its bets small for longer when the signal is weak. Ours cost a
+third as much and carry the pathwise guarantee of Theorem~\ref{thm:simlik}.
+They average over the uncertainty about the score's parameter, whereas a sequence of refits at a maximiser is in general not the
 predictive sequence of any exchangeable model
 \citep{fortini2000exchangeability,fortini2024exchangeability}.
 
@@ -1632,14 +1631,16 @@ data spoils its calibration. Here validity comes only from how the simulator
 is run, through exchangeability with fresh simulations under the action taken
 and from the current state, and holds for any score and any policy, including
 interim analyses and re-assignments. Power comes only from the score, a
-sequence of one-step forecasts: Theorem~\ref{thm:growth} measures it by the
-distance between the tilted null and the truth, scaled by $M/(M+1)$, and
+sequence of one-step forecasts. Theorem~\ref{thm:growth} measures it by the
+distance between the tilted null and the truth, scaled by $M/(M+1)$.
 Theorem~\ref{thm:simlik} shows that exact Bayesian updating on the simulation
 likelihood loses at most $d\log t$ against the best score of a class chosen in
-hindsight, on every path, so that it grows at that score's rate; since the
+hindsight, on every path, so that it grows at that score's rate, and since the
 posterior-predictive bets multiply to the Bayesian mixture, the wealth is
 updated in one step per observation and never recomputed from the past.
-Approximations in the score therefore cost power but never validity. The tilted null also makes a rejection informative. The monitor rejects when
+Approximations in the score therefore cost power but never validity.
+
+The tilted null also makes a rejection informative. The monitor rejects when
 its forecasts, the tilted nulls of its scores, have predicted reality better
 than the simulator; as the posterior concentrates, the tilted null approaches
 the reweighting of the simulator closest to reality,
@@ -1660,14 +1661,15 @@ them, test the twin's basal physiology, its model of meal absorption and the
 absence of hidden meals. Combined by e-BH, a rejection by the third monitor
 alone points to unannounced meals rather than to an inadequate twin, whereas a
 rejection on the fasting windows points to the physiology; a monitor that does
-not reject, however, gives no evidence that its part of the twin is right. The tilted null might also drive
-the design: its divergence from the simulator under each action,
-$\KL(\tilde T_{t,a}\|P_{t,a})$, is the growth the monitor expects from that
-action, and choosing actions to maximise it is a model-based alternative to
-the upper confidence bound of Section~\ref{sec:exp-llm}, valid by
-Theorem~\ref{thm:valid} since it uses the past only. It relies, however, on
-the score's own forecast, and pays only once that forecast is good, whereas the
-upper confidence bound uses the growth actually realised.
+not reject, however, gives no evidence that its part of the twin is right.
+The tilted null might also drive the design. Under each action $a$, its
+divergence from the simulator, $\KL(\tilde T_{t,a}\|P_{t,a})$, is the growth
+the monitor expects from that action if its forecast is right, so choosing the
+action that maximises it sends the next observation where the monitor believes
+the simulator is most wrong. This uses only the past, so it is valid by
+Theorem~\ref{thm:valid}; it is a model-based alternative to the upper
+confidence bound of Section~\ref{sec:exp-llm}, which uses the growth actually
+realised, and it pays only once the forecast is good.
 
 Monte Carlo tests compare a fixed dataset with simulations from the null
 \citep{besag1989generalized}, and \citet{fischer2024sequential} make them
@@ -1695,9 +1697,8 @@ $M/(M+1)$, and updates the score's parameter by Bayes' rule on the simulation
 likelihood, with a pathwise regret bound, where both concurrent papers bet at
 a point estimate.
 
-The methods are complementary rather than competing. SLICE \citep{cortinovis2026slice} answers a
-different question, which values of a simulator's parameter are compatible
-with the data. When the departure lies inside its parametrised family it is
+SLICE \citep{cortinovis2026slice} answers a different question: which values
+of a simulator's parameter are compatible with the data. When the departure lies inside its parametrised family it is
 the fastest method we compared; when it does not, its power depends on where
 the departure projects onto the family and vanishes when the projection is
 the null itself (Remark~\ref{rem:family}), and it needs an amortised training
@@ -1720,8 +1721,7 @@ such confidence sequences would need a posterior computed for each candidate
 null from its own simulation likelihood, with scores log-linear in their
 parameter; we leave this to future work.
 
-The actions are a source of power, not only a threat to validity. Once the
-simulator is run under the action taken, the design may be chosen to gather
+Once the simulator is run under the action taken, the design may be chosen to gather
 evidence where it accumulates fastest: in the audit this makes every score
 faster, ours and the concurrent ones alike, by 8\% to 61\% in the number of
 queries, while without the conditioning on the action the concurrent methods
@@ -1746,8 +1746,7 @@ martingales \citep{vovk2003testing,vovk2021testing,prinster2025watch} address
 other nulls: two streams compared with each other, a model whose score
 function is available, or exchangeability with no reference model.
 
-The predictive reading places the method among classical ideas. Computing a
-marginal likelihood as a product of one-step predictives is the prequential
+Computing a marginal likelihood as a product of one-step predictives is the prequential
 form of \citet{dawid1984present}, the Bayes universal code of minimum
 description length \citep{rissanen1984universal,grunwald2007minimum} and the
 basis of sequential Monte Carlo estimates of the evidence
